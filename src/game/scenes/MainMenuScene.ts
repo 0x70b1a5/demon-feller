@@ -5,7 +5,7 @@ export class MainMenuScene extends Phaser.Scene {
   private rexUI!: RexUIPlugin
 
   constructor() {
-    super('MainMenuScene');
+    super({ key: 'MainMenuScene' });
   }
 
   create() {
@@ -14,26 +14,24 @@ export class MainMenuScene extends Phaser.Scene {
       width: 40,
       height: 40,
   
-      background: this.rexUI.add.roundRectangle(0, 0, 0, 0, 20, colors.TEXTBOX_BG_COLOR),
-  
-      text: this.add.text(0, 0, 'DEMON FELLER', {
-        fontFamily: 'pkmn', color: colors.TEXT_COLOR
+      text: this.add.text(0, 0, 'DEMON\nFELLER', {
+        fontFamily: 'pkmn', color: 'white', fontSize: 128
       }),
   
       space: {
-        left: 10,
-        right: 10,
+        top: 20, left: 20, right: 20, bottom: 10
       },
   
       align: 'center',
 
       anchor: {
         centerX: 'center',
-        centerY: 'top'
+        centerY: 'center-200'
       }
     })
     .setInteractive()
     .setOrigin(0.5, 0.5)
+    .layout()
 
     // Add play button
     const playButton = this.rexUI.add.label({
@@ -43,27 +41,28 @@ export class MainMenuScene extends Phaser.Scene {
       background: this.rexUI.add.roundRectangle(0, 0, 0, 0, 20, colors.TEXTBOX_BG_COLOR),
   
       text: this.add.text(0, 0, 'Play', {
-        fontFamily: 'pkmn', color: colors.TEXT_COLOR
+        fontFamily: 'pkmn', color: colors.TEXT_COLOR, fontSize: 72
       }),
   
       space: {
-        left: 10,
-        right: 10,
+        top: 20, left: 20, right: 20, bottom: 10
       },
   
       align: 'center',
 
       anchor:{ 
         centerX: 'center',
-        centerY:'top+20%'
+        centerY:'center'
       }
     })
     .setInteractive()
     .setOrigin(0.5, 0.5)
+    .layout()
 
     playButton.on('pointerup', () => {
       // Transition to game scene
       this.scene.start('GameScene');
+      this.scene.bringToTop('GameScene')
     }, this);
   }
 }

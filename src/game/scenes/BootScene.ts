@@ -5,7 +5,7 @@ export class BootScene extends Phaser.Scene {
 
   preload() {
     // Create loading text
-    const loadingText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 50, "Loading...", { font: '20px Arial', color: '#ffffff' });
+    const loadingText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 50, 'Loading...', { font: '20px Arial', color: '#ffffff' });
     loadingText.setOrigin(0.5);
 
     // Create progress bar
@@ -46,6 +46,17 @@ export class BootScene extends Phaser.Scene {
     this.load.image('powerup', 'assets/powerup.png');
     this.load.image('gun', 'assets/gun.png');
     this.load.image('feller', 'assets/feller.png');
+    this.load.image('tileset', 'assets/tileset.png')
+    this.load.spritesheet(
+      'feller-sheet',
+      '../assets/spritesheets/feller.png',
+      {
+        frameWidth: 200,
+        frameHeight: 200,
+        margin: 0,
+        spacing: 0
+      }
+    );
 
     // this.load.image('playerSpriteIdle', 'assets/images/player_idle.png');
 
@@ -61,7 +72,7 @@ export class BootScene extends Phaser.Scene {
     const element = document.createElement('style');
     document.head.appendChild(element);
     const sheet = element.sheet!;
-    let styles = '@font-face { font-family: "pkmn"; src: url("assets/fonts/pkmn/PKMN RBYGSC.ttf"); }\n';
+    let styles = '@font-face { font-family: \'pkmn\'; src: url(\'assets/fonts/pkmn/PKMN RBYGSC.ttf\'); }\n';
     sheet.insertRule(styles, 0);
   }
 

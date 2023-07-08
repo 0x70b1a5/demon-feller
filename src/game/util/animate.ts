@@ -15,7 +15,7 @@ const animations = {
     });
   },
   enshadow: (sprite: Phaser.GameObjects.Sprite) => {
-    sprite.preFX?.addShadow(-5, -5, 0.005, 0.5, 0x0)
+    sprite.preFX?.addShadow(-5, -5, 0.01, 0.5, 0x0)
   }
 }
 
