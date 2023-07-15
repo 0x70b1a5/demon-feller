@@ -51,6 +51,7 @@ export class BootScene extends Phaser.Scene {
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     this.load.image('powerup', 'assets/powerup.png');
     this.load.image('gun', 'assets/gun.png');
+    this.load.image('bullet', 'assets/bullet.png');
     this.load.image('feller', 'assets/feller.png');
     this.load.image('tileset', 'assets/tileset.png')
     this.load.spritesheet(

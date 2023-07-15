@@ -1,3 +1,4 @@
+import Bullet from "./Bullet";
 import animations from "./util/animate";
 
 /**
@@ -11,6 +12,8 @@ export default class Feller {
   keys!: Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
   gunSprite!: Phaser.Physics.Arcade.Sprite;
   debugGraphics!: Phaser.GameObjects.Graphics;
+  shootCooldown = 0
+  SHOOT_COOLDOWN_DURATION = 40
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     this.scene = scene;
@@ -25,12 +28,15 @@ export default class Feller {
 
     this.gunSprite = scene.physics.add
       .sprite(x, y, 'gun')
-      .setScale(0.5)
+      .setScale(0.35)
       .setOrigin(0.5, 0.5);
 
     this.sprite = scene.physics.add
       .sprite(x, y, 'feller-sheet')
-      .setScale(0.5)
+      .setScale(0.5);
+
+    this.sprite
+      .setSize(this.sprite.width/2, this.sprite.height*0.75)
       .setOrigin(0.5, 0.5);
 
     this.sprite.anims.play('player-walk');
@@ -113,26 +119,33 @@ export default class Feller {
     this.gunSprite.setRotation(angleToPointer);
 
     // Position the gun 20px from the feller's center towards the cursor
-    const distanceFromCenter = this.sprite.width/3;
+    const distanceFromCenter = this.sprite.width/4;
     this.gunSprite.x = sprite.x + distanceFromCenter * Math.cos(angleToPointer);
     this.gunSprite.y = sprite.y + distanceFromCenter * Math.sin(angleToPointer);
 
     this.gunSprite.flipY = this.gunSprite.x < sprite.x
 
-    // Fire bullets when spacebar is pressed
-    if (pointer.primaryDown) {
-      this.shoot(angleToPointer);
+
+    if (this.shootCooldown > 0) {
+      this.shootCooldown--
+    } else {
+      if (pointer.primaryDown) {
+        this.shoot(angleToPointer);
+      }
     }
-
-    // console.log(body.x, body.y)
   }
-
 
   shoot(angle: number) {
-    // TODO: Add logic for shooting bullets in the direction of `angle`
-    console.log('Shooting a bullet at angle: ' + angle);
-  }
+    const barrelDistance = 80
+    const offset = (Math.abs(angle) > Math.PI/2 ? 1 : -1) * Math.PI/12
+    const barrelX = this.gunSprite.x + barrelDistance * Math.cos(angle + offset);
+    const barrelY = this.gunSprite.y + barrelDistance * Math.sin(angle + offset);
 
+    // Create new bullet at the barrel's position and set its velocity.
+    const bullet = new Bullet(this.scene, barrelX, barrelY, angle); 
+    this.shootCooldown = this.SHOOT_COOLDOWN_DURATION;
+  }
+  
   destroy() {
     this.sprite.destroy();
     this.gunSprite.destroy();

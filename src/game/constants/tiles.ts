@@ -4,10 +4,10 @@
 // - Array or 2D array for putTilesAt
 const TILE_MAPPING = {
   WALL: {
-    // TOP_LEFT: 3,
-    // TOP_RIGHT: 4,
-    // BOTTOM_RIGHT: 23,
-    // BOTTOM_LEFT: 22,
+    TOP_LEFT: 9,
+    BOTTOM_RIGHT: 10,
+    TOP_RIGHT: 11,
+    BOTTOM_LEFT: 12,
     // Let's add some randomization to the walls while we are refactoring:
     TOP: [{ index: 6, weight: 1 }],
     LEFT: [{ index: 5, weight: 1 }],
@@ -19,18 +19,10 @@ const TILE_MAPPING = {
   // ROCK: [{ index: 13, weight: 1 }, { index: 32, weight: 1 }, { index: 51, weight: 1 }],
   // BARREL: [{ index: 13, weight: 1 }, { index: 32, weight: 1 }, { index: 51, weight: 1 }],
   DOOR: {
-    TOP: [3, 3, 3],
-    LEFT: [
-      [3],
-      [3],
-      [3]
-    ],
-    BOTTOM: [3, 3, 3],
-    RIGHT: [
-      [3],
-      [3],
-      [3]
-    ]
+    TOP: 3,
+    LEFT: 14,
+    BOTTOM: 13,
+    RIGHT: 4
   },
   // CHEST: 166,
   // STAIRS: 81,

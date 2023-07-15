@@ -39,12 +39,12 @@ export class GameScene extends Phaser.Scene {
     this.hasPlayerReachedStairs = false
 
     const dungeon = this.dungeon = new Dungeon({
-      width: 50,
-      height: 50,
+      width: 20,
+      height: 20,
       doorPadding: 1,
       rooms: {
-        width: { min: 5, max: 9, onlyOdd: true },
-        height: { min: 5, max: 9 , onlyOdd: true },
+        width: { min: 5, max: 5, onlyOdd: true },
+        height: { min: 5, max: 5, onlyOdd: true },
         maxRooms: 20,
       }
     })
@@ -61,7 +61,6 @@ export class GameScene extends Phaser.Scene {
     const tileset = map.addTilesetImage('tileset', undefined, 200, 200, 0, 0)!
     const groundLayer = this.groundLayer = map.createBlankLayer('Ground', tileset)!.fill(TILES.BLANK)
     // const stuffLayer =  this.stuffLayer = map.createBlankLayer('Stuff', tileset)!
-    groundLayer.setCollisionByExclusion(TILES.FLOOR.map(t => t.index));
     
     this.dungeon.rooms.forEach((room) => {
       const { x, y, width, height, left, right, top, bottom } = room;
@@ -70,10 +69,10 @@ export class GameScene extends Phaser.Scene {
       this.groundLayer.weightedRandomize(TILES.FLOOR, x + 1, y + 1, width - 2, height - 2);
 
       // Place the room corners tiles
-      // this.groundLayer.putTileAt(TILES.WALL.TOP_LEFT, left, top);
-      // this.groundLayer.putTileAt(TILES.WALL.TOP_RIGHT, right, top);
-      // this.groundLayer.putTileAt(TILES.WALL.BOTTOM_RIGHT, right, bottom);
-      // this.groundLayer.putTileAt(TILES.WALL.BOTTOM_LEFT, left, bottom);
+      this.groundLayer.putTileAt(TILES.WALL.TOP_LEFT, left, top);
+      this.groundLayer.putTileAt(TILES.WALL.TOP_RIGHT, right, top);
+      this.groundLayer.putTileAt(TILES.WALL.BOTTOM_RIGHT, right, bottom);
+      this.groundLayer.putTileAt(TILES.WALL.BOTTOM_LEFT, left, bottom);
 
       // Fill the walls with mostly clean tiles
       this.groundLayer.weightedRandomize(TILES.WALL.TOP, left + 1, top, width - 2, 1);
@@ -84,17 +83,28 @@ export class GameScene extends Phaser.Scene {
       // Dungeons have rooms that are connected with doors. Each door has an x & y relative to the
       // room's location. Each direction has a different door to tile mapping.
       const doors = room.getDoorLocations(); // → Returns an array of {x, y} objects
-      for (let i = 0; i < doors.length; i++) {
-        this.groundLayer.putTilesAt(TILES.DOOR.TOP, x , y );
+      for (let door of doors) {
+        if (door.y === 0) {
+          this.groundLayer.putTileAt(TILES.DOOR.TOP, x + door.x, y + door.y);
+        } else if (door.y === room.height - 1) {
+          this.groundLayer.putTileAt(TILES.DOOR.BOTTOM, x + door.x, y + door.y);
+        } else if (door.x === 0) {
+          this.groundLayer.putTileAt(TILES.DOOR.LEFT, x + door.x, y + door.y);
+        } else if (door.x === room.width - 1) {
+          this.groundLayer.putTileAt(TILES.DOOR.RIGHT, x + door.x, y + door.y);
+        }
       }
     });
 
+    // MUST SET COLLISION ***AFTER*** MODIFYING LAYER
+    groundLayer.setCollisionByExclusion([0, 1, 2, 3, 4, 13, 14]);
+
     const debugGraphics = this.add.graphics().setAlpha(0.75);
-    groundLayer.renderDebug(debugGraphics, {
-      tileColor: null, // Color of non-colliding tiles
-      collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
-      faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
-    });
+    // groundLayer.renderDebug(debugGraphics, {
+    //   tileColor: null, // Color of non-colliding tiles
+    //   collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+    //   faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+    // });
 
     const rooms = this.dungeon.rooms.slice();
     const startRoom = rooms.shift();
@@ -111,7 +121,7 @@ export class GameScene extends Phaser.Scene {
     this.feller = new Feller(this, x, y);
 
     // this.physics.add.collider(this.feller.sprite, stuffLayer);
-    this.physics.add.collider(this.feller.sprite, groundLayer);
+    this.physics.add.collider(this.feller.sprite, groundLayer, () => console.log('collide'));
 
     const camera = this.cameras.main;
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
