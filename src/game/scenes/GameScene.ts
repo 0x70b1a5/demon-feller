@@ -39,13 +39,13 @@ export class GameScene extends Phaser.Scene {
     this.hasPlayerReachedStairs = false
 
     const dungeon = this.dungeon = new Dungeon({
-      width: 10,
-      height: 10,
+      width: 50,
+      height: 50,
       doorPadding: 1,
       rooms: {
-        width: { min: 3, max: 5, onlyOdd: true },
-        height: { min: 3, max: 5 , onlyOdd: true },
-        maxRooms: 10
+        width: { min: 5, max: 9, onlyOdd: true },
+        height: { min: 5, max: 9 , onlyOdd: true },
+        maxRooms: 20,
       }
     })
     
@@ -58,10 +58,10 @@ export class GameScene extends Phaser.Scene {
       height: dungeon.height
     })
 
-    const tileset = map.addTilesetImage('tileset', 'tilesetmap', 200, 200, 0, 0)!
+    const tileset = map.addTilesetImage('tileset', undefined, 200, 200, 0, 0)!
     const groundLayer = this.groundLayer = map.createBlankLayer('Ground', tileset)!.fill(TILES.BLANK)
     // const stuffLayer =  this.stuffLayer = map.createBlankLayer('Stuff', tileset)!
-    groundLayer.setCollisionByExclusion([0, 1, 2]);
+    groundLayer.setCollisionByExclusion(TILES.FLOOR.map(t => t.index));
     
     this.dungeon.rooms.forEach((room) => {
       const { x, y, width, height, left, right, top, bottom } = room;
@@ -85,16 +85,15 @@ export class GameScene extends Phaser.Scene {
       // room's location. Each direction has a different door to tile mapping.
       const doors = room.getDoorLocations(); // → Returns an array of {x, y} objects
       for (let i = 0; i < doors.length; i++) {
-        if (doors[i].y === 0) {
-          this.groundLayer.putTilesAt(TILES.DOOR.TOP, x + doors[i].x - 1, y + doors[i].y);
-        } else if (doors[i].y === room.height - 1) {
-          this.groundLayer.putTilesAt(TILES.DOOR.BOTTOM, x + doors[i].x - 1, y + doors[i].y);
-        } else if (doors[i].x === 0) {
-          this.groundLayer.putTilesAt(TILES.DOOR.LEFT, x + doors[i].x, y + doors[i].y - 1);
-        } else if (doors[i].x === room.width - 1) {
-          this.groundLayer.putTilesAt(TILES.DOOR.RIGHT, x + doors[i].x, y + doors[i].y - 1);
-        }
+        this.groundLayer.putTilesAt(TILES.DOOR.TOP, x , y );
       }
+    });
+
+    const debugGraphics = this.add.graphics().setAlpha(0.75);
+    groundLayer.renderDebug(debugGraphics, {
+      tileColor: null, // Color of non-colliding tiles
+      collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+      faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
     });
 
     const rooms = this.dungeon.rooms.slice();
@@ -102,7 +101,7 @@ export class GameScene extends Phaser.Scene {
     const endRoom = Phaser.Utils.Array.RemoveRandomElement(rooms);
     const otherRooms = Phaser.Utils.Array.Shuffle(rooms).slice(0, rooms.length * 0.9);
     
-    this.physics.world.createDebugGraphic();   
+    // this.physics.world.createDebugGraphic();   
 
     // Place the player in the first room
     const playerRoom = startRoom!;
@@ -116,7 +115,7 @@ export class GameScene extends Phaser.Scene {
 
     const camera = this.cameras.main;
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    camera.startFollow(this.feller);
+    camera.startFollow(this.feller.sprite);
   }
 
   update(time: any, delta: any) {

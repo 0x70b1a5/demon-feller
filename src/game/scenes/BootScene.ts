@@ -15,25 +15,31 @@ export class BootScene extends Phaser.Scene {
     progressBox.fillRect(this.cameras.main.centerX - 160, this.cameras.main.centerY, 320, 50);
     
     this.load.on('progress', (value: number) => {
-        progressBar.clear();
-        progressBar.fillStyle(0xffffff, 1);
-        progressBar.fillRect(this.cameras.main.centerX - 150, this.cameras.main.centerY + 10, 300 * value, 30);
+      progressBar.clear();
+      progressBar.fillStyle(0xffffff, 1);
+      progressBar.fillRect(this.cameras.main.centerX - 150, this.cameras.main.centerY + 10, 300 * value, 30);
     }, this);
 
     this.load.on('complete', () => {
-        progressBar.destroy();
-        progressBox.destroy();
-        loadingText.destroy();
+      progressBar.destroy();
+      progressBox.destroy();
+      loadingText.destroy();
 
-        (window as any).WebFont.load({
-          custom: {
-            families: [ 'pkmn' ]
-          },
-          active: () =>
-          {
-            console.log('fonts loaded')
-          }
-        });
+      (window as any).WebFont.load({
+        custom: {
+          families: [ 'pkmn' ]
+        },
+        active: () =>
+        {
+          // Fonts
+          const element = document.createElement('style');
+          document.head.appendChild(element);
+          const sheet = element.sheet!;
+          let styles = '@font-face { font-family: \'pkmn\'; src: url(\'assets/fonts/pkmn/PKMNRBYGSC.ttf\'); }\n';
+          sheet.insertRule(styles, 0);
+          console.log('fonts loaded')
+        }
+      });
     }, this);
 
     // Preload all assets
@@ -51,8 +57,8 @@ export class BootScene extends Phaser.Scene {
       'feller-sheet',
       '../assets/spritesheets/feller.png',
       {
-        frameWidth: 200,
-        frameHeight: 200,
+        frameWidth: 400,
+        frameHeight: 400,
         margin: 0,
         spacing: 0
       }
@@ -67,13 +73,6 @@ export class BootScene extends Phaser.Scene {
 
     // Tilemap
     // this.load.image('tiles', 'assets/tilemaps/tiles.png');
-    
-    // Fonts
-    const element = document.createElement('style');
-    document.head.appendChild(element);
-    const sheet = element.sheet!;
-    let styles = '@font-face { font-family: \'pkmn\'; src: url(\'assets/fonts/pkmn/PKMN RBYGSC.ttf\'); }\n';
-    sheet.insertRule(styles, 0);
   }
 
   init() {
