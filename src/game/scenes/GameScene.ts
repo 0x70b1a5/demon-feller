@@ -12,6 +12,7 @@ import Enemy, { EnemyConfig } from '../Enemy';
 import Bullet from '../Bullet';
 import Goo from '../Goo';
 import PowerUp, { PowerUpType } from '../Powerup';
+import EventEmitter from '../EventEmitter';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -28,11 +29,11 @@ export class GameScene extends Phaser.Scene {
   level!: number
   hasPlayerReachedStairs!: boolean
   dungeon!: Dungeon
+  rooms!: RoomWithEnemies[]
   groundLayer!: Phaser.Tilemaps.TilemapLayer
   stuffLayer!: Phaser.Tilemaps.TilemapLayer
-  finishedRooms: Room[] = []
   tilemapVisibility!: TilemapVisibility;
-  playerRoom!: Room
+  playerRoom!: RoomWithEnemies
   enemies: Enemy[] = []
   map!: Phaser.Tilemaps.Tilemap
   
@@ -53,8 +54,8 @@ export class GameScene extends Phaser.Scene {
     this.physics.world.createDebugGraphic();   
 
     const dungeon = this.dungeon = new Dungeon({
-      width: 200,
-      height: 200,
+      width: 25,
+      height: 25,
       doorPadding: 1,
       rooms: {
         width: { min: 5, max: 13, onlyOdd: true },
@@ -63,7 +64,7 @@ export class GameScene extends Phaser.Scene {
       }
     })
     
-    dungeon.drawToConsole({ });
+    // dungeon.drawToConsole({ });
 
     const map = this.map = this.make.tilemap({
       tileWidth: 200,
@@ -120,9 +121,8 @@ export class GameScene extends Phaser.Scene {
     //   faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
     // });
 
-    const rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
+    const rooms = this.rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
     const startRoom = rooms.shift();
-    const endRoom = Phaser.Utils.Array.RemoveRandomElement(rooms);
     const otherRooms = Phaser.Utils.Array.Shuffle(rooms);
 
     const shadowLayer = map.createBlankLayer('Shadow', tileset)!.fill(TILES.BLANK)!;
@@ -144,7 +144,7 @@ export class GameScene extends Phaser.Scene {
     camera.startFollow(this.feller.sprite);
 
     otherRooms.forEach(room => {
-      for(let i = 0; i < Math.random() * 5; i++) {
+      for(let i = 0; i < Math.random() * 8; i++) {
         const enemy = Math.random() < 0.5 
           ? new Goo(this, { room, texture: 'goo' })
           : new Enemy(this, { room, texture: 'pig', velocity: 50 })
@@ -193,11 +193,18 @@ export class GameScene extends Phaser.Scene {
       gfx.clear()
     });
   }
+  
+  checkLevelComplete() {
+    if (this.rooms.find(room => room.enemies?.find(enemy => !enemy.dead))) {
+      return false
+    }
+    alert('You win!')
+    EventEmitter.emit('gameOver')
+  }
 
   spawnEnemy(enemy: Enemy) {
     this.physics.add.overlap(this.feller.sprite, enemy, () => {
-      console.log('enemy hit feller')
-      this.feller.hit(enemy)
+      enemy.attack(this.feller)
     });
     this.enemies.push(enemy)
   }
@@ -209,7 +216,7 @@ export class GameScene extends Phaser.Scene {
     // dungeon XY (in grid units) to the corresponding room instance
     const playerTileX = this.groundLayer.worldToTileX(this.feller.sprite.x);
     const playerTileY = this.groundLayer.worldToTileY(this.feller.sprite.y);
-    this.playerRoom = this.dungeon.getRoomAt(playerTileX, playerTileY)!;
+    this.playerRoom = this.dungeon.getRoomAt(playerTileX, playerTileY)! as RoomWithEnemies;
     
     this.tilemapVisibility.setActiveRoom(this.playerRoom);
     // console.log(this.feller.sprite.body!.x, this.feller.sprite.body!.y)

@@ -26,6 +26,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, 0, 0, config.texture);
+    console.log({ scene })
     this.health = config.health || 3;
     this.damage = config.damage || 1;
     this.originalRoom = this.currentRoom = config.room
@@ -94,8 +95,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   die() {
-    this.destroy()
+    this.scene.checkLevelComplete() // dont call after destroy()
     this.gfx.clear()
     this.dead = true
+    this.destroy()
   }
 }

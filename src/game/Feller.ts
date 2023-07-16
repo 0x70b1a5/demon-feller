@@ -160,7 +160,8 @@ export default class Feller {
 
     this.hp -= byEnemy.damage;
     if (this.hp <= 0) {
-      return this.sprite.destroy();
+      EventEmitter.emit('gameOver')
+      return
       // TODO implement game over or respawn logic here
     } 
     
@@ -186,7 +187,7 @@ export default class Feller {
         EventEmitter.emit('speed', this.speed)
         break
       case PowerUpType.Shoot:
-        this.RELOAD_COOLDOWN /= 1.5
+        this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.8, 1)
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
         break
       default:

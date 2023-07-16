@@ -23,3 +23,35 @@ body {
     margin-bottom: 0.5em;
   }
 }
+
+.game-over {
+  position: fixed;
+  bottom: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  background-color: colors.$ink-tr;
+  display: flex;
+  place-content: center;
+
+  .notice {
+    padding: 2em 3em;
+    background-color: colors.$parchment;
+    border-radius: 1em;
+    font-size: 72px;
+    display: flex;
+    flex-direction: column;
+    place-items: center;
+
+    .stats {
+      position: relative;
+    }
+
+    button {
+      font-size: 36px;
+      border-radius: 1em;
+      border: 1px solid colors.$ink;
+      background-color: colors.$parchment;
+    }
+  }
+}
