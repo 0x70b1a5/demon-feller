@@ -54,6 +54,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('bullet', 'assets/bullet.png');
     this.load.image('feller', 'assets/feller.png');
     this.load.image('tileset', 'assets/tileset.png')
+    this.load.image('goo', 'assets/goo.png')
     this.load.spritesheet(
       'feller-sheet',
       '../assets/spritesheets/feller.png',

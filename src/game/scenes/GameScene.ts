@@ -5,23 +5,30 @@ import animations from '../util/animate'
 import colors from '../constants/colors'
 import scales from '../constants/scaling'; 
 import TILES from '../constants/tiles'
-import Dungeon from '@mikewesthad/dungeon';
+import Dungeon, { Room } from '@mikewesthad/dungeon';
 import Feller from '../Feller';
+import TilemapVisibility from '../TilemapVisibility';
+import Enemy from '../Enemy';
+import Bullet from '../Bullet';
 
-export interface Room { id: string, portals: Portal[], startingXY: null | [number | (() => number), number | (() => number)] }
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface OurCursorKeys extends Phaser.Types.Input.Keyboard.CursorKeys {
   tractor: Phaser.Input.Keyboard.Key
 }
 
 export class GameScene extends Phaser.Scene {
-  private feller!: Feller
-  private rexUI!: RexUIPlugin
+  feller!: Feller
+  rexUI!: RexUIPlugin
   level!: number
   hasPlayerReachedStairs!: boolean
   dungeon!: Dungeon
   groundLayer!: Phaser.Tilemaps.TilemapLayer
   stuffLayer!: Phaser.Tilemaps.TilemapLayer
+  finishedRooms: Room[] = []
+  tilemapVisibility!: TilemapVisibility;
+  playerRoom!: Room
+  enemies: Enemy[] = []
+  map!: Phaser.Tilemaps.Tilemap
   
   constructor() {
     super({ key: 'GameScene' })
@@ -37,21 +44,22 @@ export class GameScene extends Phaser.Scene {
   create() {
     this.level++
     this.hasPlayerReachedStairs = false
+    this.physics.world.createDebugGraphic();   
 
     const dungeon = this.dungeon = new Dungeon({
-      width: 20,
-      height: 20,
+      width: 200,
+      height: 200,
       doorPadding: 1,
       rooms: {
-        width: { min: 5, max: 5, onlyOdd: true },
-        height: { min: 5, max: 5, onlyOdd: true },
+        width: { min: 5, max: 13, onlyOdd: true },
+        height: { min: 5, max: 13, onlyOdd: true },
         maxRooms: 20,
       }
     })
     
     dungeon.drawToConsole({ });
 
-    const map = this.make.tilemap({
+    const map = this.map = this.make.tilemap({
       tileWidth: 200,
       tileHeight: 200,
       width: dungeon.width,
@@ -109,14 +117,18 @@ export class GameScene extends Phaser.Scene {
     const rooms = this.dungeon.rooms.slice();
     const startRoom = rooms.shift();
     const endRoom = Phaser.Utils.Array.RemoveRandomElement(rooms);
-    const otherRooms = Phaser.Utils.Array.Shuffle(rooms).slice(0, rooms.length * 0.9);
-    
-    // this.physics.world.createDebugGraphic();   
+    const otherRooms = Phaser.Utils.Array.Shuffle(rooms);
+    console.log({ otherRooms })
+
+
+    const shadowLayer = map.createBlankLayer('Shadow', tileset)!.fill(TILES.BLANK)!;
+    this.tilemapVisibility = new TilemapVisibility(shadowLayer);
 
     // Place the player in the first room
-    const playerRoom = startRoom!;
-    const x = map.tileToWorldX(playerRoom.centerX)!;
-    const y = map.tileToWorldY(playerRoom.centerY)!;
+    this.playerRoom = startRoom!;
+
+    const x = map.tileToWorldX(this.playerRoom.centerX)!;
+    const y = map.tileToWorldY(this.playerRoom.centerY)!;
 
     this.feller = new Feller(this, x, y);
 
@@ -126,10 +138,28 @@ export class GameScene extends Phaser.Scene {
     const camera = this.cameras.main;
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
     camera.startFollow(this.feller.sprite);
+
+    otherRooms.forEach(room => {
+      const enemy = new Enemy(this, { room, texture: 'goo' });
+      // If an enemy hits Feller, he takes damage
+      this.physics.add.collider(this.feller.sprite, enemy, () => {
+        console.log('enemy hit feller')
+        this.feller.hit(enemy.damage)
+      });
+      this.enemies.push(enemy)
+    });
   }
 
   update(time: any, delta: any) {
-    this.feller.update();
+    this.feller.update(time, delta);
+
+     // Find the player's room using another helper method from the dungeon that converts from
+    // dungeon XY (in grid units) to the corresponding room instance
+    const playerTileX = this.groundLayer.worldToTileX(this.feller.sprite.x);
+    const playerTileY = this.groundLayer.worldToTileY(this.feller.sprite.y);
+    this.playerRoom = this.dungeon.getRoomAt(playerTileX, playerTileY)!;
+    
+    this.tilemapVisibility.setActiveRoom(this.playerRoom);
     // console.log(this.feller.sprite.body!.x, this.feller.sprite.body!.y)
   }
 }

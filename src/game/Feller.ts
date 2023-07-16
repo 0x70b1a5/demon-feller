@@ -1,4 +1,6 @@
 import Bullet from "./Bullet";
+import Enemy from "./Enemy";
+import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
 
 /**
@@ -7,15 +9,19 @@ import animations from "./util/animate";
  * method when you're done with the player.
  */
 export default class Feller {
-  scene!: Phaser.Scene
+  scene!: GameScene
   sprite!: Phaser.Physics.Arcade.Sprite
   keys!: Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
   gunSprite!: Phaser.Physics.Arcade.Sprite;
   debugGraphics!: Phaser.GameObjects.Graphics;
   shootCooldown = 0
   SHOOT_COOLDOWN_DURATION = 40
+  bullets: Bullet[] = []
+  hp = 3
+  MAX_HEALTH = 3
+  iframes = 0
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
 
     const anims = scene.anims;
@@ -52,7 +58,7 @@ export default class Feller {
       d: Phaser.Input.Keyboard.KeyCodes.D
     }) as Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
    
-    this.debugGraphics = this.scene.add.graphics()
+    this.debugGraphics = this.scene.add.graphics({ lineStyle: { color: 0x0 }})
   }
 
   freeze() {
@@ -63,7 +69,7 @@ export default class Feller {
     return (sprite.body as Phaser.Physics.Arcade.Body)
   }
 
-  update() {
+  update(time: any, delta: any) {
     const keys = this.keys;
     const sprite = this.sprite;
     const speed = 300;
@@ -95,14 +101,10 @@ export default class Feller {
     // Update the animation last and give left/right/down animations precedence over up animations
     if (keys.left.isDown || keys.right.isDown || keys.down.isDown || keys.up.isDown || keys.a.isDown || keys.d.isDown || keys.w.isDown || keys.s.isDown) {
       sprite.anims.play('player-walk', true);
-    // } else if (keys.up.isDown) {
-    //   sprite.anims.play('player-walk-back', true);
     } else {
       sprite.anims.stop();
 
       // If we were moving & now we're not, then pick a single idle frame to use
-      // if (prevVelocity.y < 0) sprite.setTexture('feller', 65);
-      // else sprite.setTexture('feller', 46);
       sprite.setTexture('feller-sheet', 0);
     }
     
@@ -111,8 +113,8 @@ export default class Feller {
     const [px, py] = [pointer.x - (this.scene.game.config.width as number)/2 + sprite.x, pointer.y - (this.scene.game.config.height as number)/2 + sprite.y]
     
     const angleToPointer = Phaser.Math.Angle.Between(sprite.x, sprite.y, px, py);
-    // this.debugGraphics.clear()
-    // this.debugGraphics.lineBetween(sprite.x, sprite.y, px, py)
+    this.debugGraphics.clear()
+    this.debugGraphics.lineBetween(sprite.x, sprite.y, px, py)
     // console.log(angleToPointer)
 
     // Rotate the gun to face the cursor
@@ -125,13 +127,43 @@ export default class Feller {
 
     this.gunSprite.flipY = this.gunSprite.x < sprite.x
 
-
     if (this.shootCooldown > 0) {
       this.shootCooldown--
     } else {
       if (pointer.primaryDown) {
         this.shoot(angleToPointer);
       }
+    }
+
+    if (this.iframes > 0) {
+      this.iframes--
+      if (delta % 2 === 0) {
+        this.sprite.setVisible(false)
+      }
+      if (this.iframes <= 0) {
+        this.sprite.setVisible(true)
+      }
+    }
+  }
+
+  hit(damage = 1) {
+    if (this.iframes > 0) {
+      return
+    }
+
+    this.hp -= damage;
+    if (this.hp <= 0) {
+      return this.sprite.destroy();
+      // implement game over or respawn logic here
+    } 
+    
+    this.iframes = 100
+  }
+
+  heal(points: number) {
+    this.hp += points
+    if (this.hp > this.MAX_HEALTH) {
+      this.hp = this.MAX_HEALTH
     }
   }
 
@@ -143,6 +175,13 @@ export default class Feller {
 
     // Create new bullet at the barrel's position and set its velocity.
     const bullet = new Bullet(this.scene, barrelX, barrelY, angle); 
+    this.bullets.push(bullet)
+    this.scene.physics.add.collider(bullet, this.scene.enemies, (bullet, enemy) => {
+      console.log('bullet hit enemy');
+      (enemy as Enemy).hit()
+      bullet.destroy()
+    })
+    this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())
     this.shootCooldown = this.SHOOT_COOLDOWN_DURATION;
   }
   
