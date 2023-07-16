@@ -7,6 +7,7 @@ export interface EnemyConfig {
   health?: number
   room: Room
   texture: string
+  velocity?: number
 }
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
@@ -16,6 +17,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   room!: Room
   scene!: GameScene
   seenPlayer = false
+  velocity = 100
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, 0, 0, config.texture);
@@ -23,6 +25,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.damage = config.damage || 1;
     this.room = config.room
     this.scene = scene
+    this.velocity = config.velocity || this.velocity
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -36,7 +39,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     // .fillRect(this.x, this.y, 10, 10)
 
     // this.setBounce(1); // This will avoid enemy sticking to the wall
-    this.setVelocity(Math.random() * 100 - 50, Math.random() * 100 - 50); // Set initial random velocity
+    this.setVelocity(Math.random() * this.velocity - 50, Math.random() * this.velocity - 50); // Set initial random velocity
   }
 
   hit(damage = 1) {
@@ -58,7 +61,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     // If we have a target, we move toward it
     if (this.target) {
       const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x!, this.target.y!);
-      this.setVelocity(Math.cos(angle) * 100, Math.sin(angle) * 100);
+      this.setVelocity(Math.cos(angle) * this.velocity, Math.sin(angle) * this.velocity);
     }
 
     // console.log({time})
