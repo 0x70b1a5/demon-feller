@@ -62,7 +62,8 @@ export default class Feller {
       w: Phaser.Input.Keyboard.KeyCodes.W,
       a: Phaser.Input.Keyboard.KeyCodes.A,
       s: Phaser.Input.Keyboard.KeyCodes.S,
-      d: Phaser.Input.Keyboard.KeyCodes.D
+      d: Phaser.Input.Keyboard.KeyCodes.D,          
+      space: Phaser.Input.Keyboard.KeyCodes.SPACE,
     }) as Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
    
     this.debugGraphics = this.scene.add.graphics({ lineStyle: { color: 0x0 }})
@@ -143,7 +144,7 @@ export default class Feller {
     if (this.shootCooldown > 0) {
       this.shootCooldown--
     } else {
-      if (pointer.primaryDown) {
+      if (pointer.primaryDown || keys.space.isDown) {
         this.shoot(angleToPointer);
       }
     }
