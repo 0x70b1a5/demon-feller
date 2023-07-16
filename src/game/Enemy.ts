@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { GameScene, RoomWithEnemies } from './scenes/GameScene';
 import { Room } from '@mikewesthad/dungeon';
 import Feller from './Feller';
+import EventEmitter from './EventEmitter';
 
 export interface EnemyConfig {
   damage?: number
@@ -95,6 +96,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   die() {
+    EventEmitter.emit('demonFelled')
     this.scene.checkLevelComplete() // dont call after destroy()
     this.gfx.clear()
     this.dead = true

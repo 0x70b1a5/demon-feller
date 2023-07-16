@@ -36,6 +36,7 @@ export class GameScene extends Phaser.Scene {
   playerRoom!: RoomWithEnemies
   enemies: Enemy[] = []
   map!: Phaser.Tilemaps.Tilemap
+  demonsFelled = 0
   
   constructor() {
     super({ key: 'GameScene' })
@@ -153,6 +154,18 @@ export class GameScene extends Phaser.Scene {
         room.enemies.push(enemy)
       }
     });
+
+    EventEmitter.on('demonFelled', () => {
+      this.demonsFelled++
+      EventEmitter.emit('demonsFelled', this.demonsFelled)
+    })
+
+    let demonsToFell = 0
+    for (let room of this.rooms) {
+      demonsToFell += room.enemies.length
+    }
+
+    EventEmitter.emit('demonsToFell', demonsToFell)
   }
 
   rollPowerUp() {
