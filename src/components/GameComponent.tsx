@@ -16,6 +16,7 @@ export const GameComponent: React.FC = () => {
   const [gameOver, setGameOver] = useState(false)
   const [demonsFelled, setDemonsFelled] = useState(0)
   const [demonsToFell, setDemonsToFell] = useState(0)
+  const [minimap, setMinimap] = useState<DocumentFragment>()
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -83,27 +84,42 @@ export const GameComponent: React.FC = () => {
 
     const demonFelledListener = (felled: number) => {
       console.log('felled event', felled)
-      setReloadSpeed(felled)
+      setDemonsFelled(felled)
     }
 
     const demonsToFellListener = (demons: number) => {
       setDemonsToFell(demons)
     }
+
+    const minimapListener = (mm: DocumentFragment) => {
+      console.log('minimap event')
+      setMinimap(mm)
+      const mme = document.getElementById('minimap')
+      if (!mme) return
+      mme.innerHTML = ''
+      mme.appendChild(mm)
+    }
+
+    const gameOverListener = () => {
+      setGameOver(true)
+    }
     
     EventEmitter.on('health', healthListener);
     EventEmitter.on('speed', speedListener);
     EventEmitter.on('reloadSpeed', reloadSpeedListener);
-    EventEmitter.on('gameOver', reloadSpeedListener);
+    EventEmitter.on('gameOver', gameOverListener);
     EventEmitter.on('demonsFelled', demonFelledListener);
     EventEmitter.on('demonsToFell', demonsToFellListener);
+    EventEmitter.on('minimap', minimapListener);
     
     return () => {
       EventEmitter.off('health', healthListener);
       EventEmitter.off('speed', speedListener);
       EventEmitter.off('reloadSpeed', reloadSpeedListener);
-      EventEmitter.off('gameOver', reloadSpeedListener);
+      EventEmitter.off('gameOver', gameOverListener);
       EventEmitter.off('demonsFelled', demonFelledListener);
-      EventEmitter.on('demonsToFell', demonsToFellListener);
+      EventEmitter.off('demonsToFell', demonsToFellListener);
+      EventEmitter.off('minimap', minimapListener);
     };
   }, [])
 
@@ -116,11 +132,12 @@ export const GameComponent: React.FC = () => {
   return <>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
     {stats}
+    <div id='minimap'></div>
     {gameOver && <div className='game-over'>
       <div className='notice'>
         <h1>GAME OVER</h1>
         {stats}
-        <p>
+        <p className='ty'>
           THANK YOU FOR YOUR SERVICE
         </p>
         <button className='restart' onClick={() => {

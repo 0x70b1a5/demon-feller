@@ -24,6 +24,7 @@ export default class Feller {
   MAX_HEALTH = 3
   iframes = 0
   speed = 300
+  debug = false
 
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
@@ -50,6 +51,9 @@ export default class Feller {
 
     this.sprite.anims.play('player-walk');
 
+    animations.enshadow(this.sprite)
+    animations.enshadow(this.gunSprite)
+
     this.keys = this.scene.input.keyboard!.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.UP,
       down: Phaser.Input.Keyboard.KeyCodes.DOWN,
@@ -66,6 +70,7 @@ export default class Feller {
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     EventEmitter.emit('speed', this.speed)
     EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
+    EventEmitter.emit('demonsFelled', 0)
   }
 
   freeze() {
@@ -80,7 +85,6 @@ export default class Feller {
     const keys = this.keys;
     const sprite = this.sprite;
     const body = this.bodify(sprite)
-    const prevVelocity = body.velocity.clone();
 
     // Stop any previous movement from the last frame
     body.setVelocity(0);
@@ -119,9 +123,12 @@ export default class Feller {
     const [px, py] = [pointer.x - (this.scene.game.config.width as number)/2 + sprite.x, pointer.y - (this.scene.game.config.height as number)/2 + sprite.y]
     
     const angleToPointer = Phaser.Math.Angle.Between(sprite.x, sprite.y, px, py);
-    this.debugGraphics.clear()
-    this.debugGraphics.lineBetween(sprite.x, sprite.y, px, py)
-    // console.log(angleToPointer)
+
+    if (this.debug) {
+      this.debugGraphics.clear()
+      this.debugGraphics.lineBetween(sprite.x, sprite.y, px, py)
+      // console.log(angleToPointer)
+    }
 
     // Rotate the gun to face the cursor
     this.gunSprite.setRotation(angleToPointer);
@@ -154,6 +161,8 @@ export default class Feller {
   }
 
   hit(byEnemy: Enemy) {
+    console.log('feller hit by enemy', byEnemy, this.hp)
+
     if (this.iframes > 0) {
       return
     }

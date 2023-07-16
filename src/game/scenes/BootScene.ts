@@ -49,6 +49,7 @@ export class BootScene extends Phaser.Scene {
     // this.load.image('bullet', 'assets/images/bullet.png');
     // this.load.image('enemy', 'assets/images/enemy.png');
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
+    this.load.image('powerupBG', 'assets/powerupBG.png');
     this.load.image('powerup0', 'assets/powerupHealth.png');
     this.load.image('powerup1', 'assets/powerupSpeed.png');
     this.load.image('powerup2', 'assets/powerupShoot.png');

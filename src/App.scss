@@ -1,5 +1,4 @@
 @use './colors.scss' as colors;
-@tailwind base;
 @font-face {
   font-family: 'pkmn';
   src: url('../public/assets/fonts/pkmn/PKMNRBYGSC.ttf');
@@ -7,6 +6,7 @@
 
 body {
   font-family: 'pkmn', monospace, sans-serif;
+  color: colors.$ink;
 }
 
 .stats {
@@ -15,7 +15,6 @@ body {
   right: 2em;
   border-radius: 1em;
   background: colors.$parchment;
-  color: colors.$ink;
   font-weight: bold;
   padding: 1em 2em;
 
@@ -38,20 +37,41 @@ body {
     padding: 2em 3em;
     background-color: colors.$parchment;
     border-radius: 1em;
-    font-size: 72px;
     display: flex;
     flex-direction: column;
     place-items: center;
 
+    .ty {
+      margin: 1em
+    }
+
+    h1 {
+      font-size: 72px;
+    }
+
     .stats {
-      position: relative;
+      position: static;
     }
 
     button {
+      padding: 1em 3em;
       font-size: 36px;
       border-radius: 1em;
       border: 1px solid colors.$ink;
       background-color: colors.$parchment;
     }
   }
+}
+
+#minimap {
+  position: fixed;
+  bottom: 1em;
+  left: 1em;
+  border-radius: 1em;
+  padding: 1em 2em;
+  white-space: pre-wrap;
+  background-color: colors.$parchment-tr;
+  max-width: 40vw;
+  font-size: 10px;
+  pointer-events: none;
 }

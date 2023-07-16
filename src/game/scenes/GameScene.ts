@@ -25,6 +25,7 @@ export interface OurCursorKeys extends Phaser.Types.Input.Keyboard.CursorKeys {
 
 export class GameScene extends Phaser.Scene {
   feller!: Feller
+  debug = false
   rexUI!: RexUIPlugin
   level!: number
   hasPlayerReachedStairs!: boolean
@@ -52,7 +53,9 @@ export class GameScene extends Phaser.Scene {
   create() {
     this.level++
     this.hasPlayerReachedStairs = false
-    this.physics.world.createDebugGraphic();   
+    if (this.debug) {
+      this.physics.world.createDebugGraphic();   
+    }
 
     const dungeon = this.dungeon = new Dungeon({
       width: 25,
@@ -64,8 +67,9 @@ export class GameScene extends Phaser.Scene {
         maxRooms: 20,
       }
     })
-    
-    // dungeon.drawToConsole({ });
+
+    const dhtml = dungeon.drawToHtml({ })
+    EventEmitter.emit('minimap', dhtml)
 
     const map = this.map = this.make.tilemap({
       tileWidth: 200,
@@ -114,13 +118,15 @@ export class GameScene extends Phaser.Scene {
 
     // MUST SET COLLISION ***AFTER*** MODIFYING LAYER
     groundLayer.setCollisionByExclusion([0, 1, 2, 3, 4, 13, 14]);
-
-    const debugGraphics = this.add.graphics().setAlpha(0.75);
-    // groundLayer.renderDebug(debugGraphics, {
-    //   tileColor: null, // Color of non-colliding tiles
-    //   collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
-    //   faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
-    // });
+    
+    if (this.debug) {
+      const debugGraphics = this.add.graphics().setAlpha(0.75);
+      groundLayer.renderDebug(debugGraphics, {
+        tileColor: null, // Color of non-colliding tiles
+        collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
+        faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+      });
+    }
 
     const rooms = this.rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
     const startRoom = rooms.shift();
@@ -208,7 +214,9 @@ export class GameScene extends Phaser.Scene {
   }
   
   checkLevelComplete() {
-    if (this.rooms.find(room => room.enemies?.find(enemy => !enemy.dead))) {
+    const roomsWithEnemies = this.rooms.filter(room => room.enemies?.filter(e => !e.dead).length > 0)
+    console.log({roomsWithEnemies})
+    if (roomsWithEnemies.length > 0) {
       return false
     }
     alert('You win!')
@@ -219,6 +227,10 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.feller.sprite, enemy, () => {
       enemy.attack(this.feller)
     });
+    // TODO they're pushing each other out of bounds
+    // this.enemies.forEach(e => this.physics.add.overlap(e, enemy, () => {
+    //   enemy.pushAway(e)
+    // }))
     this.enemies.push(enemy)
   }
 
