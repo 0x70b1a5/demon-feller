@@ -4,10 +4,15 @@ import { GameScene } from '../game/scenes/GameScene';
 import RexUIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin.js';
 import { MainMenuScene } from '../game/scenes/MainMenuScene';
 import { BootScene } from '../game/scenes/BootScene';
+import EventEmitter from '../game/EventEmitter';
 
 export const GameComponent: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [hp, setHp] = useState(0)
+  const [maxHp, setMaxHp] = useState(1)
+  const [speed, setSpeed] = useState(0)
+  const [reloadSpeed, setReloadSpeed] = useState(0)
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -56,5 +61,40 @@ export const GameComponent: React.FC = () => {
     };
   }, []);
 
-  return <div id="game-container" style={{ width: '100%', height: '100%' }} />;
+  useEffect(() => {
+    const healthListener = ([hp, max]: [number, number]) => {
+      console.log('health event', hp, max)
+      setHp(hp)
+      setMaxHp(max)
+    };
+
+    const speedListener = (speed: number) => {
+      console.log('speed event', speed)
+      setSpeed(speed)
+    }
+
+    const reloadSpeedListener = (rSpeed: number) => {
+      console.log('rspeed event', rSpeed)
+      setReloadSpeed(speed)
+    }
+    
+    EventEmitter.on('health', healthListener);
+    EventEmitter.on('speed', speedListener);
+    EventEmitter.on('reloadSpeed', reloadSpeedListener);
+    
+    return () => {
+      EventEmitter.off('health', healthListener);
+      EventEmitter.off('speed', speedListener);
+      EventEmitter.off('reloadSpeed', reloadSpeedListener);
+    };
+  }, [])
+
+  return <>
+    <div id="game-container" style={{ width: '100%', height: '100%' }} />
+    <div className='stats'>
+      <div className='health bar'>{hp} / {maxHp} HP</div>
+      <div className='speed bar'>SPEED: {Math.round(speed / 24)}MPH</div>
+      <div className='reloadSpeed bar'>RELOAD: {Math.round(40 / (reloadSpeed || 40) * 100)}%</div>
+    </div>
+  </>;
 };

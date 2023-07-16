@@ -8,10 +8,16 @@ import TILES from '../constants/tiles'
 import Dungeon, { Room } from '@mikewesthad/dungeon';
 import Feller from '../Feller';
 import TilemapVisibility from '../TilemapVisibility';
-import Enemy from '../Enemy';
+import Enemy, { EnemyConfig } from '../Enemy';
 import Bullet from '../Bullet';
+import Goo from '../Goo';
+import PowerUp, { PowerUpType } from '../Powerup';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
+export interface RoomWithEnemies extends Room {
+  enemies: Enemy[]
+  hasSpawnedPowerup: boolean
+}
 export interface OurCursorKeys extends Phaser.Types.Input.Keyboard.CursorKeys {
   tractor: Phaser.Input.Keyboard.Key
 }
@@ -114,12 +120,10 @@ export class GameScene extends Phaser.Scene {
     //   faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
     // });
 
-    const rooms = this.dungeon.rooms.slice();
+    const rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
     const startRoom = rooms.shift();
     const endRoom = Phaser.Utils.Array.RemoveRandomElement(rooms);
     const otherRooms = Phaser.Utils.Array.Shuffle(rooms);
-    console.log({ otherRooms })
-
 
     const shadowLayer = map.createBlankLayer('Shadow', tileset)!.fill(TILES.BLANK)!;
     this.tilemapVisibility = new TilemapVisibility(shadowLayer);
@@ -140,14 +144,62 @@ export class GameScene extends Phaser.Scene {
     camera.startFollow(this.feller.sprite);
 
     otherRooms.forEach(room => {
-      const enemy = new Enemy(this, { room, texture: 'goo' });
-      // If an enemy hits Feller, he takes damage
-      this.physics.add.collider(this.feller.sprite, enemy, () => {
-        console.log('enemy hit feller')
-        this.feller.hit(enemy.damage)
-      });
-      this.enemies.push(enemy)
+      for(let i = 0; i < Math.random() * 5; i++) {
+        const enemy = Math.random() < 0.5 
+          ? new Goo(this, { room, texture: 'goo' })
+          : new Enemy(this, { room, texture: 'pig', velocity: 50 })
+        this.spawnEnemy(enemy)
+        room.enemies ||= []
+        room.enemies.push(enemy)
+      }
     });
+  }
+
+  rollPowerUp() {
+    let powerUps = [
+      {type: PowerUpType.Health, weight: 1},
+      {type: PowerUpType.Shoot, weight: 1},
+      {type: PowerUpType.Speed, weight: 1},
+    ];
+    
+    let totalWeight = powerUps.reduce((sum, powerUp) => sum + powerUp.weight, 0);
+    
+    let randomNum = Math.random() * totalWeight;
+    
+    let weightSum = 0;
+    for (let powerUp of powerUps) {
+      weightSum += powerUp.weight;
+      
+      if (randomNum <= weightSum) {
+        return powerUp.type
+      }
+    }
+
+    return powerUps[0].type
+  }
+
+  spawnPowerUp(room: RoomWithEnemies, type: PowerUpType) {
+    const x = this.map.tileToWorldX(room.centerX)!;
+    const y = this.map.tileToWorldY(room.centerY)!;
+    
+    const powerup = new PowerUp(this, x, y, type);
+    
+    const gfx = this.add.graphics({ lineStyle: { color: 0xff0000, width: 3 }})
+      .lineBetween(x, y, this.feller.sprite.x, this.feller.sprite.y)
+
+    this.physics.add.overlap(this.feller.sprite, powerup, () => {
+      this.feller.pickupPowerUp(powerup);
+      powerup.destroy();
+      gfx.clear()
+    });
+  }
+
+  spawnEnemy(enemy: Enemy) {
+    this.physics.add.overlap(this.feller.sprite, enemy, () => {
+      console.log('enemy hit feller')
+      this.feller.hit(enemy)
+    });
+    this.enemies.push(enemy)
   }
 
   update(time: any, delta: any) {

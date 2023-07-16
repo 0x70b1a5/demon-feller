@@ -1,5 +1,7 @@
 import Bullet from "./Bullet";
 import Enemy from "./Enemy";
+import EventEmitter from "./EventEmitter";
+import PowerUp, { PowerUpType } from "./Powerup";
 import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
 
@@ -15,15 +17,16 @@ export default class Feller {
   gunSprite!: Phaser.Physics.Arcade.Sprite;
   debugGraphics!: Phaser.GameObjects.Graphics;
   shootCooldown = 0
-  SHOOT_COOLDOWN_DURATION = 40
+  RELOAD_COOLDOWN = 40
+  IFRAMES_DURATION = 100
   bullets: Bullet[] = []
   hp = 3
   MAX_HEALTH = 3
   iframes = 0
+  speed = 300
 
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
-
     const anims = scene.anims;
     anims.create({
       key: 'player-walk',
@@ -59,6 +62,10 @@ export default class Feller {
     }) as Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
    
     this.debugGraphics = this.scene.add.graphics({ lineStyle: { color: 0x0 }})
+
+    EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
+    EventEmitter.emit('speed', this.speed)
+    EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
   }
 
   freeze() {
@@ -72,7 +79,6 @@ export default class Feller {
   update(time: any, delta: any) {
     const keys = this.keys;
     const sprite = this.sprite;
-    const speed = 300;
     const body = this.bodify(sprite)
     const prevVelocity = body.velocity.clone();
 
@@ -81,22 +87,22 @@ export default class Feller {
 
     // Horizontal movement
     if (keys.left.isDown || keys.a.isDown) {
-      body.setVelocityX(-speed);
+      body.setVelocityX(-this.speed);
       sprite.setFlipX(false);
     } else if (keys.right.isDown || keys.d.isDown) {
       sprite.setFlipX(true);
-      body.setVelocityX(speed);
+      body.setVelocityX(this.speed);
     }
 
     // Vertical movement
     if (keys.up.isDown || keys.w.isDown) {
-      body.setVelocityY(-speed);
+      body.setVelocityY(-this.speed);
     } else if (keys.down.isDown || keys.s.isDown) {
-      body.setVelocityY(speed);
+      body.setVelocityY(this.speed);
     }
 
     // Normalize and scale the velocity so that sprite can't move faster along a diagonal
-    body.velocity.normalize().scale(speed);
+    body.velocity.normalize().scale(this.speed);
 
     // Update the animation last and give left/right/down animations precedence over up animations
     if (keys.left.isDown || keys.right.isDown || keys.down.isDown || keys.up.isDown || keys.a.isDown || keys.d.isDown || keys.w.isDown || keys.s.isDown) {
@@ -137,34 +143,65 @@ export default class Feller {
 
     if (this.iframes > 0) {
       this.iframes--
-      if (delta % 2 === 0) {
+      if (time % 2 === 0) {
         this.sprite.setVisible(false)
-      }
-      if (this.iframes <= 0) {
+      } else {
         this.sprite.setVisible(true)
       }
+    } else {
+      this.sprite.setVisible(true)
     }
   }
 
-  hit(damage = 1) {
+  hit(byEnemy: Enemy) {
     if (this.iframes > 0) {
       return
     }
 
-    this.hp -= damage;
+    this.hp -= byEnemy.damage;
     if (this.hp <= 0) {
       return this.sprite.destroy();
-      // implement game over or respawn logic here
+      // TODO implement game over or respawn logic here
     } 
     
-    this.iframes = 100
+    this.iframes = this.IFRAMES_DURATION
+
+    // radians 
+    const knockbackDir = Phaser.Math.Angle.BetweenPoints(byEnemy, this.sprite)
+    const knockbackX = this.sprite.x + (byEnemy.x < this.sprite.x ? 1 : -1) * (Math.sin(knockbackDir) + byEnemy.knockback)
+    const knockbackY = this.sprite.y + (byEnemy.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + byEnemy.knockback)
+    this.sprite.setPosition(knockbackX, knockbackY)
+
+    EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
   }
+
+  pickupPowerUp(powerup: PowerUp) {
+    switch (powerup.powerupType) {
+      case PowerUpType.Health: 
+        this.MAX_HEALTH++;
+        this.heal(this.MAX_HEALTH)
+        break
+      case PowerUpType.Speed:
+        this.speed += 50
+        EventEmitter.emit('speed', this.speed)
+        break
+      case PowerUpType.Shoot:
+        this.RELOAD_COOLDOWN /= 1.5
+        EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
+        break
+      default:
+        break
+    }
+  }
+
 
   heal(points: number) {
     this.hp += points
     if (this.hp > this.MAX_HEALTH) {
       this.hp = this.MAX_HEALTH
     }
+
+    EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
   }
 
   shoot(angle: number) {
@@ -176,13 +213,18 @@ export default class Feller {
     // Create new bullet at the barrel's position and set its velocity.
     const bullet = new Bullet(this.scene, barrelX, barrelY, angle); 
     this.bullets.push(bullet)
-    this.scene.physics.add.collider(bullet, this.scene.enemies, (bullet, enemy) => {
+    this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
+      const enemy = _enemy as Enemy
       console.log('bullet hit enemy');
-      (enemy as Enemy).hit()
+      enemy.hit()
       bullet.destroy()
+      if (enemy.originalRoom?.enemies.every(e => e.dead) && !enemy.originalRoom.hasSpawnedPowerup) {
+        enemy.originalRoom.hasSpawnedPowerup = true
+        this.scene.spawnPowerUp(enemy.currentRoom, this.scene.rollPowerUp())
+      }
     })
     this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())
-    this.shootCooldown = this.SHOOT_COOLDOWN_DURATION;
+    this.shootCooldown = this.RELOAD_COOLDOWN;
   }
   
   destroy() {
