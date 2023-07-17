@@ -96,8 +96,10 @@ export class GameScene extends Phaser.Scene {
       height: this.dungeon.height
     })
     map.scene = this
+    map.scene.sys.textures = this.sys.textures
 
     const tileset = map.addTilesetImage('tileset', undefined, 200, 200, 0, 0)!
+  
     const groundLayer = this.groundLayer = map.createBlankLayer('Ground', tileset)!.fill(TILES.BLANK)
     // const stuffLayer =  this.stuffLayer = map.createBlankLayer('Stuff', tileset)!
 
