@@ -245,9 +245,11 @@ export default class Feller {
         this.heal(this.MAX_HEALTH)
         break
       case PowerUpType.Speed:
-        const speedRatio = (this.speed + 50) / this.speed
+        const speedRatio = this.speed / (this.speed + 50)
         this.speed += 50
-        this.scene.cameras.main.setZoom(this.scene.cameras.main.zoom / speedRatio)
+        this.scene.cameras.main.setZoom(this.scene.cameras.main.zoom * speedRatio)
+        const rate = this.scene.anims.get('feller-walk').frameRate 
+        this.scene.anims.get('feller-walk').frameRate = Math.min(rate + 1, 60)
         EventEmitter.emit('speed', this.speed)
         break
       case PowerUpType.Shoot:

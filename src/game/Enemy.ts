@@ -28,7 +28,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   currentRoom!: RoomWithEnemies
   originalRoom!: RoomWithEnemies
   scene!: GameScene
-  seenPlayer = false
+  seenFeller = false
   speed = 100
   knockback = 100
   dead = false
@@ -62,7 +62,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setVelocity(Math.random() * this.speed - 50, Math.random() * this.speed - 50); // Set initial random velocity
 
     animations.enshadow(this)
-    animations.wobbleSprite(this.scene, this, -5, 5)
+    // animations.wobbleSprite(this.scene, this)
   }
 
   attack(feller: Feller) {
@@ -101,31 +101,67 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         )
     }
 
-    // Every 2 seconds, we pick a new random location
-    if (time % 2000 < delta && !this.seenPlayer) { // chase player once seen
-      this.target = new Phaser.Math.Vector2(Math.random() * (this.scene.game.config.width as number), Math.random() * (this.scene.game.config.height as number));
-    }
+    this.lookForFeller()
+    this.move(time, delta)
+  }
 
-    // If we have a target, we move toward it
-    if (this.target) {
-      const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x!, this.target.y!);
-      const wobbleX = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
-      const wobbleY = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
-      this.setVelocity(Math.cos(angle) * this.speed + wobbleX, Math.sin(angle) * this.speed + wobbleY);
-    }
-
+  lookForFeller() {
     if ((this.currentRoom.centerX === this.scene.playerRoom.centerX) && (this.currentRoom.centerY === this.scene.playerRoom.centerY)) {
       !this.visible && this.setVisible(true)
 
-      if (!this.seenPlayer) {
-        console.log('seen player', this)
-        this.seenPlayer = true
+      if (!this.seenFeller) {
+        console.log('seen feller', this)
+        this.seenFeller = true
         this.target = this.scene.feller.sprite
       }
     } else {
       // if we are not in same room as player, hide sprite
       this.setVisible(false)
+      this.seenFeller = false
     }
+  }
+
+  acquireTarget(time: any, delta: any) {
+    if (!this.seenFeller) {
+      // new location every 10 seconds
+      if (time % 10000 < delta)
+      { 
+        this.target = new Phaser.Math.Vector2(Math.random() * (this.scene.game.config.width as number), Math.random() * (this.scene.game.config.height as number));
+      }
+    } else {
+      this.target = this.scene.feller.sprite
+    }
+  }
+
+  chaseTarget() {
+    if (this.target) {
+      const distance = Phaser.Math.Distance.BetweenPoints(this, this.target)
+      if (this.seenFeller && distance > 5 * this.speed) {
+        this.giveUpChasing()
+      } else {
+        const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x!, this.target.y!);
+        const wobbleX = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
+        const wobbleY = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
+        this.setVelocity(Math.cos(angle) * this.speed + wobbleX, Math.sin(angle) * this.speed + wobbleY);
+      }
+    }
+  }
+
+  wobble() {
+    const angle = Math.random() * 2 * Math.PI
+    const wobbleX = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
+    const wobbleY = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
+    this.setVelocity(Math.cos(angle) * this.speed + wobbleX, Math.sin(angle) * this.speed + wobbleY);
+  }
+
+  giveUpChasing() {
+    this.seenFeller = false
+  }
+
+  move(time: any, delta: any) {
+    this.acquireTarget(time, delta)
+    this.chaseTarget()
+    this.wobble()
   }
 
   pushAway(other: Phaser.Physics.Arcade.Sprite) {

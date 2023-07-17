@@ -113,8 +113,8 @@ export const GameComponent: React.FC = () => {
       setGameOver(true)
     }
 
-    const levelUpListener = () => {
-      setLevel(level + 1)
+    const levelUpListener = (newLevel: number) => {
+      setLevel(newLevel)
       setLevelUp(true)
     }
     

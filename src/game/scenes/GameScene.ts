@@ -60,14 +60,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   createDungeon() {
+    const increaseRatio = Math.ceil(this.level / 3)
     const dungeon = this.dungeon = new Dungeon({
-      width: 25 * Math.round(this.level / 2),
-      height: 25 * Math.round(this.level / 2),
+      width: 25 * increaseRatio,
+      height: 25 *increaseRatio,
       doorPadding: 1,
       rooms: {
-        width: { min: 5, max: 9 * this.level, onlyOdd: true },
-        height: { min: 5, max: 9 * this.level, onlyOdd: true },
-        maxRooms: 10 * Math.round(this.level / 2),
+        width: { min: 5, max: 9 * increaseRatio, onlyOdd: true },
+        height: { min: 5, max: 9 * increaseRatio, onlyOdd: true },
+        maxRooms: 10 * increaseRatio,
       }
     })
 
@@ -79,6 +80,7 @@ export class GameScene extends Phaser.Scene {
   createTilemap() {    
     if (this.map) {
       this.map.removeAllLayers().destroy()
+      this.load.image('tileset', 'assets/tileset.png')
     }
 
     if (this.groundLayer) {
@@ -264,7 +266,7 @@ export class GameScene extends Phaser.Scene {
     if (roomsWithEnemies.length > 0) {
       return false
     }
-    EventEmitter.emit('levelUp')
+    EventEmitter.emit('levelUp', this.level + 1) // don't increment it yet
     this.levellingUp = true
     this.physics.world.colliders.getActive().forEach(c => c.destroy())
   }
