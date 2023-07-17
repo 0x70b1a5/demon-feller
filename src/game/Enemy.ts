@@ -4,6 +4,7 @@ import { Room } from '@mikewesthad/dungeon';
 import Feller from './Feller';
 import EventEmitter from './EventEmitter';
 import animations from './util/animate';
+import { Exception } from 'sass';
 
 export interface EnemyConfig {
   damage?: number
@@ -11,6 +12,13 @@ export interface EnemyConfig {
   room: RoomWithEnemies
   texture: string
   velocity?: number
+  enemyType?: EnemyType
+}
+
+export enum EnemyType {
+  Goo,
+  Pig,
+  Soul,
 }
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
@@ -27,6 +35,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   debug = false
   gfx!: Phaser.GameObjects.Graphics;
   pushing = 0
+  enemyType?: EnemyType
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, 0, 0, config.texture);
@@ -35,6 +44,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.originalRoom = this.currentRoom = config.room
     this.scene = scene
     this.speed = config.velocity || this.speed
+    this.enemyType = config.enemyType
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -79,6 +89,10 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       }
     }
 
+    if (!this.currentRoom) {
+      throw Exception
+    }
+
     if (this.debug) {
       this.gfx
         .clear()
@@ -95,21 +109,22 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     // If we have a target, we move toward it
     if (this.target) {
       const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x!, this.target.y!);
-      this.setVelocity(Math.cos(angle) * this.speed, Math.sin(angle) * this.speed);
+      const wobbleX = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
+      const wobbleY = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
+      this.setVelocity(Math.cos(angle) * this.speed + wobbleX, Math.sin(angle) * this.speed + wobbleY);
     }
 
+    if ((this.currentRoom.centerX === this.scene.playerRoom.centerX) && (this.currentRoom.centerY === this.scene.playerRoom.centerY)) {
+      !this.visible && this.setVisible(true)
 
-    // if we are not in same room as player, hide sprite
-    if (this.currentRoom && (this.currentRoom.centerX !== this.scene.playerRoom.centerX) && (this.currentRoom.centerY !== this.scene.playerRoom.centerY)) {
-      this.setVisible(false)
-    } else if (time > 10000 && !this.seenPlayer) { // seenplayers happening really early for some reaosn?!
-      // if we are in same room, show sprite, see player, and chase
-      console.log('seen player', this)
-      this.setVisible(true)
-      this.seenPlayer = true
-      this.target = this.scene.feller.sprite
+      if (!this.seenPlayer) {
+        console.log('seen player', this)
+        this.seenPlayer = true
+        this.target = this.scene.feller.sprite
+      }
     } else {
-      this.setVisible(true)
+      // if we are not in same room as player, hide sprite
+      this.setVisible(false)
     }
   }
 

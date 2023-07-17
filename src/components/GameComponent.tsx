@@ -14,9 +14,14 @@ export const GameComponent: React.FC = () => {
   const [speed, setSpeed] = useState(300)
   const [reloadSpeed, setReloadSpeed] = useState(40)
   const [gameOver, setGameOver] = useState(false)
+  const [levelUp, setLevelUp] = useState(false)
   const [demonsFelled, setDemonsFelled] = useState(0)
+  const [demonsFelledLevel, setDemonsFelledLevel] = useState(0)
   const [demonsToFell, setDemonsToFell] = useState(0)
   const [minimap, setMinimap] = useState<DocumentFragment>()
+  const [level, setLevel] = useState(1)
+
+  const minimapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -82,9 +87,13 @@ export const GameComponent: React.FC = () => {
       setReloadSpeed(rSpeed)
     }
 
-    const demonFelledListener = (felled: number) => {
+    const demonsFelledListener = (felled: number) => {
       console.log('felled event', felled)
       setDemonsFelled(felled)
+    }
+
+    const demonFelledLevelListener = (demons: number) => {
+      setDemonsFelledLevel(demons)
     }
 
     const demonsToFellListener = (demons: number) => {
@@ -94,56 +103,95 @@ export const GameComponent: React.FC = () => {
     const minimapListener = (mm: DocumentFragment) => {
       console.log('minimap event')
       setMinimap(mm)
-      const mme = document.getElementById('minimap')
-      if (!mme) return
-      mme.innerHTML = ''
-      mme.appendChild(mm)
+      if (minimapRef.current) {
+        minimapRef.current.innerHTML = '';
+        minimapRef.current.appendChild(mm);
+      }
     }
 
     const gameOverListener = () => {
       setGameOver(true)
+    }
+
+    const levelUpListener = () => {
+      setLevel(level + 1)
+      setLevelUp(true)
     }
     
     EventEmitter.on('health', healthListener);
     EventEmitter.on('speed', speedListener);
     EventEmitter.on('reloadSpeed', reloadSpeedListener);
     EventEmitter.on('gameOver', gameOverListener);
-    EventEmitter.on('demonsFelled', demonFelledListener);
+    EventEmitter.on('demonsFelledLevel', demonFelledLevelListener);
+    EventEmitter.on('demonsFelled', demonsFelledListener);
     EventEmitter.on('demonsToFell', demonsToFellListener);
     EventEmitter.on('minimap', minimapListener);
+    EventEmitter.on('levelUp', levelUpListener);
     
     return () => {
       EventEmitter.off('health', healthListener);
       EventEmitter.off('speed', speedListener);
       EventEmitter.off('reloadSpeed', reloadSpeedListener);
       EventEmitter.off('gameOver', gameOverListener);
-      EventEmitter.off('demonsFelled', demonFelledListener);
+      EventEmitter.off('demonsFelledLevel', demonFelledLevelListener);
+      EventEmitter.off('demonsFelled', demonsFelledListener);
       EventEmitter.off('demonsToFell', demonsToFellListener);
-      EventEmitter.off('minimap', minimapListener);
+      EventEmitter.off('levelUp', levelUpListener);
     };
   }, [])
 
   const stats = <div className='stats'>
-    <div className='health bar'>{hp} / {maxHp} HP</div>
-    <div className='speed bar'>SPEED: {Math.round(speed / 24)}MPH</div>
-    <div className='reloadSpeed bar'>RELOAD: {Math.round(40 / (reloadSpeed || 40) * 100)}%</div>
-    <div className='demonsFelled bar'>DEMONS FELLED: {demonsFelled} / {demonsToFell}</div>
+    <div className='health bar'>
+      HP:
+      <div className='stat'> {hp}/{maxHp}</div>
+    </div>
+    <div className='speed bar'>
+      SPEED:
+      <div className='stat'> {Math.round(speed / 24)}MPH</div>
+    </div>
+    <div className='reloadSpeed bar'>
+      R.O.F.:
+      <div className='stat'>{Number(40 / (reloadSpeed || 40)).toPrecision(3)}x</div>
+    </div>
+    <div className='demonsFelled bar'>
+      FELLED (LV):
+      <div className='stat'>{demonsFelledLevel}/{demonsToFell}</div>
+    </div>
+    <div className='demonsFelled bar'>
+      FELLED:
+      <div className='stat'> {demonsFelled}</div>
+    </div>
   </div>
   return <>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
     {stats}
-    <div id='minimap'></div>
-    {gameOver && <div className='game-over'>
+    <div id='minimap' ref={minimapRef}></div>
+    {levelUp && <div className='level-up overlay'>
+      <div className='notice'>
+        <h1>LEVEL {level} COMPLETE!</h1>
+        {stats}
+        <p className='ty'>
+          BUT HELL IS NOT YET EMPTY
+        </p>
+        <button className='big-btn continue' onClick={() => {
+          setLevelUp(false)
+          EventEmitter.emit('goToNextLevel')
+        }}>GO DEEPER</button>
+      </div>
+    </div>}
+    {gameOver && <div className='game-over overlay'>
       <div className='notice'>
         <h1>GAME OVER</h1>
         {stats}
         <p className='ty'>
           THANK YOU FOR YOUR SERVICE
         </p>
-        <button className='restart' onClick={() => {
+        <button className='big-btn restart' onClick={() => {
           setGameOver(false)
-          gameRef?.current?.scene.stop('GameScene')
-          gameRef?.current?.scene.start('GameScene')
+          // Remove the GameScene completely
+          gameRef?.current?.scene.remove('GameScene');
+          // Add it back in and start it
+          gameRef?.current?.scene.add('GameScene', GameScene, true);
         }}>TRY AGAIN</button>
       </div>
     </div>}

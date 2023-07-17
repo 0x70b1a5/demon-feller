@@ -2,8 +2,10 @@ import Bullet from "./Bullet";
 import Enemy from "./Enemy";
 import EventEmitter from "./EventEmitter";
 import PowerUp, { PowerUpType } from "./Powerup";
+import powerUps from "./constants/powerups";
 import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
+import roll from "./util/roll";
 
 /**
  * A class that wraps up our top down player logic. It creates, animates and moves a sprite in
@@ -19,10 +21,12 @@ export default class Feller {
   shootCooldown = 0
   RELOAD_COOLDOWN = 40
   IFRAMES_DURATION = 100
+  STUN_DURATION = 25
   bullets: Bullet[] = []
   hp = 3
   MAX_HEALTH = 3
   iframes = 0
+  stun = 0
   speed = 300
   debug = false
 
@@ -30,29 +34,19 @@ export default class Feller {
     this.scene = scene;
     const anims = scene.anims;
     anims.create({
-      key: 'player-walk',
+      key: 'feller-walk',
       frames: anims.generateFrameNumbers('feller-sheet', { start: 1, end: 3 }),
       frameRate: 12,
       repeat: -1
     })
+    anims.create({
+      key: 'feller-hurt',
+      frames: anims.generateFrameNumbers('feller-sheet', { start: 4, end: 4 }),
+      frameRate: 12,
+      repeat: -1
+    })
 
-    this.gunSprite = scene.physics.add
-      .sprite(x, y, 'gun')
-      .setScale(0.35)
-      .setOrigin(0.5, 0.5);
-
-    this.sprite = scene.physics.add
-      .sprite(x, y, 'feller-sheet')
-      .setScale(0.5);
-
-    this.sprite
-      .setSize(this.sprite.width/2, this.sprite.height*0.75)
-      .setOrigin(0.5, 0.5);
-
-    this.sprite.anims.play('player-walk');
-
-    animations.enshadow(this.sprite)
-    animations.enshadow(this.gunSprite)
+    this.createNewSprite(x, y)
 
     this.keys = this.scene.input.keyboard!.addKeys({
       up: Phaser.Input.Keyboard.KeyCodes.UP,
@@ -74,6 +68,35 @@ export default class Feller {
     EventEmitter.emit('demonsFelled', 0)
   }
 
+  createNewSprite(x: number, y: number) {
+    if (this.sprite) {
+      this.sprite.destroy()
+    }
+
+    if (this.gunSprite) {
+      this.gunSprite.destroy()
+    }
+
+    this.gunSprite = this.scene.physics.add
+      .sprite(x, y, 'gun')
+      .setScale(0.35)
+      .setOrigin(0.5, 0.5);
+
+    this.sprite = this.scene.physics.add
+      .sprite(x, y, 'feller-sheet')
+      .setScale(0.5);
+
+      // DO NOT CHAIN THESE CALLS TO THE ABOVE CALLS
+    this.sprite
+      .setSize(this.sprite.width/2, this.sprite.height*0.75)
+      .setOrigin(0.5, 0.5);
+
+    this.sprite.anims.play('feller-walk');
+
+    animations.enshadow(this.sprite)
+    animations.enshadow(this.gunSprite)
+  }
+
   freeze() {
     this.bodify(this.sprite).moves = false;
   }
@@ -82,7 +105,7 @@ export default class Feller {
     return (sprite.body as Phaser.Physics.Arcade.Body)
   }
 
-  update(time: any, delta: any) {
+  move() {
     const keys = this.keys;
     const sprite = this.sprite;
     const body = this.bodify(sprite)
@@ -90,38 +113,53 @@ export default class Feller {
     // Stop any previous movement from the last frame
     body.setVelocity(0);
 
-    // Horizontal movement
-    if (keys.left.isDown || keys.a.isDown) {
-      body.setVelocityX(-this.speed);
-      sprite.setFlipX(false);
-    } else if (keys.right.isDown || keys.d.isDown) {
-      sprite.setFlipX(true);
-      body.setVelocityX(this.speed);
-    }
+    if (this.stun <= 0) {
+      // Horizontal movement
+      if (keys.left.isDown || keys.a.isDown) {
+        body.setVelocityX(-this.speed);
+        sprite.setFlipX(false);
+      } else if (keys.right.isDown || keys.d.isDown) {
+        sprite.setFlipX(true);
+        body.setVelocityX(this.speed);
+      }
 
-    // Vertical movement
-    if (keys.up.isDown || keys.w.isDown) {
-      body.setVelocityY(-this.speed);
-    } else if (keys.down.isDown || keys.s.isDown) {
-      body.setVelocityY(this.speed);
-    }
+      // Vertical movement
+      if (keys.up.isDown || keys.w.isDown) {
+        body.setVelocityY(-this.speed);
+      } else if (keys.down.isDown || keys.s.isDown) {
+        body.setVelocityY(this.speed);
+      }
 
-    // Normalize and scale the velocity so that sprite can't move faster along a diagonal
-    body.velocity.normalize().scale(this.speed);
+      // Normalize and scale the velocity so that sprite can't move faster along a diagonal
+      body.velocity.normalize().scale(this.speed);
 
-    // Update the animation last and give left/right/down animations precedence over up animations
-    if (keys.left.isDown || keys.right.isDown || keys.down.isDown || keys.up.isDown || keys.a.isDown || keys.d.isDown || keys.w.isDown || keys.s.isDown) {
-      sprite.anims.play('player-walk', true);
+      // Update the animation last and give left/right/down animations precedence over up animations
+      if (keys.left.isDown || keys.right.isDown || keys.down.isDown || keys.up.isDown || keys.a.isDown || keys.d.isDown || keys.w.isDown || keys.s.isDown) {
+        sprite.anims.play('feller-walk', true);
+      } else {
+        sprite.anims.stop();
+
+        // If we were moving & now we're not, then pick a single idle frame to use
+        sprite.setTexture('feller-sheet', 0);
+      }
     } else {
-      sprite.anims.stop();
-
-      // If we were moving & now we're not, then pick a single idle frame to use
-      sprite.setTexture('feller-sheet', 0);
+      this.stun--
+      this.sprite.anims.play('feller-hurt')
     }
-    
+  }
+
+  pointAndShoot() {
+    const sprite = this.sprite;
     // Calculate the angle between the gun and the mouse cursor
     const pointer = this.scene.input.mousePointer;
-    const [px, py] = [pointer.x - (this.scene.game.config.width as number)/2 + sprite.x, pointer.y - (this.scene.game.config.height as number)/2 + sprite.y]
+    // const [px, py] = [
+    //     Math.max(pointer.x, pointer.x - (this.scene.game.config.width as number)/2 + sprite.x),
+    //     Math.max(pointer.y, pointer.y - (this.scene.game.config.height as number)/2 + sprite.y)
+    // ]
+    // Convert the pointer position to the world position
+    const worldPoint = this.scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
+
+    const [px, py] = [worldPoint.x, worldPoint.y];
     
     const angleToPointer = Phaser.Math.Angle.Between(sprite.x, sprite.y, px, py);
 
@@ -141,13 +179,22 @@ export default class Feller {
 
     this.gunSprite.flipY = this.gunSprite.x < sprite.x
 
-    if (this.shootCooldown > 0) {
-      this.shootCooldown--
-    } else {
-      if (pointer.primaryDown || keys.space.isDown) {
+
+    if (this.shootCooldown <= 0) {
+      if (pointer.primaryDown || this.keys.space.isDown) {
         this.shoot(angleToPointer);
       }
+    } else {
+      this.shootCooldown--
     }
+  }
+
+  update(time: any, delta: any) {
+    const keys = this.keys;
+    const sprite = this.sprite;
+
+    this.move()  
+    this.pointAndShoot()
 
     if (this.iframes > 0) {
       this.iframes--
@@ -157,18 +204,21 @@ export default class Feller {
         this.sprite.setVisible(true)
       }
     } else {
-      this.sprite.setVisible(true)
+      !this.sprite.visible && this.sprite.setVisible(true)
     }
   }
 
   hit(byEnemy: Enemy) {
-    console.log('feller hit by enemy', byEnemy, this.hp)
-
     if (this.iframes > 0) {
       return
     }
 
+    console.log('feller hit by enemy', byEnemy, this.hp)
+
     this.hp -= byEnemy.damage;
+
+    EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
+    
     if (this.hp <= 0) {
       EventEmitter.emit('gameOver')
       return
@@ -176,6 +226,7 @@ export default class Feller {
     } 
     
     this.iframes = this.IFRAMES_DURATION
+    this.stun = this.STUN_DURATION
 
     // radians 
     const knockbackDir = Phaser.Math.Angle.BetweenPoints(byEnemy, this.sprite)
@@ -183,7 +234,8 @@ export default class Feller {
     const knockbackY = this.sprite.y + (byEnemy.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + byEnemy.knockback)
     this.sprite.setPosition(knockbackX, knockbackY)
 
-    EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
+    const tile = this.scene.map.getTileAtWorldXY(knockbackX, knockbackY)
+    console.log({ tile })
   }
 
   pickupPowerUp(powerup: PowerUp) {
@@ -193,7 +245,9 @@ export default class Feller {
         this.heal(this.MAX_HEALTH)
         break
       case PowerUpType.Speed:
+        const speedRatio = (this.speed + 50) / this.speed
         this.speed += 50
+        this.scene.cameras.main.setZoom(this.scene.cameras.main.zoom / speedRatio)
         EventEmitter.emit('speed', this.speed)
         break
       case PowerUpType.Shoot:
@@ -204,7 +258,6 @@ export default class Feller {
         break
     }
   }
-
 
   heal(points: number) {
     this.hp += points
@@ -223,6 +276,10 @@ export default class Feller {
 
     // Create new bullet at the barrel's position and set its velocity.
     const bullet = new Bullet(this.scene, barrelX, barrelY, angle); 
+    if (bullet.body && this.sprite.body) {
+      bullet.body.velocity.x += this.sprite.body.velocity.x
+      bullet.body.velocity.y += this.sprite.body.velocity.y
+    }
     this.bullets.push(bullet)
     this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
       const enemy = _enemy as Enemy
@@ -231,10 +288,11 @@ export default class Feller {
       bullet.destroy()
       if (enemy.originalRoom?.enemies.every(e => e.dead) && !enemy.originalRoom.hasSpawnedPowerup) {
         enemy.originalRoom.hasSpawnedPowerup = true
-        this.scene.spawnPowerUp(enemy.currentRoom, this.scene.rollPowerUp())
+        this.scene.spawnPowerUp(enemy.currentRoom)
       }
     })
     this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())
+    this.scene.physics.add.collider(bullet, this.scene.shadowLayer, () => bullet.destroy())
     this.shootCooldown = this.RELOAD_COOLDOWN;
   }
   

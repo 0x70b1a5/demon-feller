@@ -8,11 +8,15 @@ import TILES from '../constants/tiles'
 import Dungeon, { Room } from '@mikewesthad/dungeon';
 import Feller from '../Feller';
 import TilemapVisibility from '../TilemapVisibility';
-import Enemy, { EnemyConfig } from '../Enemy';
+import Enemy, { EnemyConfig, EnemyType } from '../Enemy';
 import Bullet from '../Bullet';
 import Goo from '../Goo';
 import PowerUp, { PowerUpType } from '../Powerup';
 import EventEmitter from '../EventEmitter';
+import powerUps from '../constants/powerups';
+import roll from '../util/roll';
+import enemies from '../constants/enemies';
+import Pig from '../Pig';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -28,16 +32,21 @@ export class GameScene extends Phaser.Scene {
   debug = false
   rexUI!: RexUIPlugin
   level!: number
-  hasPlayerReachedStairs!: boolean
   dungeon!: Dungeon
   rooms!: RoomWithEnemies[]
+  levellingUp = false
   groundLayer!: Phaser.Tilemaps.TilemapLayer
   stuffLayer!: Phaser.Tilemaps.TilemapLayer
+  shadowLayer!: Phaser.Tilemaps.TilemapLayer
   tilemapVisibility!: TilemapVisibility;
   playerRoom!: RoomWithEnemies
   enemies: Enemy[] = []
   map!: Phaser.Tilemaps.Tilemap
+  startRoom!: RoomWithEnemies
+  otherRooms!: RoomWithEnemies[]
   demonsFelled = 0
+  demonsFelledLevel = 0
+  gameOver = false
   
   constructor() {
     super({ key: 'GameScene' })
@@ -50,38 +59,48 @@ export class GameScene extends Phaser.Scene {
   init() {
   }
 
-  create() {
-    this.level++
-    this.hasPlayerReachedStairs = false
-    if (this.debug) {
-      this.physics.world.createDebugGraphic();   
-    }
-
+  createDungeon() {
     const dungeon = this.dungeon = new Dungeon({
-      width: 25,
-      height: 25,
+      width: 25 * Math.round(this.level / 2),
+      height: 25 * Math.round(this.level / 2),
       doorPadding: 1,
       rooms: {
-        width: { min: 5, max: 13, onlyOdd: true },
-        height: { min: 5, max: 13, onlyOdd: true },
-        maxRooms: 20,
+        width: { min: 5, max: 9 * this.level, onlyOdd: true },
+        height: { min: 5, max: 9 * this.level, onlyOdd: true },
+        maxRooms: 10 * Math.round(this.level / 2),
       }
     })
 
     const dhtml = dungeon.drawToHtml({ })
     EventEmitter.emit('minimap', dhtml)
+    return dungeon
+  }
+
+  createTilemap() {    
+    if (this.map) {
+      this.map.removeAllLayers().destroy()
+    }
+
+    if (this.groundLayer) {
+      this.groundLayer.destroy()
+    }
+
+    if (this.shadowLayer) {
+      this.shadowLayer.destroy()
+    }
 
     const map = this.map = this.make.tilemap({
       tileWidth: 200,
       tileHeight: 200,
-      width: dungeon.width,
-      height: dungeon.height
+      width: this.dungeon.width,
+      height: this.dungeon.height
     })
+    map.scene = this
 
     const tileset = map.addTilesetImage('tileset', undefined, 200, 200, 0, 0)!
     const groundLayer = this.groundLayer = map.createBlankLayer('Ground', tileset)!.fill(TILES.BLANK)
     // const stuffLayer =  this.stuffLayer = map.createBlankLayer('Stuff', tileset)!
-    
+
     this.dungeon.rooms.forEach((room) => {
       const { x, y, width, height, left, right, top, bottom } = room;
 
@@ -127,89 +146,113 @@ export class GameScene extends Phaser.Scene {
         faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
       });
     }
+    
+    const shadowLayer = this.shadowLayer = map.createBlankLayer('Shadow', tileset)!.fill(TILES.BLANK)!;
+    shadowLayer.setCollisionByExclusion([-1])
 
-    const rooms = this.rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
-    const startRoom = rooms.shift();
-    const otherRooms = Phaser.Utils.Array.Shuffle(rooms);
-
-    const shadowLayer = map.createBlankLayer('Shadow', tileset)!.fill(TILES.BLANK)!;
     this.tilemapVisibility = new TilemapVisibility(shadowLayer);
+
+    return map
+  }
+
+  putPlayerInStartRoom() {
+    const rooms = this.rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
+    const startRoom = this.startRoom = rooms.shift()!;
+    const otherRooms = this.otherRooms = Phaser.Utils.Array.Shuffle(rooms);
 
     // Place the player in the first room
     this.playerRoom = startRoom!;
 
-    const x = map.tileToWorldX(this.playerRoom.centerX)!;
-    const y = map.tileToWorldY(this.playerRoom.centerY)!;
+    const x = this.map.tileToWorldX(this.playerRoom.centerX)!;
+    const y = this.map.tileToWorldY(this.playerRoom.centerY)!;
 
-    this.feller = new Feller(this, x, y);
+    if (this.feller) {
+      this.feller.createNewSprite(x, y)
+    } else {
+      this.feller = new Feller(this, x, y);
+    }
 
     // this.physics.add.collider(this.feller.sprite, stuffLayer);
-    this.physics.add.collider(this.feller.sprite, groundLayer, () => console.log('collide'));
+    this.physics.add.collider(this.feller.sprite, this.groundLayer, () => console.log('collide'));
+  }
 
+  setupCamera() {
     const camera = this.cameras.main;
-    camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+    camera.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
     camera.startFollow(this.feller.sprite);
+  }
 
-    otherRooms.forEach(room => {
-      for(let i = 0; i < Math.random() * 8; i++) {
-        const enemy = Math.random() < 0.5 
-          ? new Goo(this, { room, texture: 'goo' })
-          : new Enemy(this, { room, texture: 'pig', velocity: 50 })
-        this.spawnEnemy(enemy)
-        room.enemies ||= []
-        room.enemies.push(enemy)
-      }
-    });
+  createNewLevel() {
+    this.level++
+    console.log('level', this.level)
+    this.createDungeon()
+    this.createTilemap()
+    this.putPlayerInStartRoom()
+    this.setupCamera()
+    this.spawnEnemiesInRooms()
+  }
+
+  create() {
+    if (this.debug) {
+      this.physics.world.createDebugGraphic();   
+    }
+
+    this.createNewLevel()
 
     EventEmitter.on('demonFelled', () => {
       this.demonsFelled++
+      this.demonsFelledLevel++
       EventEmitter.emit('demonsFelled', this.demonsFelled)
+      EventEmitter.emit('demonsFelledLevel', this.demonsFelledLevel)
     })
 
-    let demonsToFell = 0
-    for (let room of this.rooms) {
-      demonsToFell += room.enemies.length
-    }
+    EventEmitter.on('goToNextLevel', () => {
+      this.createNewLevel()
+      this.levellingUp = false // don't resume updating until the new level is done
+    })
 
-    EventEmitter.emit('demonsToFell', demonsToFell)
+    EventEmitter.on('gameOver', () => {
+      this.gameOver = true
+    })
   }
 
-  rollPowerUp() {
-    let powerUps = [
-      {type: PowerUpType.Health, weight: 1},
-      {type: PowerUpType.Shoot, weight: 1},
-      {type: PowerUpType.Speed, weight: 1},
-    ];
-    
-    let totalWeight = powerUps.reduce((sum, powerUp) => sum + powerUp.weight, 0);
-    
-    let randomNum = Math.random() * totalWeight;
-    
-    let weightSum = 0;
-    for (let powerUp of powerUps) {
-      weightSum += powerUp.weight;
-      
-      if (randomNum <= weightSum) {
-        return powerUp.type
-      }
-    }
-
-    return powerUps[0].type
-  }
-
-  spawnPowerUp(room: RoomWithEnemies, type: PowerUpType) {
+  spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType) {
     const x = this.map.tileToWorldX(room.centerX)!;
     const y = this.map.tileToWorldY(room.centerY)!;
     
-    const powerup = new PowerUp(this, x, y, type);
+    // Add the lens flare sprite at the powerup position
+    const flare = this.add.sprite(x, y, 'boom').setScale(0.1);
+
+    // Create the tween
+    this.tweens.add({
+      targets: flare,
+      angle: 360,
+      duration: 750,
+      onComplete: () => {
+        flare.destroy(); // Destroy the flare when the animation completes
+      },
+      ease: 'Sine.easeInOut'
+    });
+    this.tweens.add({
+      targets: flare,
+      scale: { start: 0.1, to: 10.0 },
+      yoyo: true,
+      duration: 450,
+      ease: 'Sine.easeInOut'
+    })
+
+    const powerup = new PowerUp(this, x, y, (type || roll(powerUps)) as PowerUpType);
     
-    const gfx = this.add.graphics({ lineStyle: { color: 0xff0000, width: 3 }})
-      .lineBetween(x, y, this.feller.sprite.x, this.feller.sprite.y)
+    const gfx = this.add.graphics({ lineStyle: { color: 0xff0000, width: 3 }});
+    if (this.debug) {
+      gfx.lineBetween(x, y, this.feller.sprite.x, this.feller.sprite.y)
+    }
+
 
     this.physics.add.overlap(this.feller.sprite, powerup, () => {
       this.feller.pickupPowerUp(powerup);
       powerup.destroy();
-      gfx.clear()
+      gfx.clear();
     });
   }
   
@@ -219,8 +262,42 @@ export class GameScene extends Phaser.Scene {
     if (roomsWithEnemies.length > 0) {
       return false
     }
-    alert('You win!')
-    EventEmitter.emit('gameOver')
+    EventEmitter.emit('levelUp')
+    this.levellingUp = true
+    this.physics.world.colliders.getActive().forEach(c => c.destroy())
+  }
+
+  spawnEnemiesInRooms() {
+    this.otherRooms.forEach(room => {
+      for(let i = 0; i < Math.random() * 8 * this.level; i++) {
+        const enemyType = roll(enemies)
+        let enemy: Enemy | null = null;
+        switch(enemyType) {
+          case EnemyType.Goo:
+            enemy = new Goo(this, { room, enemyType, texture: 'goo' })
+            break
+          case EnemyType.Pig:
+            enemy = new Pig(this, { room, enemyType, texture: 'pig' })
+            break
+          default:
+            break
+        }
+        if (enemy) {
+          this.spawnEnemy(enemy)
+          room.enemies ||= []
+          room.enemies.push(enemy)
+        }
+      }
+    });
+
+    let demonsToFell = 0
+    for (let room of this.rooms) {
+      demonsToFell += room.enemies.length
+    }
+
+    this.demonsFelledLevel = 0
+    EventEmitter.emit('demonsToFell', demonsToFell)
+    EventEmitter.emit('demonsFelledLevel', this.demonsFelledLevel)
   }
 
   spawnEnemy(enemy: Enemy) {
@@ -235,6 +312,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time: any, delta: any) {
+    if (this.gameOver) {
+      return
+    }
+
+    if (this.levellingUp) {
+      return
+    }
+
     this.feller.update(time, delta);
 
      // Find the player's room using another helper method from the dungeon that converts from
