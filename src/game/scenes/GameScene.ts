@@ -17,11 +17,16 @@ import powerUps from '../constants/powerups';
 import roll from '../util/roll';
 import enemies from '../constants/enemies';
 import Pig from '../Pig';
+import { assert } from 'console';
+import { v4 as uuid } from 'uuid'
+import Door from '../Door';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
   enemies: Enemy[]
   hasSpawnedPowerup: boolean
+  guid: string
+  doorSprites: Door[]
 }
 export interface OurCursorKeys extends Phaser.Types.Input.Keyboard.CursorKeys {
   tractor: Phaser.Input.Keyboard.Key
@@ -39,7 +44,7 @@ export class GameScene extends Phaser.Scene {
   stuffLayer!: Phaser.Tilemaps.TilemapLayer
   shadowLayer!: Phaser.Tilemaps.TilemapLayer
   tilemapVisibility!: TilemapVisibility;
-  playerRoom!: RoomWithEnemies
+  fellerRoom!: RoomWithEnemies
   enemies: Enemy[] = []
   map!: Phaser.Tilemaps.Tilemap
   startRoom!: RoomWithEnemies
@@ -107,6 +112,7 @@ export class GameScene extends Phaser.Scene {
 
     this.dungeon.rooms.forEach((room) => {
       const { x, y, width, height, left, right, top, bottom } = room;
+      (room as RoomWithEnemies).guid = uuid()
 
       // Fill the floor with mostly clean tiles
       this.groundLayer.weightedRandomize(TILES.FLOOR, x + 1, y + 1, width - 2, height - 2);
@@ -165,10 +171,10 @@ export class GameScene extends Phaser.Scene {
     const otherRooms = this.otherRooms = Phaser.Utils.Array.Shuffle(rooms);
 
     // Place the player in the first room
-    this.playerRoom = startRoom!;
+    this.fellerRoom = startRoom!;
 
-    const x = this.map.tileToWorldX(this.playerRoom.centerX)!;
-    const y = this.map.tileToWorldY(this.playerRoom.centerY)!;
+    const x = this.map.tileToWorldX(this.fellerRoom.centerX)!;
+    const y = this.map.tileToWorldY(this.fellerRoom.centerY)!;
 
     if (this.feller) {
       this.feller.createNewSprite(x, y)
@@ -184,6 +190,26 @@ export class GameScene extends Phaser.Scene {
     const camera = this.cameras.main;
     camera.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
     camera.startFollow(this.feller.sprite);
+  }
+
+  addDoorSpritesToRooms() {
+    this.rooms.forEach(room => {
+      const doors = room.getDoorLocations(); 
+      room.doorSprites ||= []
+
+      for (let door of doors) {
+        const [x, y] = [this.map.tileToWorldX(door.x + room.x)!, this.map.tileToWorldY(door.y + room.y)!]
+        if (door.y === 0) {
+          room.doorSprites.push(new Door(this, room as RoomWithEnemies, 'N', x, y));
+        } else if (door.y === room.height - 1) {
+          room.doorSprites.push(new Door(this, room as RoomWithEnemies, 'S', x, y));
+        } else if (door.x === 0) {
+          room.doorSprites.push(new Door(this, room as RoomWithEnemies, 'W', x, y));
+        } else if (door.x === room.width - 1) {
+          room.doorSprites.push(new Door(this, room as RoomWithEnemies, 'E', x, y));
+        }
+      }
+    })
   }
 
   createNewLevel() {
@@ -330,9 +356,9 @@ export class GameScene extends Phaser.Scene {
     // dungeon XY (in grid units) to the corresponding room instance
     const playerTileX = this.groundLayer.worldToTileX(this.feller.sprite.x);
     const playerTileY = this.groundLayer.worldToTileY(this.feller.sprite.y);
-    this.playerRoom = this.dungeon.getRoomAt(playerTileX, playerTileY)! as RoomWithEnemies;
+    this.fellerRoom = this.dungeon.getRoomAt(playerTileX, playerTileY)! as RoomWithEnemies;
     
-    this.tilemapVisibility.setActiveRoom(this.playerRoom);
+    this.tilemapVisibility.setActiveRoom(this.fellerRoom);
     // console.log(this.feller.sprite.body!.x, this.feller.sprite.body!.y)
   }
 }

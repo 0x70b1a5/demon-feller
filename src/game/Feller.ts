@@ -250,6 +250,7 @@ export default class Feller {
         this.scene.cameras.main.setZoom(this.scene.cameras.main.zoom * speedRatio)
         const rate = this.scene.anims.get('feller-walk').frameRate 
         this.scene.anims.get('feller-walk').frameRate = Math.min(rate + 1, 60)
+        this.sprite.anims.stop() // animation won't update until we restart
         EventEmitter.emit('speed', this.speed)
         break
       case PowerUpType.Shoot:
@@ -288,9 +289,9 @@ export default class Feller {
       console.log('bullet hit enemy');
       enemy.hit()
       bullet.destroy()
-      if (enemy.originalRoom?.enemies.every(e => e.dead) && !enemy.originalRoom.hasSpawnedPowerup) {
-        enemy.originalRoom.hasSpawnedPowerup = true
-        this.scene.spawnPowerUp(enemy.currentRoom)
+      if (enemy.room?.enemies.every(e => e.dead) && !enemy.room.hasSpawnedPowerup) {
+        enemy.room.hasSpawnedPowerup = true
+        this.scene.spawnPowerUp(enemy.room)
       }
     })
     this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())

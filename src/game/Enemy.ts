@@ -5,6 +5,7 @@ import Feller from './Feller';
 import EventEmitter from './EventEmitter';
 import animations from './util/animate';
 import { Exception } from 'sass';
+import assert from './util/assert';
 
 export interface EnemyConfig {
   damage?: number
@@ -25,8 +26,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   target!: Phaser.Types.Math.Vector2Like;
   health: number;
   damage: number;
-  currentRoom!: RoomWithEnemies
-  originalRoom!: RoomWithEnemies
+  room!: RoomWithEnemies
   scene!: GameScene
   seenFeller = false
   speed = 100
@@ -41,7 +41,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     super(scene, 0, 0, config.texture);
     this.health = config.health || 3;
     this.damage = config.damage || 1;
-    this.originalRoom = this.currentRoom = config.room
+    this.room = config.room
     this.scene = scene
     this.speed = config.velocity || this.speed
     this.enemyType = config.enemyType
@@ -50,8 +50,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     scene.physics.add.collider(this, scene.groundLayer)
     
-    this.setX(scene.map.tileToWorldX(this.currentRoom.centerX)! + Math.random() * 200)
-    this.setY(scene.map.tileToWorldY(this.currentRoom.centerY)! + Math.random() * 200)
+    this.setX(scene.map.tileToWorldX(this.room.centerX)! + Math.random() * 200)
+    this.setY(scene.map.tileToWorldY(this.room.centerY)! + Math.random() * 200)
 
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }})
     // console.log(this.x, this.y)
@@ -85,11 +85,11 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (tileX && tileX > 0 && tileY && tileY > 0) {
       const rm = this.scene.dungeon.getRoomAt(tileX, tileY) as RoomWithEnemies
       if (rm) { 
-        this.currentRoom = rm
+        this.room = rm
       }
     }
 
-    if (!this.currentRoom) {
+    if (!this.room) {
       throw Exception
     }
 
@@ -97,7 +97,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.gfx
         .clear()
         .lineBetween(this.x, this.y, 
-          this.scene.map.tileToWorldX(this.currentRoom.centerX)!, this.scene.map.tileToWorldY(this.currentRoom.centerY)!
+          this.scene.map.tileToWorldX(this.room.centerX)!, this.scene.map.tileToWorldY(this.room.centerY)!
         )
     }
 
@@ -106,7 +106,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   lookForFeller() {
-    if ((this.currentRoom.centerX === this.scene.playerRoom.centerX) && (this.currentRoom.centerY === this.scene.playerRoom.centerY)) {
+    if (this.room.guid === this.scene.fellerRoom.guid) {
       !this.visible && this.setVisible(true)
 
       if (!this.seenFeller) {
@@ -148,10 +148,14 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   wobble() {
+    assert(this.body)
+
+    const wobbleFactor = this.speed / 2
     const angle = Math.random() * 2 * Math.PI
-    const wobbleX = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
-    const wobbleY = Math.random() * this.speed * (Math.random() < 0.5 ? -1 : 1)
-    this.setVelocity(Math.cos(angle) * this.speed + wobbleX, Math.sin(angle) * this.speed + wobbleY);
+    const wobbleX = Math.random() * wobbleFactor * (Math.random() < 0.5 ? -1 : 1)
+    const wobbleY = Math.random() * wobbleFactor * (Math.random() < 0.5 ? -1 : 1)
+    this.body.velocity.x += Math.cos(angle) * wobbleFactor + wobbleX
+    this.body.velocity.y += Math.sin(angle) * wobbleFactor + wobbleY
   }
 
   giveUpChasing() {
@@ -186,10 +190,18 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  checkRoomComplete() {
+    if (this.room.enemies?.every(e => e.dead)) {
+      console.log('room complete', this.room.guid)
+      EventEmitter.emit('openDoors', this.room.guid)
+    }
+  }
+
   die() {
     this.gfx.clear()
     this.dead = true
     EventEmitter.emit('demonFelled')
+    this.checkRoomComplete()
     this.scene.checkLevelComplete() // dont call after destroy()
     this.destroy()
   }

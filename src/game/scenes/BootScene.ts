@@ -44,10 +44,6 @@ export class BootScene extends Phaser.Scene {
 
     // Preload all assets
     // Images
-    // this.load.image('background', 'assets/images/background.png');
-    // this.load.spritesheet('playerSpriteWalk', 'assets/images/player_walk.png', { frameWidth: 32, frameHeight: 32 });
-    // this.load.image('bullet', 'assets/images/bullet.png');
-    // this.load.image('enemy', 'assets/images/enemy.png');
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     this.load.image('powerupBG', 'assets/powerupBG.png');
     this.load.image('powerup0', 'assets/powerupHealth.png');
@@ -58,6 +54,8 @@ export class BootScene extends Phaser.Scene {
     this.load.image('bullet', 'assets/bullet.png');
     this.load.image('feller', 'assets/feller.png');
     this.load.image('tileset', 'assets/tileset.png')
+    this.load.image('door', 'assets/door.png')
+    this.load.image('soul', 'assets/soul.png')
     this.load.image('goo', 'assets/goo.png')
     this.load.image('pig', 'assets/pig.png')
     this.load.spritesheet(

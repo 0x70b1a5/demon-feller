@@ -40,7 +40,7 @@ export class MainMenuScene extends Phaser.Scene {
   
       background: this.rexUI.add.roundRectangle(0, 0, 0, 0, 20, colors.TEXTBOX_BG_COLOR),
   
-      text: this.add.text(0, 0, 'Play', {
+      text: this.add.text(0, 0, 'PLAY', {
         fontFamily: 'pkmn', color: colors.TEXT_COLOR, fontSize: 72
       }),
   
