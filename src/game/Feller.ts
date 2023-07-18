@@ -5,6 +5,7 @@ import PowerUp, { PowerUpType } from "./Powerup";
 import powerUps from "./constants/powerups";
 import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
+import assert from "./util/assert";
 import roll from "./util/roll";
 
 /**
@@ -86,15 +87,15 @@ export default class Feller {
       .sprite(x, y, 'feller-sheet')
       .setScale(0.5);
 
-      // DO NOT CHAIN THESE CALLS TO THE ABOVE CALLS
+    // DO NOT CHAIN THESE CALLS TO THE ABOVE CALLS
     this.sprite
-      .setSize(this.sprite.width/2, this.sprite.height*0.75)
+      .setSize(this.sprite.width/2, this.sprite.height*0.5)
       .setOrigin(0.5, 0.5);
 
     this.sprite.anims.play('feller-walk');
 
-    animations.enshadow(this.sprite)
-    animations.enshadow(this.gunSprite)
+    // animations.enshadow(this.sprite)
+    // animations.enshadow(this.gunSprite)
   }
 
   freeze() {
@@ -254,7 +255,7 @@ export default class Feller {
         EventEmitter.emit('speed', this.speed)
         break
       case PowerUpType.Shoot:
-        this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.8, 1)
+        this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.95, 1)
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
         break
       default:
@@ -279,10 +280,9 @@ export default class Feller {
 
     // Create new bullet at the barrel's position and set its velocity.
     const bullet = new Bullet(this.scene, barrelX, barrelY, angle); 
-    if (bullet.body && this.sprite.body) {
-      bullet.body.velocity.x += this.sprite.body.velocity.x
-      bullet.body.velocity.y += this.sprite.body.velocity.y
-    }
+    assert(bullet.body && this.sprite.body)
+    bullet.body.velocity.x += this.sprite.body.velocity.x
+    bullet.body.velocity.y += this.sprite.body.velocity.y
     this.bullets.push(bullet)
     this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
       const enemy = _enemy as Enemy

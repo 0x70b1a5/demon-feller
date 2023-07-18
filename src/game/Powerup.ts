@@ -19,7 +19,7 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
     this.scene.add.existing(this);
     this.bg = bg
 
-    animations.enshadow(this.bg)
+    // animations.enshadow(this.bg)
     animations.wobbleSprite(this.scene, this, -20, 20)
     animations.wobbleSprite(this.scene, this.bg, -720, 720, 6000)
   }

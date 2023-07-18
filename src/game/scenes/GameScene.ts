@@ -15,11 +15,12 @@ import PowerUp, { PowerUpType } from '../Powerup';
 import EventEmitter from '../EventEmitter';
 import powerUps from '../constants/powerups';
 import roll from '../util/roll';
-import enemies from '../constants/enemies';
+import enemyWeights from '../constants/enemies';
 import Pig from '../Pig';
 import { assert } from 'console';
 import { v4 as uuid } from 'uuid'
 import Door from '../Door';
+import Soul from '../Soul';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -52,6 +53,7 @@ export class GameScene extends Phaser.Scene {
   demonsFelled = 0
   demonsFelledLevel = 0
   gameOver = false
+  keys!: any
   
   constructor() {
     super({ key: 'GameScene' })
@@ -66,14 +68,14 @@ export class GameScene extends Phaser.Scene {
 
   createDungeon() {
     const increaseRatio = Math.ceil(this.level / 3)
+    const roomSize = 7 * increaseRatio
     const dungeon = this.dungeon = new Dungeon({
-      width: 25 * increaseRatio,
-      height: 25 *increaseRatio,
-      doorPadding: 1,
+      width: 28 * increaseRatio,
+      height: 28 * increaseRatio,
+      doorPadding: 2,
       rooms: {
-        width: { min: 5, max: 9 * increaseRatio, onlyOdd: true },
-        height: { min: 5, max: 9 * increaseRatio, onlyOdd: true },
-        maxRooms: 10 * increaseRatio,
+        width: { min: roomSize, max: roomSize },
+        height: { min: roomSize, max: roomSize },
       }
     })
 
@@ -193,7 +195,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   addDoorSpritesToRooms() {
-    this.rooms.forEach(room => {
+    // don't add doors to first room!
+    this.otherRooms.forEach(room => {
       const doors = room.getDoorLocations(); 
       room.doorSprites ||= []
 
@@ -220,11 +223,16 @@ export class GameScene extends Phaser.Scene {
     this.putPlayerInStartRoom()
     this.setupCamera()
     this.spawnEnemiesInRooms()
+    this.addDoorSpritesToRooms()
   }
 
   create() {
     if (this.debug) {
-      this.physics.world.createDebugGraphic();   
+      this.physics.world.createDebugGraphic();  
+      this.keys = this.input.keyboard?.addKeys({
+        minus: Phaser.Input.Keyboard.KeyCodes.MINUS,
+        plus: Phaser.Input.Keyboard.KeyCodes.PLUS,
+      }) 
     }
 
     this.createNewLevel()
@@ -299,8 +307,8 @@ export class GameScene extends Phaser.Scene {
 
   spawnEnemiesInRooms() {
     this.otherRooms.forEach(room => {
-      for(let i = 0; i < Math.random() * 8 * this.level; i++) {
-        const enemyType = roll(enemies)
+      for(let i = 0; i < Math.random() * 3 * this.level; i++) {
+        const enemyType = roll(enemyWeights)
         let enemy: Enemy | null = null;
         switch(enemyType) {
           case EnemyType.Goo:
@@ -308,6 +316,9 @@ export class GameScene extends Phaser.Scene {
             break
           case EnemyType.Pig:
             enemy = new Pig(this, { room, enemyType, texture: 'pig' })
+            break
+          case EnemyType.Soul:
+            enemy = new Soul(this, { room, enemyType, texture: 'soul' })
             break
           default:
             break
@@ -360,5 +371,13 @@ export class GameScene extends Phaser.Scene {
     
     this.tilemapVisibility.setActiveRoom(this.fellerRoom);
     // console.log(this.feller.sprite.body!.x, this.feller.sprite.body!.y)
+
+    if (this.debug) {
+      if (Phaser.Input.Keyboard.JustDown(this.keys?.minus)) {
+        this.cameras.main.setZoom(this.cameras.main.zoom / 1.25)
+      } else if (Phaser.Input.Keyboard.JustDown(this.keys?.plus)) {
+        this.cameras.main.setZoom(this.cameras.main.zoom * 1.25)
+      }
+    } 
   }
 }

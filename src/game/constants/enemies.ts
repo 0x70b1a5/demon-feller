@@ -1,8 +1,9 @@
 import { EnemyType } from "../Enemy";
 
-const enemies = [
+const enemyWeights = [
   { type: EnemyType.Goo, weight: 2 },
   { type: EnemyType.Pig, weight: 1 },
+  { type: EnemyType.Soul, weight: 1 },
 ]
 
-export default enemies
+export default enemyWeights
