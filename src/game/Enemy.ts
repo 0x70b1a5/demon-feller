@@ -55,12 +55,24 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setMaxVelocity(this.speed)
 
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
-    .fillRect(this.x, this.y, 10, 10)
+    if (this.debug) {
+      this.gfx
+      .fillRect(this.x, this.y, 10, 10)
+    }
+  }
 
-    // this.setBounce(1); // This will avoid enemy sticking to the wall
-
-    // animations.enshadow(this)
-    // animations.wobbleSprite(this.scene, this)
+  isNearDoor(x: number, y: number) {
+    const threshold = 500; // pixels
+  
+    for (let door of this.room.getDoorLocations()) {
+      const doorX = this.scene.map.tileToWorldX(door.x)!
+      const doorY = this.scene.map.tileToWorldY(door.y)!
+      if (Math.abs(x - doorX) < threshold && 
+          Math.abs(y - doorY) < threshold) {
+        return true;
+      }
+    }
+    return false;
   }
 
   attack(feller: Feller) {
@@ -82,14 +94,23 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     if (this.debug) {
       this.gfx
-        // .clear()
-        // .lineBetween(this.x, this.y, 
-        //   this.scene.map.tileToWorldX(this.room.centerX)!, this.scene.map.tileToWorldY(this.room.centerY)!
-        // )
-        .fillRect(this.x, this.y, 5, 5)
+        .clear()
+        .lineBetween(this.x, this.y, 
+          this.scene.map.tileToWorldX(this.room.centerX)!, this.scene.map.tileToWorldY(this.room.centerY)!
+        )
+        if(this.target)
+        this.gfx
+        .lineBetween(this.x, this.y, this.target.x!, this.target.y!)
+        // .fillRect(this.x, this.y, 5, 5)
     }
 
     this.lookForFeller()
+    if (time % 10000 === delta) {
+      this.acquireTarget(time, delta)
+    }
+    if (this.isNearDoor(this.x, this.y)) {
+      this.acquireTarget(time, delta); 
+    }
     this.move(time, delta)
   }
 
@@ -100,7 +121,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (!this.seenFeller) {
         console.log('seen feller', this)
         this.seenFeller = true
-        this.gfx.setDefaultStyles({ fillStyle: { color: 0x0000ff }})
+        if(this.debug) {
+          this.gfx.setDefaultStyles({ fillStyle: { color: 0x0000ff }})
+        }
         this.target = this.scene.feller.sprite
       }
     } else {
@@ -112,35 +135,20 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   acquireTarget(time: any, delta: any) {
     if (!this.seenFeller) {
-      if (time % 10000 === 0)
-      { 
-        console.log({ time, delta })
-        // at least 1: index 0 is a wall
-        // at most width - 1 or height - 1: index width/height is a wall
-        let potentialTarget = new Phaser.Math.Vector2(
-          1 + this.scene.map.tileToWorldX(this.room.x)! + Math.random() * (this.room.width - 2) * this.scene.map.tileWidth, 
-          1 + this.scene.map.tileToWorldY(this.room.y)! + Math.random() * (this.room.height - 2) * this.scene.map.tileHeight
-        );
+      // at least 1: index 0 is a wall
+      // at most width - 1 or height - 1: index width/height is a wall
+      const newTarget = () => new Phaser.Math.Vector2(
+        1 + this.scene.map.tileToWorldX(this.room.x)! + Math.random() * (this.room.width - 2) * this.scene.map.tileWidth, 
+        1 + this.scene.map.tileToWorldY(this.room.y)! + Math.random() * (this.room.height - 2) * this.scene.map.tileHeight
+      );
 
-        let isNearDoor = false;
-      
-        // Check if the potential target is within 2 tiles of any door
-        for (let door of this.room.getDoorLocations()) {
-          const doorWorldPos = new Phaser.Math.Vector2(
-            this.scene.map.tileToWorldX(door.x)!, 
-            this.scene.map.tileToWorldY(door.y)!
-          );  
-          if (potentialTarget.distance(doorWorldPos) < 2 * this.scene.map.tileWidth) {
-            isNearDoor = true;
-            break;
-          }
-        }
-        
-        // If the potential target is not near any door, make it the actual target
-        if(!isNearDoor) {
-          this.target = potentialTarget;
-        }
+      let potentialTarget = newTarget()
+
+      while (this.isNearDoor(potentialTarget.x, potentialTarget.y)) {
+        potentialTarget = newTarget()
       }
+
+      this.target = potentialTarget
     } else {
       this.target = this.scene.feller.sprite
     }
@@ -165,7 +173,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   move(time: any, delta: any) {
-    this.acquireTarget(time, delta)
     this.chaseTarget()
     this.wobble()
   }
@@ -200,7 +207,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   die() {
-    this.gfx.clear()
+    if (this.debug) {
+      this.gfx.clear()
+    }
     this.dead = true
     EventEmitter.emit('demonFelled')
     this.checkRoomComplete()

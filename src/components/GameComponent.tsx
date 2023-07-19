@@ -20,6 +20,8 @@ export const GameComponent: React.FC = () => {
   const [demonsToFell, setDemonsToFell] = useState(0)
   const [minimap, setMinimap] = useState<DocumentFragment>()
   const [level, setLevel] = useState(1)
+  const [damage, setDamage] = useState(1)
+  const [gameStarted, setGameStarted] = useState(false)
 
   const minimapRef = useRef<HTMLDivElement | null>(null);
 
@@ -117,7 +119,16 @@ export const GameComponent: React.FC = () => {
       setLevel(newLevel)
       setLevelUp(true)
     }
+
+    const damageListener = (d: number) => {
+      setDamage(d)
+    }
+
+    const gameStartedListener = () => {
+      setGameStarted(true)
+    }
     
+    EventEmitter.on('gameStarted', gameStartedListener);
     EventEmitter.on('health', healthListener);
     EventEmitter.on('speed', speedListener);
     EventEmitter.on('reloadSpeed', reloadSpeedListener);
@@ -127,10 +138,13 @@ export const GameComponent: React.FC = () => {
     EventEmitter.on('demonsToFell', demonsToFellListener);
     EventEmitter.on('minimap', minimapListener);
     EventEmitter.on('levelUp', levelUpListener);
+    EventEmitter.on('damage', damageListener);
     
     return () => {
+      EventEmitter.off('gameStarted', gameStartedListener);
       EventEmitter.off('health', healthListener);
       EventEmitter.off('speed', speedListener);
+      EventEmitter.off('damage', damageListener);
       EventEmitter.off('reloadSpeed', reloadSpeedListener);
       EventEmitter.off('gameOver', gameOverListener);
       EventEmitter.off('demonsFelledLevel', demonFelledLevelListener);
@@ -149,6 +163,10 @@ export const GameComponent: React.FC = () => {
       SPEED:
       <div className='stat'> {Math.round(speed / 24)}MPH</div>
     </div>
+    <div className='damage bar'>
+      DMG:
+      <div className='stat'>{damage || 1}</div>
+    </div>
     <div className='reloadSpeed bar'>
       R.O.F.:
       <div className='stat'>{Number(40 / (reloadSpeed || 40)).toPrecision(3)}x</div>
@@ -164,7 +182,7 @@ export const GameComponent: React.FC = () => {
   </div>
   return <>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
-    {stats}
+    {gameStarted && stats}
     <div id='minimap' ref={minimapRef}></div>
     {levelUp && <div className='level-up overlay'>
       <div className='notice'>

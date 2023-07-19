@@ -3,7 +3,8 @@ import animations from "./util/animate";
 export enum PowerUpType {
   Health,
   Speed,
-  Shoot
+  RateOfFire,
+  Bullet
 }
 
 export default class PowerUp extends Phaser.Physics.Arcade.Sprite {

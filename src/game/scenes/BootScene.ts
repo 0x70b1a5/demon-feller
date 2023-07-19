@@ -24,31 +24,15 @@ export class BootScene extends Phaser.Scene {
       progressBar.destroy();
       progressBox.destroy();
       loadingText.destroy();
-
-      (window as any).WebFont.load({
-        custom: {
-          families: [ 'pkmn' ]
-        },
-        active: () =>
-        {
-          // Fonts
-          const element = document.createElement('style');
-          document.head.appendChild(element);
-          const sheet = element.sheet!;
-          let styles = '@font-face { font-family: \'pkmn\'; src: url(\'assets/fonts/pkmn/PKMNRBYGSC.ttf\'); }\n';
-          sheet.insertRule(styles, 0);
-          console.log('fonts loaded')
-        }
-      });
     }, this);
 
     // Preload all assets
     // Images
-    this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     this.load.image('powerupBG', 'assets/powerupBG.png');
     this.load.image('powerup0', 'assets/powerupHealth.png');
     this.load.image('powerup1', 'assets/powerupSpeed.png');
-    this.load.image('powerup2', 'assets/powerupShoot.png');
+    this.load.image('powerup2', 'assets/powerupFast.png');
+    this.load.image('powerup3', 'assets/powerupShoot.png');
     this.load.image('gun', 'assets/gun.png');
     this.load.image('boom', 'assets/boom.png');
     this.load.image('bullet', 'assets/bullet.png');
@@ -73,7 +57,8 @@ export class BootScene extends Phaser.Scene {
     // this.load.image('playerSpriteIdle', 'assets/images/player_idle.png');
 
     // Audio
-    // this.load.audio('song1', 'assets/audio/song1.mp3');
+    this.load.audio('bat', 'assets/sounds/bat.mp3');
+    this.load.audio('magic', 'assets/sounds/magic.mp3');
     // this.load.audio('song2', 'assets/audio/song2.mp3');
     // this.load.audio('song3', 'assets/audio/song3.mp3');
 

@@ -30,14 +30,15 @@ export default class Feller {
   stun = 0
   speed = 300
   debug = false
+  damage = 1
 
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
     const anims = scene.anims;
     anims.create({
       key: 'feller-walk',
-      frames: anims.generateFrameNumbers('feller-sheet', { start: 1, end: 3 }),
-      frameRate: 12,
+      frames: anims.generateFrameNumbers('feller-sheet', { frames: [1,2,3,2] }),
+      frameRate: 10,
       repeat: -1
     })
     anims.create({
@@ -111,10 +112,11 @@ export default class Feller {
     const sprite = this.sprite;
     const body = this.bodify(sprite)
 
-    // Stop any previous movement from the last frame
-    body.setVelocity(0);
 
     if (this.stun <= 0) {
+      // Stop any previous movement from the last frame
+      body.setVelocity(0);
+
       // Horizontal movement
       if (keys.left.isDown || keys.a.isDown) {
         body.setVelocityX(-this.speed);
@@ -231,12 +233,11 @@ export default class Feller {
 
     // radians 
     const knockbackDir = Phaser.Math.Angle.BetweenPoints(byEnemy, this.sprite)
-    const knockbackX = this.sprite.x + (byEnemy.x < this.sprite.x ? 1 : -1) * (Math.sin(knockbackDir) + byEnemy.knockback)
-    const knockbackY = this.sprite.y + (byEnemy.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + byEnemy.knockback)
-    this.sprite.setPosition(knockbackX, knockbackY)
+    let knockbackVelocityX = (byEnemy.x < this.sprite.x ? 1 : -1) * (Math.sin(knockbackDir) + byEnemy.knockback)
+    let knockbackVelocityY = (byEnemy.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + byEnemy.knockback)
 
-    const tile = this.scene.map.getTileAtWorldXY(knockbackX, knockbackY)
-    console.log({ tile })
+    this.bodify(this.sprite).velocity.x += knockbackVelocityX
+    this.bodify(this.sprite).velocity.y += knockbackVelocityY
   }
 
   pickupPowerUp(powerup: PowerUp) {
@@ -254,9 +255,13 @@ export default class Feller {
         this.sprite.anims.stop() // animation won't update until we restart
         EventEmitter.emit('speed', this.speed)
         break
-      case PowerUpType.Shoot:
+      case PowerUpType.RateOfFire:
         this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.95, 1)
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
+        break
+      case PowerUpType.Bullet:
+        this.damage++;
+        EventEmitter.emit('damage', this.damage)
         break
       default:
         break
@@ -279,7 +284,7 @@ export default class Feller {
     const barrelY = this.gunSprite.y + barrelDistance * Math.sin(angle + offset);
 
     // Create new bullet at the barrel's position and set its velocity.
-    const bullet = new Bullet(this.scene, barrelX, barrelY, angle); 
+    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle, scale: this.damage/2 }); 
     assert(bullet.body && this.sprite.body)
     bullet.body.velocity.x += this.sprite.body.velocity.x
     bullet.body.velocity.y += this.sprite.body.velocity.y
@@ -287,7 +292,7 @@ export default class Feller {
     this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
       const enemy = _enemy as Enemy
       console.log('bullet hit enemy');
-      enemy.hit()
+      enemy.hit(this.damage)
       bullet.destroy()
       if (enemy.room?.enemies.every(e => e.dead) && !enemy.room.hasSpawnedPowerup) {
         enemy.room.hasSpawnedPowerup = true

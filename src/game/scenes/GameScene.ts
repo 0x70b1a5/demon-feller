@@ -185,7 +185,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // this.physics.add.collider(this.feller.sprite, stuffLayer);
-    this.physics.add.collider(this.feller.sprite, this.groundLayer, () => console.log('collide'));
+    this.physics.add.collider(this.feller.sprite, this.groundLayer);
   }
 
   setupCamera() {

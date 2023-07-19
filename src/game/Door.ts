@@ -31,10 +31,10 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
         this.setRotation(-Math.PI/2)
         break
       case 'S':
-        this.setRotation(Math.PI)
+        this.setRotation(-Math.PI)
         break
       case 'N':
-        this.setRotation(-Math.PI)
+        // this.setRotation(-Math.PI)
         break
       default:
         break
@@ -72,6 +72,9 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
     })
 
     scene.physics.add.collider(this, scene.enemies)
+    scene.physics.add.collider(this, scene.feller.bullets, (me, bullet) => {
+      bullet.destroy()
+    })
 
     EventEmitter.on('spawnDoors', (guid: string) => {
       if (guid === this.room.guid && !this.spawned) {

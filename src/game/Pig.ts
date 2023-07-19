@@ -9,6 +9,7 @@ export default class Pig extends Enemy {
   SPIT_COOLDOWN_DURATION = 120
   spitCooldown = 0
   bullets: Bullet[] = []
+  knockback = 200
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
@@ -17,7 +18,7 @@ export default class Pig extends Enemy {
 
   spit() {
     const angle = Phaser.Math.Angle.BetweenPoints(this, this.scene.feller.sprite)
-    const bullet = new Bullet(this.scene, this.x, this.y, angle, 'bigbullet', 300); 
+    const bullet = new Bullet(this.scene, this.x, this.y, { angle, texture: 'bigbullet', speed: 300 }); 
     assert(bullet.body && this.body)
     
     bullet.body.velocity.x += this.body.velocity.x
