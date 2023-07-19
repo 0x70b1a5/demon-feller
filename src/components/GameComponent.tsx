@@ -181,6 +181,7 @@ export const GameComponent: React.FC = () => {
     </div>
   </div>
   return <>
+    <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
     {gameStarted && stats}
     <div id='minimap' ref={minimapRef}></div>
