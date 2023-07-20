@@ -40,6 +40,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   gfx!: Phaser.GameObjects.Graphics;
   pushing = 0
   enemyType?: EnemyType
+  movementAngle = 0
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, 0, 0, config.texture);
@@ -61,7 +62,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.setX(scene.map.tileToWorldX(x)!)
     this.setY(scene.map.tileToWorldY(y)!)
-    this.setMaxVelocity(this.speed)
+    this.setOrigin(0.5, 0.5)
 
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
     if (this.debug) {
@@ -167,6 +168,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.target) {
       this.chaseTarget()
     }
+    this.setVelocity(Math.cos(this.movementAngle) * this.speed, Math.sin(this.movementAngle) * this.speed)
     this.wobble()
   }
 
@@ -177,20 +179,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   path!: number[][]
   findPathToTarget() {
-    this.gfx.fillCircle(
-      
-      (this.x!)!, 
-      (this.y!)!,
-      5
-      )
-
-      this.gfx.fillRect(
-
-        (this.target.x!)!, 
-        (this.target.y!)!, 
-
-        5, 5
-        )
     this.path = this.scene.pathfinder.findPath(
       this.scene.map.worldToTileX(this.x!)!, 
       this.scene.map.worldToTileY(this.y!)!, 
@@ -199,42 +187,46 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.scene.walkableGrid.clone()
     )
 
-    if (this.debug)
-      for (let step of this.path) {
-        this.gfx.fillRect(
-          this.scene.map.tileToWorldX(step[0])!,
-          this.scene.map.tileToWorldY(step[1])!,
-          5,5
-        )
+
+    for (let step of this.path) {
+      if (this.debug) {
+        this.gfx.fillCircle((this.x!)!, (this.y!)!,5)
+        .fillRect((this.target.x!)!, (this.target.y!)!, 5, 5)
+        .fillRect( this.scene.map.tileToWorldX(step[0])!, this.scene.map.tileToWorldY(step[1])!, 5,5 )
       }
+    }
   }
 
   takePathToTarget() {
-    // i tried making them walk to the first step, 
-    // but for some reason they would just freeze in place on the first step tile.
-    // i wager there's some kind of 'close enough' thing we could do to fix that
-    // but secondStep seems to be good enough.
     const secondStep = this.path?.[1]
     if (secondStep?.length) {
       // console.log({ firstStep })
-      const [x, y] = this.tileXYToWorldXY(secondStep[0], secondStep[1])
-      // the +tilewidth/height / 2 is because we want them to angle for the center of the tile, not the TL corner
-      const angle = Phaser.Math.Angle.Between(this.x, this.y, x + this.scene.map.tileWidth / 2, y + this.scene.map.tileHeight / 2)
-      this.setVelocity(Math.cos(angle) * this.speed, Math.sin(angle) * this.speed)
+      let dest = this.scene.map.tileToWorldXY(secondStep[0], secondStep[1])!
+      // we want them to angle for the center of the tile, not the TL corner
+      dest.x += this.scene.map.tileWidth / 2
+      dest.y += this.scene.map.tileHeight / 2
+      if (this.debug) {
+        this.gfx.fillCircle(dest.x, dest.y, 10)
+      }
+
+      // maybe/maybe not
+      // const distance = Phaser.Math.Distance.BetweenPoints(this, dest)
+      // // if we're close enough to the goal, move on to the next tile
+      // if (distance <= this.scene.map.tileWidth/4) {
+      //   const thirdStep = this.path?.[2]
+      //   if (thirdStep?.length) {
+      //     dest = this.scene.map.tileToWorldXY(thirdStep[0], thirdStep[1])!
+      //     dest.x += this.scene.map.tileWidth / 2
+      //     dest.y += this.scene.map.tileHeight / 2
+      //   }
+      // }
+      
+      if (this.debug) {
+        this.gfx.setDefaultStyles({ lineStyle:{ color: 0x0000ff } })
+        .lineBetween(this.x, this.y, dest.x, dest.y)
+      }
+      this.movementAngle = Phaser.Math.Angle.BetweenPoints(this, dest)
     }
-  }
-
-  tileXYToWorldXY(x: number, y: number): [number, number] {
-    const [wx, wy] = [
-      this.scene.map.tileToWorldX(x)!,
-      this.scene.map.tileToWorldY(y)!
-    ]
-
-    if (this.debug) {
-      this.gfx.lineBetween(this.x, this.y, wx, wy)
-    }
-
-    return [wx, wy]
   }
 
   wobble() {
