@@ -212,6 +212,11 @@ export default class Feller {
     } else {
       !this.sprite.visible && this.sprite.setVisible(true)
     }
+
+    let depth = this.sprite.depth
+    const stuffDepth = this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
+    this.sprite.setDepth(depth+2)
+    this.gunSprite.setDepth(depth+1)
   }
 
   hit(by: Phaser.Physics.Arcade.Sprite & { damage: number, knockback: number }) {

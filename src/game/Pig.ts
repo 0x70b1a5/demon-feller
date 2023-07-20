@@ -1,5 +1,6 @@
 import Bullet from "./Bullet";
 import Enemy, { EnemyConfig } from "./Enemy";
+import Stuff from "./Stuff";
 import { GameScene } from "./scenes/GameScene";
 import assert from "./util/assert";
 
@@ -32,6 +33,9 @@ export default class Pig extends Enemy {
     })
 
     this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())
+    this.scene.physics.add.collider(bullet, this.scene.stuffs, (bullet, _stuff) => {
+      (_stuff as Stuff)?.hit(this.damage)
+    })
     this.scene.physics.add.collider(bullet, this.scene.stuffLayer, () => bullet.destroy())
     this.scene.physics.add.collider(bullet, this.scene.shadowLayer, () => bullet.destroy())
     this.spitCooldown = this.SPIT_COOLDOWN_DURATION;

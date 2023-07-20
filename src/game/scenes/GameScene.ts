@@ -25,6 +25,7 @@ import Barrel from '../Barrel';
 import Pathfinding, { DiagonalMovement } from 'pathfinding';
 import TILE_MAPPING from '../constants/tiles';
 import Rock from '../Rock';
+import Stuff from '../Stuff';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -60,7 +61,7 @@ export class GameScene extends Phaser.Scene {
   demonsFelledLevel = 0
   gameOver = false
   keys!: any
-  stuffs: Phaser.Physics.Arcade.Sprite[] = []
+  stuffs: Stuff[] = []
   
   constructor() {
     super({ key: 'GameScene' })
@@ -181,19 +182,21 @@ export class GameScene extends Phaser.Scene {
     return map
   }
 
-  findUnoccupiedRoomTile(room: Room): [x: number, y: number] {
+  findUnoccupiedRoomTile(room: Room, padding = 2): [x: number, y: number] {
     let [x, y] = [0, 0]
 
     const rollForTile = () => {
       // -1/+1 = don't spawn in a wall
-      x = Math.round(Math.random()) * (room.width - 4) + room.x + 2
-      y = Math.round(Math.random()) * (room.height - 4) + room.y + 2
-      return this.stuffLayer.getTileAt(x, y)
+      x = Math.round(Math.random() * (room.width - padding*2)) + room.x + padding
+      y = Math.round(Math.random() * (room.height - padding*2)) + room.y + padding
+      return (
+        this.stuffs.find(stuff => this.map.worldToTileX(stuff.x) === x && this.map.worldToTileY(stuff.y) === y)
+      )
     }
     
     let tile = rollForTile()
     
-    while (tile) { // seek a NULL tile
+    while (tile) { // seek an empty
       tile = rollForTile()
     }
 
@@ -281,15 +284,8 @@ export class GameScene extends Phaser.Scene {
       // Stuff room with stuff
       const rollForStuff = () => {
         const roll = Math.random()
-        let [x, y] = [0, 0]
-        const rollXY = () => {
-          x = Phaser.Math.Between(room.left + 2, room.right - 2)!;
-          y = Phaser.Math.Between(room.top + 2, room.bottom - 2)!;
-        }
-
-        while (x !== room.centerX && y !== room.centerY) {
-          rollXY()
-        }
+        // debugger
+        let [x, y] = this.findUnoccupiedRoomTile(room, 1)
 
         let object;
         if (roll > 0.5) {

@@ -22,16 +22,20 @@ export default class Rock extends Stuff {
 
   preUpdate(time: number, delta: number) {
     super.preUpdate(time, delta);
+  }
 
-    if (this.health <= 0) {
-      this.die()
-      const remains = [
-        this.scene.add.sprite(this.x + Math.random() * 20 - this.width / 2, this.y + Math.random() * 20 - this.height/2, 'tribullet'),
-        this.scene.add.sprite(this.x + Math.random() * 20 - this.width / 2, this.y + Math.random() * 20 - this.height/2, 'tribullet'),
-        this.scene.add.sprite(this.x + Math.random() * 20 - this.width / 2, this.y + Math.random() * 20 - this.height/2, 'tribullet'),
-      ]
+  onBeforeDie(): void {
+    super.onBeforeDie()
+    this.setRotation(Math.random())
 
-      remains.forEach(r => r.setRotation(Math.random() * 2 * Math.PI))
-    }
+    const remains = [
+      this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
+      this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
+      this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
+    ]
+
+    remains.forEach(r => {
+      r.setRotation(Math.random() * 2 * Math.PI)
+    })
   }
 }
