@@ -21,8 +21,10 @@ import { assert } from 'console';
 import { v4 as uuid } from 'uuid'
 import Door from '../Door';
 import Soul from '../Soul';
+import Barrel from '../Barrel';
 import Pathfinding, { DiagonalMovement } from 'pathfinding';
 import TILE_MAPPING from '../constants/tiles';
+import Rock from '../Rock';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -58,7 +60,7 @@ export class GameScene extends Phaser.Scene {
   demonsFelledLevel = 0
   gameOver = false
   keys!: any
-  objects: Phaser.Physics.Arcade.Sprite[] = []
+  stuffs: Phaser.Physics.Arcade.Sprite[] = []
   
   constructor() {
     super({ key: 'GameScene' })
@@ -220,7 +222,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   putPlayerInStartRoom() {
-    const rooms = this.rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
+    const rooms = this.rooms
     const startRoom = this.startRoom = rooms.shift()!;
     const otherRooms = this.otherRooms = Phaser.Utils.Array.Shuffle(rooms);
 
@@ -270,6 +272,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   addStuffToRooms() {
+    if (this.stuffs) {
+      this.stuffs.forEach(o => o.destroy())
+      this.stuffs = []
+    }
+    this.rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
     this.rooms.forEach(room => {
       // Stuff room with stuff
       const rollForStuff = () => {
@@ -287,11 +294,13 @@ export class GameScene extends Phaser.Scene {
         let object;
         if (roll > 0.5) {
           // this.stuffLayer.putTileAt(TILES.ROCK, x, y)   
-          object = 
+          object = new Rock(this, { room, damage: 0, health: 10, texture: 'rock' }, x, y)          
         } else if (roll < 0.25) {
           // this.stuffLayer.putTileAt(TILES.BARREL, x, y)
-
+          object = new Barrel(this, { room, damage: 3, health: 3, texture: 'barrel' }, x, y)
         }
+
+        if (object) this.stuffs.push(object)
       }
 
       let rolls = this.level * 4

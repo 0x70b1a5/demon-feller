@@ -2,6 +2,7 @@ import Bullet from "./Bullet";
 import Enemy from "./Enemy";
 import EventEmitter from "./EventEmitter";
 import PowerUp, { PowerUpType } from "./Powerup";
+import Stuff from "./Stuff";
 import powerUps from "./constants/powerups";
 import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
@@ -94,6 +95,8 @@ export default class Feller {
       .setOrigin(0.5, 0.5);
 
     this.sprite.anims.play('feller-walk');
+
+    this.scene.physics.add.collider(this.sprite, this.scene.stuffs)
 
     // animations.enshadow(this.sprite)
     // animations.enshadow(this.gunSprite)
@@ -211,14 +214,14 @@ export default class Feller {
     }
   }
 
-  hit(byEnemy: Enemy) {
+  hit(by: Phaser.Physics.Arcade.Sprite & { damage: number, knockback: number }) {
     if (this.iframes > 0) {
       return
     }
 
-    console.log('feller hit by enemy', byEnemy, this.hp)
+    console.log('feller hit by enemy', by, this.hp)
 
-    this.hp -= byEnemy.damage;
+    this.hp -= by.damage;
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     
@@ -232,9 +235,9 @@ export default class Feller {
     this.stun = this.STUN_DURATION
 
     // radians 
-    const knockbackDir = Phaser.Math.Angle.BetweenPoints(byEnemy, this.sprite)
-    let knockbackVelocityX = (byEnemy.x < this.sprite.x ? 1 : -1) * (Math.sin(knockbackDir) + byEnemy.knockback)
-    let knockbackVelocityY = (byEnemy.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + byEnemy.knockback)
+    const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this.sprite)
+    let knockbackVelocityX = (by.x < this.sprite.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback)
+    let knockbackVelocityY = (by.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback)
 
     this.bodify(this.sprite).velocity.x += knockbackVelocityX
     this.bodify(this.sprite).velocity.y += knockbackVelocityY
@@ -298,6 +301,12 @@ export default class Feller {
         enemy.room.hasSpawnedPowerup = true
         this.scene.spawnPowerUp(enemy.room)
       }
+    })
+    this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
+      const stuff = _stuff as Stuff
+      console.log('bullet hit stuff');
+      stuff.hit(this.damage)
+      bullet.destroy()
     })
     this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())
     this.scene.physics.add.collider(bullet, this.scene.stuffLayer, () => bullet.destroy())
