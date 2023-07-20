@@ -9,7 +9,7 @@ export interface StuffConfig {
 }
 
 export default class Stuff extends Phaser.Physics.Arcade.Sprite {
-  debug = true
+  debug = false
   
   dying = false
   dead = false
@@ -35,7 +35,7 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
     this.setX(scene.map.tileToWorldX(x)!)
     this.setY(scene.map.tileToWorldY(y)!)
 
-    this.gfx.strokeCircle(this.x, this.y, this.height/2)
+    this.debug && this.gfx.strokeCircle(this.x, this.y, this.height/2)
   }
 
   hit(damage = 1) {
@@ -47,6 +47,12 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
 
   preUpdate(time: number, delta: number) {
     super.preUpdate(time, delta);
+
+    if (this.room.guid !== this.scene.fellerRoom.guid) {
+      this.setVisible(false)
+    } else {
+      this.setVisible(true)
+    }
   }
 
   onBeforeDie() {
