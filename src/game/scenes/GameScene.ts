@@ -58,6 +58,7 @@ export class GameScene extends Phaser.Scene {
   demonsFelledLevel = 0
   gameOver = false
   keys!: any
+  objects: Phaser.Physics.Arcade.Sprite[] = []
   
   constructor() {
     super({ key: 'GameScene' })
@@ -135,32 +136,6 @@ export class GameScene extends Phaser.Scene {
       this.groundLayer.weightedRandomize(TILES.WALL.BOTTOM, left + 1, bottom, width - 2, 1);
       this.groundLayer.weightedRandomize(TILES.WALL.LEFT, left, top + 1, 1, height - 2);
       this.groundLayer.weightedRandomize(TILES.WALL.RIGHT, right, top + 1, 1, height - 2);
-
-      // Stuff room with stuff
-      const rollForStuff = () => {
-        const roll = Math.random()
-        let [x, y] = [0, 0]
-        const rollXY = () => {
-          x = Phaser.Math.Between(room.left + 2, room.right - 2)!;
-          y = Phaser.Math.Between(room.top + 2, room.bottom - 2)!;
-        }
-
-        while (x !== room.centerX && y !== room.centerY) {
-          rollXY()
-        }
-
-        if (roll > 0.5) {
-          this.stuffLayer.putTileAt(TILES.ROCK, x, y)      
-        } else if (roll < 0.25) {
-          this.stuffLayer.putTileAt(TILES.BARREL, x, y)
-        }
-      }
-
-      let rolls = this.level * 4
-      while (rolls > 0) {
-        rollForStuff()
-        rolls--
-      }
 
       // Dungeons have rooms that are connected with doors. Each door has an x & y relative to the
       // room's location. Each direction has a different door to tile mapping.
@@ -294,11 +269,45 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
+  addStuffToRooms() {
+    this.rooms.forEach(room => {
+      // Stuff room with stuff
+      const rollForStuff = () => {
+        const roll = Math.random()
+        let [x, y] = [0, 0]
+        const rollXY = () => {
+          x = Phaser.Math.Between(room.left + 2, room.right - 2)!;
+          y = Phaser.Math.Between(room.top + 2, room.bottom - 2)!;
+        }
+
+        while (x !== room.centerX && y !== room.centerY) {
+          rollXY()
+        }
+
+        let object;
+        if (roll > 0.5) {
+          // this.stuffLayer.putTileAt(TILES.ROCK, x, y)   
+          object = 
+        } else if (roll < 0.25) {
+          // this.stuffLayer.putTileAt(TILES.BARREL, x, y)
+
+        }
+      }
+
+      let rolls = this.level * 4
+      while (rolls > 0) {
+        rollForStuff()
+        rolls--
+      }
+    })
+  }
+
   createNewLevel() {
     this.level++
     console.log('level', this.level)
     this.createDungeon()
     this.createTilemap()
+    this.addStuffToRooms()
     this.putPlayerInStartRoom()
     this.setupCamera()
     this.spawnEnemiesInRooms()
