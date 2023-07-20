@@ -13,11 +13,11 @@ export class MainMenuScene extends Phaser.Scene {
 
   create() {
     // Add title image
-    const daemon = this.rexUI.add.label({
+    const demon = this.rexUI.add.label({
       width: 40,
       height: 40,
   
-      text: this.add.text(0, 0, 'DAEMON', {
+      text: this.add.text(0, 0, 'DEMON', {
         fontFamily: 'pkmn', color: 'white', fontSize: 128
       }),
   
@@ -57,7 +57,7 @@ export class MainMenuScene extends Phaser.Scene {
     .setOrigin(0.5, 0.5)
     .layout()
 
-    daemon.x += this.game.config.width as number
+    demon.x += this.game.config.width as number
     feller.x -= this.game.config.width as number
 
     this.bat = this.sound.add('bat') as Phaser.Sound.WebAudioSound
@@ -149,7 +149,7 @@ export class MainMenuScene extends Phaser.Scene {
 
       this.bat.play();
       this.tweens.add({
-        targets: daemon,
+        targets: demon,
         x: this.cameras.main.centerX,
         ease: 'Elastic',
         duration: 700,

@@ -21,6 +21,8 @@ import { assert } from 'console';
 import { v4 as uuid } from 'uuid'
 import Door from '../Door';
 import Soul from '../Soul';
+import Pathfinding, { DiagonalMovement } from 'pathfinding';
+import TILE_MAPPING from '../constants/tiles';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -34,8 +36,10 @@ export interface OurCursorKeys extends Phaser.Types.Input.Keyboard.CursorKeys {
 }
 
 export class GameScene extends Phaser.Scene {
-  feller!: Feller
   debug = false
+
+
+  feller!: Feller
   rexUI!: RexUIPlugin
   level!: number
   dungeon!: Dungeon
@@ -77,6 +81,11 @@ export class GameScene extends Phaser.Scene {
         width: { min: roomSize, max: roomSize },
         height: { min: roomSize, max: roomSize },
       }
+      // // DEBUG: SMALL DONJON
+      // width: 14,
+      // height: 14,
+      // doorPadding: 2,
+      // rooms: { width: { min: 5, max: 5}, height: { min: 7, max: 7} }
     })
 
     const dhtml = dungeon.drawToHtml({ })
@@ -87,15 +96,10 @@ export class GameScene extends Phaser.Scene {
   createTilemap() {    
     if (this.map) {
       this.map.removeAllLayers().destroy()
+      this.groundLayer && this.groundLayer.destroy()
+      this.stuffLayer && this.stuffLayer.destroy()
+      this.shadowLayer && this.shadowLayer.destroy()
       this.load.image('tileset', 'assets/tileset.png')
-    }
-
-    if (this.groundLayer) {
-      this.groundLayer.destroy()
-    }
-
-    if (this.shadowLayer) {
-      this.shadowLayer.destroy()
     }
 
     const map = this.map = this.make.tilemap({
@@ -110,7 +114,8 @@ export class GameScene extends Phaser.Scene {
     const tileset = map.addTilesetImage('tileset', undefined, 200, 200, 0, 0)!
   
     const groundLayer = this.groundLayer = map.createBlankLayer('Ground', tileset)!.fill(TILES.BLANK)
-    // const stuffLayer =  this.stuffLayer = map.createBlankLayer('Stuff', tileset)!
+    const stuffLayer = this.stuffLayer = map.createBlankLayer('Stuff', tileset)!
+    stuffLayer.fill(-1);
 
     this.dungeon.rooms.forEach((room) => {
       const { x, y, width, height, left, right, top, bottom } = room;
@@ -131,6 +136,32 @@ export class GameScene extends Phaser.Scene {
       this.groundLayer.weightedRandomize(TILES.WALL.LEFT, left, top + 1, 1, height - 2);
       this.groundLayer.weightedRandomize(TILES.WALL.RIGHT, right, top + 1, 1, height - 2);
 
+      // Stuff room with stuff
+      const rollForStuff = () => {
+        const roll = Math.random()
+        let [x, y] = [0, 0]
+        const rollXY = () => {
+          x = Phaser.Math.Between(room.left + 2, room.right - 2)!;
+          y = Phaser.Math.Between(room.top + 2, room.bottom - 2)!;
+        }
+
+        while (x !== room.centerX && y !== room.centerY) {
+          rollXY()
+        }
+
+        if (roll > 0.5) {
+          this.stuffLayer.putTileAt(TILES.ROCK, x, y)      
+        } else if (roll < 0.25) {
+          this.stuffLayer.putTileAt(TILES.BARREL, x, y)
+        }
+      }
+
+      let rolls = this.level * 4
+      while (rolls > 0) {
+        rollForStuff()
+        rolls--
+      }
+
       // Dungeons have rooms that are connected with doors. Each door has an x & y relative to the
       // room's location. Each direction has a different door to tile mapping.
       const doors = room.getDoorLocations(); // → Returns an array of {x, y} objects
@@ -149,6 +180,7 @@ export class GameScene extends Phaser.Scene {
 
     // MUST SET COLLISION ***AFTER*** MODIFYING LAYER
     groundLayer.setCollisionByExclusion([0, 1, 2, 3, 4, 13, 14]);
+    stuffLayer.setCollision([15, 16])
     
     if (this.debug) {
       const debugGraphics = this.add.graphics().setAlpha(0.75);
@@ -156,6 +188,11 @@ export class GameScene extends Phaser.Scene {
         tileColor: null, // Color of non-colliding tiles
         collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
         faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
+      });
+      stuffLayer.renderDebug(debugGraphics, {
+        tileColor: null, // Color of non-colliding tiles
+        collidingTileColor: new Phaser.Display.Color(0, 134, 48, 255), // Color of colliding tiles
+        faceColor: new Phaser.Display.Color(0, 39, 37, 255) // Color of colliding face edges
       });
     }
     
@@ -167,6 +204,46 @@ export class GameScene extends Phaser.Scene {
     return map
   }
 
+  findUnoccupiedRoomTile(room: Room): [x: number, y: number] {
+    let [x, y] = [0, 0]
+
+    const rollForTile = () => {
+      // -1/+1 = don't spawn in a wall
+      x = Math.round(Math.random()) * (room.width - 4) + room.x + 2
+      y = Math.round(Math.random()) * (room.height - 4) + room.y + 2
+      return this.stuffLayer.getTileAt(x, y)
+    }
+    
+    let tile = rollForTile()
+    
+    while (tile) { // seek a NULL tile
+      tile = rollForTile()
+    }
+
+    return [x, y]
+  }
+
+  walkableGrid!: Pathfinding.Grid
+  pathfinder!: Pathfinding.AStarFinder
+  createWalkableGrid() {
+    const walkableTiles: number[][] = []
+    for (let y = 0; y < this.map.height; y++) {
+      walkableTiles.push([])
+      for (let x = 0; x < this.map.width; x++) {
+        const collides = (
+          TILE_MAPPING.WALLS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
+          TILE_MAPPING.ITEMS.includes(this.stuffLayer.getTileAt(x, y)?.index) 
+        )
+        walkableTiles[y][x] = collides ? 1 : 0
+      }
+    }
+    console.log({ walkableTiles })
+    this.walkableGrid = new Pathfinding.Grid(walkableTiles)
+    this.pathfinder = new Pathfinding.AStarFinder({ 
+      diagonalMovement: DiagonalMovement.OnlyWhenNoObstacles
+    })
+  }
+
   putPlayerInStartRoom() {
     const rooms = this.rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
     const startRoom = this.startRoom = rooms.shift()!;
@@ -174,9 +251,10 @@ export class GameScene extends Phaser.Scene {
 
     // Place the player in the first room
     this.fellerRoom = startRoom!;
+    const [spawnX, spawnY] = this.findUnoccupiedRoomTile(this.fellerRoom)
 
-    const x = this.map.tileToWorldX(this.fellerRoom.centerX)!;
-    const y = this.map.tileToWorldY(this.fellerRoom.centerY)!;
+    const x = this.map.tileToWorldX(spawnX)!;
+    const y = this.map.tileToWorldY(spawnY)!;
 
     if (this.feller) {
       this.feller.createNewSprite(x, y)
@@ -186,6 +264,7 @@ export class GameScene extends Phaser.Scene {
 
     // this.physics.add.collider(this.feller.sprite, stuffLayer);
     this.physics.add.collider(this.feller.sprite, this.groundLayer);
+    this.physics.add.collider(this.feller.sprite, this.stuffLayer);
   }
 
   setupCamera() {
@@ -224,6 +303,7 @@ export class GameScene extends Phaser.Scene {
     this.setupCamera()
     this.spawnEnemiesInRooms()
     this.addDoorSpritesToRooms()
+    this.createWalkableGrid()
   }
 
   create() {
@@ -324,7 +404,7 @@ export class GameScene extends Phaser.Scene {
             break
         }
         if (enemy) {
-          this.spawnEnemy(enemy)
+          this.setUpEnemy(enemy)
           room.enemies ||= []
           room.enemies.push(enemy)
         }
@@ -341,7 +421,7 @@ export class GameScene extends Phaser.Scene {
     EventEmitter.emit('demonsFelledLevel', this.demonsFelledLevel)
   }
 
-  spawnEnemy(enemy: Enemy) {
+  setUpEnemy(enemy: Enemy) {
     this.physics.add.overlap(this.feller.sprite, enemy, () => {
       enemy.attack(this.feller)
     });

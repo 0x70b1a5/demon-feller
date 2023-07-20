@@ -32,6 +32,7 @@ export default class Pig extends Enemy {
     })
 
     this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())
+    this.scene.physics.add.collider(bullet, this.scene.stuffLayer, () => bullet.destroy())
     this.scene.physics.add.collider(bullet, this.scene.shadowLayer, () => bullet.destroy())
     this.spitCooldown = this.SPIT_COOLDOWN_DURATION;
   }

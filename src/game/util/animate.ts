@@ -1,10 +1,10 @@
 const animations = {
-  wobbleSprite: (me: Phaser.Scene, sprite: Phaser.GameObjects.Sprite, minRotation: number = -10, maxRotation: number = 10) => {
+  wobbleSprite: (me: Phaser.Scene, sprite: Phaser.GameObjects.Sprite, minRotation: number = -10, maxRotation: number = 10, duration = 2000) => {
     me.tweens.add({
       targets: sprite,
       rotation: {
         value: { from: Phaser.Math.DegToRad(minRotation), to: Phaser.Math.DegToRad(maxRotation) },
-        duration: 2000 + Math.random() * 1000,
+        duration: duration + Math.random() * 1000,
         yoyo: true,  // Go back to original position after reaching target
         repeat: -1,  // Repeat forever
         ease: 'Sine.easeInOut'  // Use a sine wave for smooth start and end

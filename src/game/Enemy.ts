@@ -6,6 +6,8 @@ import EventEmitter from './EventEmitter';
 import animations from './util/animate';
 import { Exception } from 'sass';
 import assert from './util/assert';
+import Pathfinding, { DiagonalMovement } from 'pathfinding';
+import TILE_MAPPING from './constants/tiles';
 
 export interface EnemyConfig {
   damage?: number
@@ -23,6 +25,9 @@ export enum EnemyType {
 }
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
+  debug = true
+
+
   target!: Phaser.Types.Math.Vector2Like;
   health: number;
   damage: number;
@@ -32,7 +37,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   speed = 100
   knockback = 100
   dead = false
-  debug = false
   gfx!: Phaser.GameObjects.Graphics;
   pushing = 0
   enemyType?: EnemyType
@@ -49,9 +53,14 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     scene.physics.add.collider(this, scene.groundLayer)
+    scene.physics.add.collider(this, scene.stuffLayer)
     
-    this.setX(scene.map.tileToWorldX(this.room.centerX)! + Math.random() * 200)
-    this.setY(scene.map.tileToWorldY(this.room.centerY)! + Math.random() * 200)
+    const [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room)
+    x ||= spawnX
+    y ||= spawnY
+
+    this.setX(scene.map.tileToWorldX(x)!)
+    this.setY(scene.map.tileToWorldY(y)!)
     this.setMaxVelocity(this.speed)
 
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
@@ -95,9 +104,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.debug) {
       this.gfx
         .clear()
-        .lineBetween(this.x, this.y, 
-          this.scene.map.tileToWorldX(this.room.centerX)!, this.scene.map.tileToWorldY(this.room.centerY)!
-        )
+        // .lineBetween(this.x, this.y, 
+        //   this.scene.map.tileToWorldX(this.room.centerX)!, this.scene.map.tileToWorldY(this.room.centerY)!
+        // )
         if(this.target)
         this.gfx
         .lineBetween(this.x, this.y, this.target.x!, this.target.y!)
@@ -154,27 +163,89 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  chaseTarget() {
+  move(time: any, delta: any) {
     if (this.target) {
-      const angle = Phaser.Math.Angle.Between(this.x, this.y, this.target.x!, this.target.y!);
-      this.setVelocity(Math.cos(angle) * this.speed, Math.sin(angle) * this.speed);
+      this.chaseTarget()
+    }
+    this.wobble()
+  }
+
+  chaseTarget() {
+    this.findPathToTarget()
+    this.takePathToTarget()
+  }
+
+  path!: number[][]
+  findPathToTarget() {
+    this.gfx.fillCircle(
+      
+      (this.x!)!, 
+      (this.y!)!,
+      5
+      )
+
+      this.gfx.fillRect(
+
+        (this.target.x!)!, 
+        (this.target.y!)!, 
+
+        5, 5
+        )
+    this.path = this.scene.pathfinder.findPath(
+      this.scene.map.worldToTileX(this.x!)!, 
+      this.scene.map.worldToTileY(this.y!)!, 
+      this.scene.map.worldToTileX(this.target.x!)!, 
+      this.scene.map.worldToTileY(this.target.y!)!, 
+      this.scene.walkableGrid.clone()
+    )
+
+    if (this.debug)
+      for (let step of this.path) {
+        this.gfx.fillRect(
+          this.scene.map.tileToWorldX(step[0])!,
+          this.scene.map.tileToWorldY(step[1])!,
+          5,5
+        )
+      }
+  }
+
+  takePathToTarget() {
+    // i tried making them walk to the first step, 
+    // but for some reason they would just freeze in place on the first step tile.
+    // i wager there's some kind of 'close enough' thing we could do to fix that
+    // but secondStep seems to be good enough.
+    const secondStep = this.path?.[1]
+    if (secondStep?.length) {
+      // console.log({ firstStep })
+      const [x, y] = this.tileXYToWorldXY(secondStep[0], secondStep[1])
+      // the +tilewidth/height / 2 is because we want them to angle for the center of the tile, not the TL corner
+      const angle = Phaser.Math.Angle.Between(this.x, this.y, x + this.scene.map.tileWidth / 2, y + this.scene.map.tileHeight / 2)
+      this.setVelocity(Math.cos(angle) * this.speed, Math.sin(angle) * this.speed)
     }
   }
 
-  wobble() {
-    assert(this.body)
+  tileXYToWorldXY(x: number, y: number): [number, number] {
+    const [wx, wy] = [
+      this.scene.map.tileToWorldX(x)!,
+      this.scene.map.tileToWorldY(y)!
+    ]
 
-    const wobbleFactor = this.speed / 2
-    const angle = Math.random() * 2 * Math.PI
-    const wobbleX = Math.random() * wobbleFactor * (Math.random() < 0.5 ? -1 : 1)
-    const wobbleY = Math.random() * wobbleFactor * (Math.random() < 0.5 ? -1 : 1)
-    this.body.velocity.x += Math.cos(angle) * wobbleFactor + wobbleX
-    this.body.velocity.y += Math.sin(angle) * wobbleFactor + wobbleY
+    if (this.debug) {
+      this.gfx.lineBetween(this.x, this.y, wx, wy)
+    }
+
+    return [wx, wy]
   }
 
-  move(time: any, delta: any) {
-    this.chaseTarget()
-    this.wobble()
+  wobble() {
+    // assert(this.body)
+
+    // const wobbleFactor = this.speed / 2
+    // const angle = Math.random() * 2 * Math.PI
+    // const wobbleX = Math.random() * wobbleFactor * (Math.random() < 0.5 ? -1 : 1)
+    // const wobbleY = Math.random() * wobbleFactor * (Math.random() < 0.5 ? -1 : 1)
+    // this.body.velocity.x += Math.cos(angle) * wobbleFactor + wobbleX
+    // this.body.velocity.y += Math.sin(angle) * wobbleFactor + wobbleY
   }
 
   pushAway(other: Phaser.Physics.Arcade.Sprite) {
@@ -214,6 +285,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     EventEmitter.emit('demonFelled')
     this.checkRoomComplete()
     this.scene.checkLevelComplete() // dont call after destroy()
-    this.destroy()
+    this.setVisible(false)
+    this.setActive(false)
+    this.body!.destroy()
   }
 }

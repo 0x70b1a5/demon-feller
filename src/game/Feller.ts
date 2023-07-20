@@ -300,6 +300,7 @@ export default class Feller {
       }
     })
     this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())
+    this.scene.physics.add.collider(bullet, this.scene.stuffLayer, () => bullet.destroy())
     this.scene.physics.add.collider(bullet, this.scene.shadowLayer, () => bullet.destroy())
     this.shootCooldown = this.RELOAD_COOLDOWN;
   }
