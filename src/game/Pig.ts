@@ -1,5 +1,6 @@
 import Bullet from "./Bullet";
 import Enemy, { EnemyConfig } from "./Enemy";
+import EventEmitter from "./EventEmitter";
 import Stuff from "./Stuff";
 import { GameScene } from "./scenes/GameScene";
 import assert from "./util/assert";
@@ -15,6 +16,10 @@ export default class Pig extends Enemy {
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
     this.setSize(150, 150)
+
+    EventEmitter.on('gameOver', () => {
+      this.bullets.forEach(bullet => bullet.destroy())
+    })
   }
 
   spit() {
@@ -32,12 +37,14 @@ export default class Pig extends Enemy {
       bullet.destroy()
     })
 
-    this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())
+    this.scene.physics.add.collider(bullet, [
+      this.scene.groundLayer, this.scene.stuffLayer, this.scene.shadowLayer
+    ], () => bullet.destroy())
     this.scene.physics.add.collider(bullet, this.scene.stuffs, (bullet, _stuff) => {
       (_stuff as Stuff)?.hit(this.damage)
+      bullet.destroy()
     })
-    this.scene.physics.add.collider(bullet, this.scene.stuffLayer, () => bullet.destroy())
-    this.scene.physics.add.collider(bullet, this.scene.shadowLayer, () => bullet.destroy())
+    
     this.spitCooldown = this.SPIT_COOLDOWN_DURATION;
   }
 

@@ -8,7 +8,7 @@ import Stuff, { StuffConfig } from './Stuff';
 export default class Barrel extends Stuff {
   knockback = 200 
   damage = 3
-  dangerRadiusInTiles = 1
+  dangerRadiusInTiles = 1.5
   MAX_HEALTH = 1
 
   constructor(scene: GameScene, config: StuffConfig, x: number, y: number) {
@@ -36,6 +36,7 @@ export default class Barrel extends Stuff {
 
   explode() {
     const boom = this.scene.physics.add.sprite(this.x, this.y, 'boom')
+    .setScale(2)
     this.scene.tweens.add({
       targets: boom,
       ease: 'Elastic',
@@ -52,17 +53,13 @@ export default class Barrel extends Stuff {
       }
     })
 
-    const enemiesHit: Enemy[] = this.scene.enemies
-      .filter(enemy => Phaser.Math.Distance.BetweenPoints(enemy, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)
-    
-    enemiesHit.forEach(enemy => enemy.hit(this.damage))
+    this.scene.enemies
+      .filter(enemy => Phaser.Math.Distance.BetweenPoints(enemy, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)  
+      .forEach(enemy => enemy.hit(this.damage))
 
-    const stuffsHit: Stuff[] = this.scene.stuffs
+    this.scene.stuffs
       .filter(stuff => Phaser.Math.Distance.BetweenPoints(stuff, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)
-
-    this.debug && console.log({ stuffsHit })
-    
-    stuffsHit.forEach(stuff => !stuff.dying && !stuff.dead && stuff.guid !== this.guid && stuff.hit(this.damage))
+      .forEach(stuff => !stuff.dying && !stuff.dead && stuff.guid !== this.guid && stuff.hit(this.damage))
 
     if (Phaser.Math.Distance.BetweenPoints(this.scene.feller.sprite, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles) {
       this.scene.feller.hit(this)
@@ -72,7 +69,7 @@ export default class Barrel extends Stuff {
   hit(damage: number) {
     super.hit(damage)
     if (this.health === 1) { 
-      this.setScale(1.5)
+      this.setScale(1.25)
     }
     animations.wobbleSprite(this.scene, this, -2, 2, 30/(this.health||1), false)
   }

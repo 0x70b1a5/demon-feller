@@ -43,6 +43,10 @@ export const GameComponent: React.FC = () => {
           mapping: 'rexUI'
         }]
       },
+      fps: {
+        target: 60,
+        limit: 60,
+      }
     };
 
     gameRef.current = new Phaser.Game(config);

@@ -25,7 +25,7 @@ export enum EnemyType {
 }
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
-  debug = true
+  debug = false
 
 
   target!: Phaser.Types.Math.Vector2Like;
@@ -55,8 +55,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     scene.physics.add.collider(this, scene.groundLayer)
     scene.physics.add.collider(this, scene.stuffLayer)
+    scene.physics.add.collider(this, scene.stuffs)
     
-    const [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room)
+    const [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 2)
     x ||= spawnX
     y ||= spawnY
 
@@ -69,20 +70,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.gfx
       .fillRect(this.x, this.y, 10, 10)
     }
-  }
-
-  isNearDoor(x: number, y: number) {
-    const threshold = 500; // pixels
-  
-    for (let door of this.room.getDoorLocations()) {
-      const doorX = this.scene.map.tileToWorldX(door.x)!
-      const doorY = this.scene.map.tileToWorldY(door.y)!
-      if (Math.abs(x - doorX) < threshold && 
-          Math.abs(y - doorY) < threshold) {
-        return true;
-      }
-    }
-    return false;
   }
 
   attack(feller: Feller) {
@@ -118,7 +105,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (time % 10000 === delta) {
       this.acquireTarget(time, delta)
     }
-    if (this.isNearDoor(this.x, this.y)) {
+    if (this.scene.tileIsNearDoor(this.scene.map.worldToTileX(this.x)!, this.scene.map.worldToTileY(this.y)!, this.room)) {
       this.acquireTarget(time, delta); 
     }
     this.move(time, delta)
@@ -147,18 +134,15 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (!this.seenFeller) {
       // at least 1: index 0 is a wall
       // at most width - 1 or height - 1: index width/height is a wall
-      const newTarget = () => new Phaser.Math.Vector2(
-        1 + this.scene.map.tileToWorldX(this.room.x)! + Math.random() * (this.room.width - 2) * this.scene.map.tileWidth, 
-        1 + this.scene.map.tileToWorldY(this.room.y)! + Math.random() * (this.room.height - 2) * this.scene.map.tileHeight
-      );
+      const newTarget = () => this.scene.findUnoccupiedRoomTile(this.room, 2)
 
-      let potentialTarget = newTarget()
+      let [x, y] = newTarget()
 
-      while (this.isNearDoor(potentialTarget.x, potentialTarget.y)) {
-        potentialTarget = newTarget()
+      while (this.scene.tileIsNearDoor(this.scene.map.worldToTileX(x)!, this.scene.map.worldToTileY(y)!, this.room)) {
+        [x, y] = newTarget()
       }
 
-      this.target = potentialTarget
+      this.target = { x, y }
     } else {
       this.target = this.scene.feller.sprite
     }

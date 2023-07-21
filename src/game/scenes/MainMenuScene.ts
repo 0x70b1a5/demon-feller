@@ -28,9 +28,9 @@ export class MainMenuScene extends Phaser.Scene {
       align: 'center',
 
       anchor: {
-        centerX: 'center',
         centerY: 'center-300'
-      }
+      },
+      x: 2*+this.game.config.width
     })
     .setOrigin(0.5, 0.5)
     .layout()
@@ -50,15 +50,13 @@ export class MainMenuScene extends Phaser.Scene {
       align: 'center',
 
       anchor: {
-        centerX: 'center',
         centerY: 'center-150'
-      }
+      },
+
+      x: 2*-this.game.config.width
     })
     .setOrigin(0.5, 0.5)
     .layout()
-
-    demon.x += this.game.config.width as number
-    feller.x -= this.game.config.width as number
 
     this.bat = this.sound.add('bat') as Phaser.Sound.WebAudioSound
     this.magic = this.sound.add('magic') as Phaser.Sound.WebAudioSound

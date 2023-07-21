@@ -212,7 +212,8 @@ export class GameScene extends Phaser.Scene {
       for (let x = 0; x < this.map.width; x++) {
         const collides = (
           TILE_MAPPING.WALLS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
-          TILE_MAPPING.ITEMS.includes(this.stuffLayer.getTileAt(x, y)?.index) 
+          TILE_MAPPING.ITEMS.includes(this.stuffLayer.getTileAt(x, y)?.index) ||
+          this.stuffs.find(stuff => this.map.worldToTileX(stuff.x) === x && this.map.worldToTileY(stuff.y) === y)
         )
         walkableTiles[y][x] = collides ? 1 : 0
       }
@@ -220,7 +221,7 @@ export class GameScene extends Phaser.Scene {
     console.log({ walkableTiles })
     this.walkableGrid = new Pathfinding.Grid(walkableTiles)
     this.pathfinder = new Pathfinding.AStarFinder({ 
-      diagonalMovement: DiagonalMovement.OnlyWhenNoObstacles
+      diagonalMovement: DiagonalMovement.Never
     })
   }
 
@@ -274,6 +275,18 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
+  tileIsNearDoor(x: number, y: number, room: Room, threshold = 500) {
+    for (let door of room.getDoorLocations()) {
+      const doorX = this.map.tileToWorldX(door.x)!
+      const doorY = this.map.tileToWorldY(door.y)!
+      if (Math.abs(x - doorX) < threshold && 
+          Math.abs(y - doorY) < threshold) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   addStuffToRooms() {
     if (this.stuffs) {
       this.stuffs.forEach(o => o.destroy())
@@ -286,6 +299,9 @@ export class GameScene extends Phaser.Scene {
         const roll = Math.random()
         // debugger
         let [x, y] = this.findUnoccupiedRoomTile(room, 1)
+        while (this.tileIsNearDoor(x, y, room)) {
+          [x, y] = this.findUnoccupiedRoomTile(room, 1)
+        }
 
         let object;
         if (roll > 0.5) {
@@ -345,6 +361,7 @@ export class GameScene extends Phaser.Scene {
 
     EventEmitter.on('gameOver', () => {
       this.gameOver = true
+      this.deactivateSprites()
     })
   }
 
@@ -396,7 +413,15 @@ export class GameScene extends Phaser.Scene {
     }
     EventEmitter.emit('levelUp', this.level + 1) // don't increment it yet
     this.levellingUp = true
-    this.physics.world.colliders.getActive().forEach(c => c.destroy())
+    this.feller.sprite.setVelocity(0)
+    this.physics.world.colliders.getActive().forEach(c => c.destroy());
+    this.deactivateSprites()
+  }
+  
+  deactivateSprites() {
+    [...this.enemies, ...this.stuffs, ...this.feller.bullets].forEach(thing => {
+      thing.setActive(false)
+    })
   }
 
   spawnEnemiesInRooms() {
