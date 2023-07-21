@@ -132,13 +132,11 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   acquireTarget(time: any, delta: any) {
     if (!this.seenFeller) {
-      // at least 1: index 0 is a wall
-      // at most width - 1 or height - 1: index width/height is a wall
       const newTarget = () => this.scene.findUnoccupiedRoomTile(this.room, 2)
 
       let [x, y] = newTarget()
 
-      while (this.scene.tileIsNearDoor(this.scene.map.worldToTileX(x)!, this.scene.map.worldToTileY(y)!, this.room)) {
+      while (this.scene.tileIsNearDoor(this.scene.map.worldToTileX(x)!, this.scene.map.worldToTileY(y)!, this.room, 500)) {
         [x, y] = newTarget()
       }
 
@@ -170,7 +168,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.scene.map.worldToTileY(this.target.y!)!, 
       this.scene.walkableGrid.clone()
     )
-
 
     for (let step of this.path) {
       if (this.debug) {
@@ -246,20 +243,13 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  checkRoomComplete() {
-    if (this.room.enemies?.every(e => e.dead)) {
-      console.log('room complete', this.room.guid)
-      EventEmitter.emit('openDoors', this.room.guid)
-    }
-  }
-
   die() {
     if (this.debug) {
       this.gfx.clear()
     }
     this.dead = true
     EventEmitter.emit('demonFelled')
-    this.checkRoomComplete()
+    this.scene.checkRoomComplete(this.room)
     this.scene.checkLevelComplete() // dont call after destroy()
     this.setVisible(false)
     this.setActive(false)

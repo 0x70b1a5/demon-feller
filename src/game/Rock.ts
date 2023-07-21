@@ -17,7 +17,6 @@ export default class Rock extends Stuff {
 
     this.setOrigin(0.5, 0.5)
     this.setImmovable(true)
-    this.setSize(this.scene.map.tileWidth - 20, this.scene.map.tileHeight - 20)
   }
 
   preUpdate(time: number, delta: number) {

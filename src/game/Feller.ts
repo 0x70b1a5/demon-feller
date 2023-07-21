@@ -297,25 +297,35 @@ export default class Feller {
     bullet.body.velocity.x += this.sprite.body.velocity.x
     bullet.body.velocity.y += this.sprite.body.velocity.y
     this.bullets.push(bullet)
+    const bulletHitSomething = () => {
+      bullet.destroy()
+      const smoke = this.scene.add.sprite(bullet.x, bullet.y, 'smoke')
+      .setScale(0.25 * this.damage)
+      this.scene.tweens.add({
+        targets: smoke,
+        rotation: {
+          value: { from: Phaser.Math.DegToRad(-5), to: Phaser.Math.DegToRad(5) },
+          duration: 100,
+          ease: 'Sine.easeInOut',
+        },
+        onComplete: () => smoke.destroy()
+      })
+    }
     this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
       const enemy = _enemy as Enemy
       console.log('bullet hit enemy');
       enemy.hit(this.damage)
-      bullet.destroy()
-      if (enemy.room?.enemies.every(e => e.dead) && !enemy.room.hasSpawnedPowerup) {
-        enemy.room.hasSpawnedPowerup = true
-        this.scene.spawnPowerUp(enemy.room)
-      }
+      bulletHitSomething()
     })
     this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
       const stuff = _stuff as Stuff
       console.log('bullet hit stuff');
       stuff.hit(this.damage)
-      bullet.destroy()
+      bulletHitSomething()
     })
-    this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bullet.destroy())
-    this.scene.physics.add.collider(bullet, this.scene.stuffLayer, () => bullet.destroy())
-    this.scene.physics.add.collider(bullet, this.scene.shadowLayer, () => bullet.destroy())
+    this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bulletHitSomething())
+    this.scene.physics.add.collider(bullet, this.scene.stuffLayer, () => bulletHitSomething())
+    this.scene.physics.add.collider(bullet, this.scene.shadowLayer, () => bulletHitSomething())
     this.shootCooldown = this.RELOAD_COOLDOWN;
   }
   

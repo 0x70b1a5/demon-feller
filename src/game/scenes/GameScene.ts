@@ -183,14 +183,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   findUnoccupiedRoomTile(room: Room, padding = 2): [x: number, y: number] {
-    let [x, y] = [0, 0]
+    let [relativeX, relativeY] = [0, 0]
 
     const rollForTile = () => {
       // -1/+1 = don't spawn in a wall
-      x = Math.round(Math.random() * (room.width - padding*2)) + room.x + padding
-      y = Math.round(Math.random() * (room.height - padding*2)) + room.y + padding
-      return (
-        this.stuffs.find(stuff => this.map.worldToTileX(stuff.x) === x && this.map.worldToTileY(stuff.y) === y)
+      relativeX = Math.round(Math.random() * room.width)
+      relativeY = Math.round(Math.random() * room.height)
+      return ( // these are the FAILURE conditions. returning true means ROLL AGAIN
+        relativeX < padding || 
+        relativeY < padding ||
+        relativeX > room.width - 1 - padding || 
+        relativeY > room.height - 1 - padding ||
+        this.tileIsOccupied(relativeX + room.x, relativeY + room.y)
       )
     }
     
@@ -200,7 +204,16 @@ export class GameScene extends Phaser.Scene {
       tile = rollForTile()
     }
 
-    return [x, y]
+    return [relativeX + room.x, relativeY + room.y]
+  }
+
+  tileIsOccupied(x: number, y: number) {
+    return (
+      TILE_MAPPING.WALLS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
+      TILE_MAPPING.ITEMS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
+      TILE_MAPPING.DOORS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
+      this.stuffs.find(stuff => this.map.worldToTileX(stuff.x) === x && this.map.worldToTileY(stuff.y) === y)
+    )
   }
 
   walkableGrid!: Pathfinding.Grid
@@ -210,18 +223,13 @@ export class GameScene extends Phaser.Scene {
     for (let y = 0; y < this.map.height; y++) {
       walkableTiles.push([])
       for (let x = 0; x < this.map.width; x++) {
-        const collides = (
-          TILE_MAPPING.WALLS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
-          TILE_MAPPING.ITEMS.includes(this.stuffLayer.getTileAt(x, y)?.index) ||
-          this.stuffs.find(stuff => this.map.worldToTileX(stuff.x) === x && this.map.worldToTileY(stuff.y) === y)
-        )
+        const collides = this.tileIsOccupied(x, y)
         walkableTiles[y][x] = collides ? 1 : 0
       }
     }
     console.log({ walkableTiles })
     this.walkableGrid = new Pathfinding.Grid(walkableTiles)
     this.pathfinder = new Pathfinding.AStarFinder({ 
-      diagonalMovement: DiagonalMovement.Never
     })
   }
 
@@ -275,13 +283,15 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
-  tileIsNearDoor(x: number, y: number, room: Room, threshold = 500) {
+  tileIsNearDoor(x: number, y: number, room: Room, threshold = 200) {
     for (let door of room.getDoorLocations()) {
-      const doorX = this.map.tileToWorldX(door.x)!
-      const doorY = this.map.tileToWorldY(door.y)!
-      if (Math.abs(x - doorX) < threshold && 
-          Math.abs(y - doorY) < threshold) {
-        return true;
+      if ((
+           x + 1 === door.x && y === door.y // left
+        || x - 1 === door.x && y === door.y // right
+        || x === door.x && y + 1 === door.y // up
+        || x === door.x && y - 1 === door.y // down
+      )) {
+        return true
       }
     }
     return false;
@@ -298,9 +308,9 @@ export class GameScene extends Phaser.Scene {
       const rollForStuff = () => {
         const roll = Math.random()
         // debugger
-        let [x, y] = this.findUnoccupiedRoomTile(room, 1)
+        let [x, y] = this.findUnoccupiedRoomTile(room, 2)
         while (this.tileIsNearDoor(x, y, room)) {
-          [x, y] = this.findUnoccupiedRoomTile(room, 1)
+          [x, y] = this.findUnoccupiedRoomTile(room, 2)
         }
 
         let object;
@@ -403,6 +413,15 @@ export class GameScene extends Phaser.Scene {
       powerup.destroy();
       gfx.clear();
     });
+  }
+
+  checkRoomComplete(room: RoomWithEnemies) {
+    if (room.enemies?.every(e => e.dead) && !room.hasSpawnedPowerup) {
+      room.hasSpawnedPowerup = true
+      this.spawnPowerUp(room)
+      console.log('room complete', room.guid)
+      EventEmitter.emit('openDoors', room.guid)
+    }
   }
   
   checkLevelComplete() {
