@@ -414,6 +414,8 @@ export class GameScene extends Phaser.Scene {
       powerup.destroy();
       gfx.clear();
     });
+
+    return powerup
   }
 
   checkRoomComplete(room: RoomWithEnemies) {

@@ -32,10 +32,6 @@ export default class Rock extends Stuff {
     super.onBeforeDie()
     this.setRotation(Math.random())
 
-    if (Math.random() < 0.1) {
-      this.scene.spawnPowerUp(this.room, undefined, this.x, this.y)
-    }
-
     const remains = [
       this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
       this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
@@ -45,5 +41,9 @@ export default class Rock extends Stuff {
     remains.forEach(r => {
       r.setRotation(Math.random() * 2 * Math.PI)
     })
+
+    if (Math.random() < 0.1) {
+      this.scene.spawnPowerUp(this.room, undefined, this.x, this.y)
+    }
   }
 }
