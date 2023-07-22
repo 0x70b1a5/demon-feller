@@ -216,22 +216,27 @@ export class GameScene extends Phaser.Scene {
     )
   }
 
-  walkableGrid!: Pathfinding.Grid
+  pathfindingGrid!: Pathfinding.Grid
   pathfinder!: Pathfinding.AStarFinder
+  walkableTilesAs01: number[][] = []
   createWalkableGrid() {
-    const walkableTiles: number[][] = []
+    this.walkableTilesAs01 = []
     for (let y = 0; y < this.map.height; y++) {
-      walkableTiles.push([])
+      this.walkableTilesAs01.push([])
       for (let x = 0; x < this.map.width; x++) {
         const collides = this.tileIsOccupied(x, y)
-        walkableTiles[y][x] = collides ? 1 : 0
+        this.walkableTilesAs01[y][x] = collides ? 1 : 0
       }
     }
-    console.log({ walkableTiles })
-    this.walkableGrid = new Pathfinding.Grid(walkableTiles)
+    console.log(this.walkableTilesAs01)
+    this.pathfindingGrid = new Pathfinding.Grid(this.walkableTilesAs01)
     this.pathfinder = new Pathfinding.AStarFinder({ 
-      diagonalMovement: DiagonalMovement.OnlyWhenNoObstacles
+      diagonalMovement: DiagonalMovement.IfAtMostOneObstacle
     })
+  }
+
+  createMinimap() {
+    EventEmitter.emit('minimap', this.walkableTilesAs01)
   }
 
   putPlayerInStartRoom() {
@@ -345,6 +350,7 @@ export class GameScene extends Phaser.Scene {
     this.spawnEnemiesInRooms()
     this.addDoorSpritesToRooms()
     this.createWalkableGrid()
+    this.createMinimap()
   }
 
   create() {

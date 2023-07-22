@@ -170,7 +170,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.scene.map.worldToTileY(this.y!)!, 
       this.scene.map.worldToTileX(this.target.x!)!, 
       this.scene.map.worldToTileY(this.target.y!)!, 
-      this.scene.walkableGrid.clone()
+      this.scene.pathfindingGrid.clone()
     )
 
     for (let step of this.path) {

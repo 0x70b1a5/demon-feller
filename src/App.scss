@@ -88,8 +88,8 @@ body {
 
 #minimap {
   position: fixed;
-  bottom: 1em;
-  left: 1em;
+  top: 1em;
+  right: 1em;
   border-radius: 1em;
   padding: 1em 2em;
   white-space: pre-wrap;
@@ -97,6 +97,14 @@ body {
   max-width: 40vw;
   font-size: 10px;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  font-family: monospace, sans-serif;
+  font-size: 4px;
+
+  .minimap-row {
+    display: flex;
+  }
 }
 
 @keyframes rainbow {

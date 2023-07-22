@@ -19,7 +19,7 @@ export const GameComponent: React.FC = () => {
   const [demonsFelled, setDemonsFelled] = useState(0)
   const [demonsFelledLevel, setDemonsFelledLevel] = useState(0)
   const [demonsToFell, setDemonsToFell] = useState(0)
-  const [minimap, setMinimap] = useState<DocumentFragment>()
+  const [minimap, setMinimap] = useState<number[][]>([])
   const [level, setLevel] = useState(1)
   const [damage, setDamage] = useState(1)
   const [gameStarted, setGameStarted] = useState(false)
@@ -136,13 +136,9 @@ export const GameComponent: React.FC = () => {
       setDemonsToFell(demons)
     }
 
-    const minimapListener = (mm: DocumentFragment) => {
+    const minimapListener = (mm: number[][]) => {
       console.log('minimap event')
       setMinimap(mm)
-      if (minimapRef.current) {
-        minimapRef.current.innerHTML = '';
-        minimapRef.current.appendChild(mm);
-      }
     }
 
     const gameOverListener = () => {
@@ -214,7 +210,13 @@ export const GameComponent: React.FC = () => {
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
     {gameStarted && stats}
-    <div id='minimap' ref={minimapRef}></div>
+    {(minimap?.length > 0) && (minimap.find(r => r.find(c => c))) && <div id='minimap'>
+      {minimap.map((row, i) => <div key={i} className='minimap-row'>
+        {row.map((cell, j) => <div key={j} className='minimap-cell'>
+          {cell ? '█' : '　'}
+        </div>)}
+      </div>)}
+    </div>}
     {levelUp && <div className='level-up overlay'>
       <div className='notice'>
         <h1>LEVEL {level} COMPLETE!</h1>
