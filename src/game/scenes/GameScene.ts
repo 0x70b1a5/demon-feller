@@ -230,6 +230,7 @@ export class GameScene extends Phaser.Scene {
     console.log({ walkableTiles })
     this.walkableGrid = new Pathfinding.Grid(walkableTiles)
     this.pathfinder = new Pathfinding.AStarFinder({ 
+      diagonalMovement: DiagonalMovement.OnlyWhenNoObstacles
     })
   }
 
@@ -375,9 +376,9 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
-  spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType) {
-    const x = this.map.tileToWorldX(room.centerX)!;
-    const y = this.map.tileToWorldY(room.centerY)!;
+  spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType, x?: number, y?: number) {
+    x ||= this.map.tileToWorldX(room.centerX)!;
+    y ||= this.map.tileToWorldY(room.centerY)!;
     
     // Add the lens flare sprite at the powerup position
     const flare = this.add.sprite(x, y, 'boom').setScale(0.1);
@@ -468,6 +469,10 @@ export class GameScene extends Phaser.Scene {
         }
       }
     });
+
+    this.physics.add.overlap(this.enemies, this.enemies, (enemy1, enemy2) => {
+      (enemy1 as Enemy).pushAway(enemy2 as Enemy)
+    })
 
     let demonsToFell = 0
     for (let room of this.rooms) {

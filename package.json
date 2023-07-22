@@ -13,6 +13,7 @@
     "@types/pathfinding": "^0.0.6",
     "@types/react": "^18.2.13",
     "@types/react-dom": "^18.2.6",
+    "classnames": "^2.3.2",
     "pathfinding": "^0.4.18",
     "phaser": "^3.60.0",
     "phaser-ui-tools": "^2.0.0-beta",

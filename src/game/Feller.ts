@@ -15,6 +15,9 @@ import roll from "./util/roll";
  * method when you're done with the player.
  */
 export default class Feller {
+  debug = false
+
+  
   scene!: GameScene
   sprite!: Phaser.Physics.Arcade.Sprite
   keys!: Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
@@ -30,7 +33,6 @@ export default class Feller {
   iframes = 0
   stun = 0
   speed = 300
-  debug = false
   damage = 1
 
   constructor(scene: GameScene, x: number, y: number) {
@@ -85,14 +87,16 @@ export default class Feller {
       .setScale(0.35)
       .setOrigin(0.5, 0.5);
 
+    // --- //
+    
     this.sprite = this.scene.physics.add
       .sprite(x, y, 'feller-sheet')
-      .setScale(0.5);
+      // .setOrigin(1, 0.5)
 
     // DO NOT CHAIN THESE CALLS TO THE ABOVE CALLS
     this.sprite
-      .setSize(this.sprite.width/2, this.sprite.height*0.5)
-      .setOrigin(0.5, 0.5);
+    .setScale(0.5)
+    .setCircle(this.sprite.width/3, this.sprite.width/5, this.sprite.height/4)
 
     this.sprite.anims.play('feller-walk');
 
@@ -257,7 +261,16 @@ export default class Feller {
       case PowerUpType.Speed:
         const speedRatio = this.speed / (this.speed + 50)
         this.speed += 50
-        this.scene.cameras.main.setZoom(this.scene.cameras.main.zoom * speedRatio)
+        // TODO tween camera out
+        this.scene.tweens.add({
+          targets: this.scene.cameras.main,
+          zoom: {
+            from: this.scene.cameras.main.zoom,
+            to: this.scene.cameras.main.zoom * speedRatio,
+            duration: 500,
+            ease: 'Sine.easeOut'
+          }
+        })
         const rate = this.scene.anims.get('feller-walk').frameRate 
         this.scene.anims.get('feller-walk').frameRate = Math.min(rate + 1, 60)
         this.sprite.anims.stop() // animation won't update until we restart
@@ -285,47 +298,33 @@ export default class Feller {
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
   }
 
-  shoot(angle: number) {
+  shoot(bulletAngle: number) {
     const barrelDistance = 80
-    const offset = (Math.abs(angle) > Math.PI/2 ? 1 : -1) * Math.PI/12
-    const barrelX = this.gunSprite.x + barrelDistance * Math.cos(angle + offset);
-    const barrelY = this.gunSprite.y + barrelDistance * Math.sin(angle + offset);
+    const offset = (Math.abs(bulletAngle) > Math.PI/2 ? 1 : -1) * Math.PI/12
+    const barrelX = this.gunSprite.x + barrelDistance * Math.cos(bulletAngle + offset);
+    const barrelY = this.gunSprite.y + barrelDistance * Math.sin(bulletAngle + offset);
 
     // Create new bullet at the barrel's position and set its velocity.
-    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle, scale: this.damage/2 }); 
+    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle: bulletAngle, scale: this.damage/2 }); 
     assert(bullet.body && this.sprite.body)
     bullet.body.velocity.x += this.sprite.body.velocity.x
     bullet.body.velocity.y += this.sprite.body.velocity.y
     this.bullets.push(bullet)
-    const bulletHitSomething = () => {
-      bullet.destroy()
-      const smoke = this.scene.add.sprite(bullet.x, bullet.y, 'smoke')
-      .setScale(0.25 * this.damage)
-      this.scene.tweens.add({
-        targets: smoke,
-        rotation: {
-          value: { from: Phaser.Math.DegToRad(-5), to: Phaser.Math.DegToRad(5) },
-          duration: 100,
-          ease: 'Sine.easeInOut',
-        },
-        onComplete: () => smoke.destroy()
-      })
-    }
     this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
       const enemy = _enemy as Enemy
-      console.log('bullet hit enemy');
-      enemy.hit(this.damage)
-      bulletHitSomething()
+      console.log('bullet hit enemy', enemy);
+      enemy.hit(this.damage);
+      (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
     })
     this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
       const stuff = _stuff as Stuff
       console.log('bullet hit stuff');
-      stuff.hit(this.damage)
-      bulletHitSomething()
+      stuff.hit(this.damage);
+      (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
     })
-    this.scene.physics.add.collider(bullet, this.scene.groundLayer, () => bulletHitSomething())
-    this.scene.physics.add.collider(bullet, this.scene.stuffLayer, () => bulletHitSomething())
-    this.scene.physics.add.collider(bullet, this.scene.shadowLayer, () => bulletHitSomething())
+    this.scene.physics.add.collider(bullet, this.scene.groundLayer, (bullet) => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle))
+    this.scene.physics.add.collider(bullet, this.scene.stuffLayer, (bullet) => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle))
+    this.scene.physics.add.collider(bullet, this.scene.shadowLayer, (bullet) => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle))
     this.shootCooldown = this.RELOAD_COOLDOWN;
   }
   

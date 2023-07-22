@@ -15,10 +15,9 @@ export default class Pig extends Enemy {
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
-    this.setSize(150, 150)
-
+    this.setScale(0.9, 0.9)
     EventEmitter.on('gameOver', () => {
-      this.bullets.forEach(bullet => bullet.destroy())
+      this.bullets.forEach(bullet => (bullet as Bullet).bulletHitSomething(this.scene))
     })
   }
 
@@ -33,16 +32,16 @@ export default class Pig extends Enemy {
     this.bullets.push(bullet)
 
     this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {
-      this.scene.feller.hit(this)
-      bullet.destroy()
+      this.scene.feller.hit(this);
+      (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
     })
 
     this.scene.physics.add.collider(bullet, [
       this.scene.groundLayer, this.scene.stuffLayer, this.scene.shadowLayer
-    ], () => bullet.destroy())
+    ], () => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle))
     this.scene.physics.add.collider(bullet, this.scene.stuffs, (bullet, _stuff) => {
-      (_stuff as Stuff)?.hit(this.damage)
-      bullet.destroy()
+      (_stuff as Stuff)?.hit(this.damage);
+      (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
     })
     
     this.spitCooldown = this.SPIT_COOLDOWN_DURATION;

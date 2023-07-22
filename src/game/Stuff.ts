@@ -32,8 +32,10 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    this.setX(scene.map.tileToWorldX(x)! + scene.map.tileWidth/2)
-    this.setY(scene.map.tileToWorldY(y)! + scene.map.tileHeight/2)
+    this
+      .setX(scene.map.tileToWorldX(x)! + scene.map.tileWidth/2)
+      .setY(scene.map.tileToWorldY(y)! + scene.map.tileHeight/2)
+      .setCircle(this.width/2)
 
     this.debug && this.gfx.strokeCircle(this.x, this.y, this.height/2)
   }
@@ -63,8 +65,8 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
     if (this.debug) {
       this.gfx.clear()
     }
-    this.dead = true
     this.onBeforeDie()
+    this.dead = true
     this.setVisible(false)
     this.setActive(false)
     this.body!.destroy()

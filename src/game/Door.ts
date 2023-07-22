@@ -1,6 +1,7 @@
 import { Scene } from "phaser";
 import EventEmitter from "./EventEmitter";
 import { GameScene, RoomWithEnemies } from "./scenes/GameScene";
+import Bullet from "./Bullet";
 export type NESW = 'N' | 'E' | 'S' | 'W'
 export default class Door extends Phaser.Physics.Arcade.Sprite {
   room!: RoomWithEnemies;
@@ -73,7 +74,7 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
 
     scene.physics.add.collider(this, scene.enemies)
     scene.physics.add.collider(this, scene.feller.bullets, (me, bullet) => {
-      bullet.destroy()
+      (bullet as Bullet).bulletHitSomething(this.scene)
     })
 
     EventEmitter.on('spawnDoors', (guid: string) => {

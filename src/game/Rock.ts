@@ -23,9 +23,18 @@ export default class Rock extends Stuff {
     super.preUpdate(time, delta);
   }
 
+  hit(damage: number) {
+    super.hit(damage)
+    animations.wobbleSprite(this.scene, this, -5, 5, 50, false, false)
+  }
+
   onBeforeDie(): void {
     super.onBeforeDie()
     this.setRotation(Math.random())
+
+    if (Math.random() < 0.1) {
+      this.scene.spawnPowerUp(this.room, undefined, this.x, this.y)
+    }
 
     const remains = [
       this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),

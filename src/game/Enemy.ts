@@ -57,13 +57,17 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.collider(this, scene.stuffLayer)
     scene.physics.add.collider(this, scene.stuffs)
     
-    const [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 2)
+    let [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 2)
+    while (this.scene.tileIsNearDoor(spawnX, spawnY, this.room, 300)) {
+      [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 2)
+    }
     x ||= spawnX
     y ||= spawnY
 
     this.setX(scene.map.tileToWorldX(x)!)
-    this.setY(scene.map.tileToWorldY(y)!)
-    this.setOrigin(0.5, 0.5)
+      .setY(scene.map.tileToWorldY(y)!)
+      .setOrigin(0.5, 0.5)
+      .setCircle(this.width/2)
 
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
     if (this.debug) {
@@ -232,10 +236,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     const force = 200 / ((distance * distance) || 1)
     if (this.debug) {
       console.log('pushing away', { velocity: this.body?.velocity, overlapAngle, distance, force, })
-    }
-    if (this.body && !isNaN(this.body.velocity.x) && !isNaN(this.body.velocity.y)) {
-      this.body.velocity.x += force * Math.sin(overlapAngle)
-      this.body.velocity.y += force * Math.cos(overlapAngle)
     }
     if (other.body && !isNaN(other.body.velocity.x) && !isNaN(other.body.velocity.y)) {
       other.body.velocity.x -= force * Math.sin(overlapAngle)

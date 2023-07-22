@@ -47,6 +47,19 @@ export class BootScene extends Phaser.Scene {
     }, this);
 
     // Preload all assets
+
+    // Music
+    /**
+     * i sekuin - heat
+     * system ready - captains of industry
+     * smoke access - clouds of smoke
+     * inner worlds - ouroboros
+     * actg - pentarchy
+     * mystery meat - deathkon iii
+     * dirac sea - armiger
+     * razorrhead - remains of a diary
+     * dj - meeting miseria
+     */
     // Scripts
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
 

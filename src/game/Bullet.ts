@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { GameScene } from './scenes/GameScene';
 export interface BulletConfig {
   scale?: number,
   angle: number,
@@ -22,6 +23,22 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
     this.setVelocityY(Math.sin(angle) * this.bulletSpeed);
 
     this.setScale(scale || 1)
+  }
+
+  bulletHitSomething(scene: GameScene, damage = 0, bulletAngle = 0) {
+    const smoke = scene.add.sprite(this.x, this.y, 'smoke')
+      .setScale(0.25 * damage)
+      .setRotation(bulletAngle)
+    scene.tweens.add({
+      targets: smoke,
+      rotation: {
+        value: { from: Phaser.Math.DegToRad(-5), to: Phaser.Math.DegToRad(5) },
+        duration: 100,
+        ease: 'Sine.easeInOut',
+      },
+      onComplete: () => smoke.destroy()
+    })
+    this.destroy()
   }
 
   preUpdate(time: number, delta: number) {
