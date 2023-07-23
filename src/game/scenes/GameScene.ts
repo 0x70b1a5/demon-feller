@@ -17,7 +17,6 @@ import powerUps from '../constants/powerups';
 import roll from '../util/roll';
 import enemyWeights from '../constants/enemies';
 import Pig from '../Pig';
-import { assert } from 'console';
 import { v4 as uuid } from 'uuid'
 import Door from '../Door';
 import Soul from '../Soul';
@@ -26,6 +25,7 @@ import Pathfinding, { DiagonalMovement } from 'pathfinding';
 import TILE_MAPPING from '../constants/tiles';
 import Rock from '../Rock';
 import Stuff from '../Stuff';
+import assert from '../util/assert';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -46,7 +46,6 @@ export class GameScene extends Phaser.Scene {
   rexUI!: RexUIPlugin
   level!: number
   dungeon!: Dungeon
-  rooms!: RoomWithEnemies[]
   levellingUp = false
   groundLayer!: Phaser.Tilemaps.TilemapLayer
   stuffLayer!: Phaser.Tilemaps.TilemapLayer
@@ -62,6 +61,10 @@ export class GameScene extends Phaser.Scene {
   gameOver = false
   keys!: any
   stuffs: Stuff[] = []
+  get rooms() {
+    return this.dungeon.rooms as RoomWithEnemies[]
+  }
+  revealedRooms: string[] = []
   
   constructor() {
     super({ key: 'GameScene' })
@@ -75,15 +78,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   createDungeon() {
-    const increaseRatio = Math.ceil(this.level / 3)
-    const roomSize = 7 * increaseRatio
+    const roomSize = 7 + this.level
     const dungeon = this.dungeon = new Dungeon({
-      width: 28 * increaseRatio,
-      height: 28 * increaseRatio,
+      width: 28 + this.level,
+      height: 28 + this.level,
       doorPadding: 2,
       rooms: {
-        width: { min: roomSize, max: roomSize },
-        height: { min: roomSize, max: roomSize },
+        width: { min: 5, max: roomSize },
+        height: { min: 5, max: roomSize },
       }
       // // DEBUG: SMALL DONJON
       // width: 14,
@@ -92,8 +94,6 @@ export class GameScene extends Phaser.Scene {
       // rooms: { width: { min: 5, max: 5}, height: { min: 7, max: 7} }
     })
 
-    const dhtml = dungeon.drawToHtml({ })
-    EventEmitter.emit('minimap', dhtml)
     return dungeon
   }
 
@@ -155,6 +155,7 @@ export class GameScene extends Phaser.Scene {
         }
       }
     });
+    assert(this.rooms.every(rm => rm.guid))
 
     // MUST SET COLLISION ***AFTER*** MODIFYING LAYER
     groundLayer.setCollisionByExclusion([0, 1, 2, 3, 4, 13, 14]);
@@ -239,13 +240,35 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
-  createMinimap() {
-    EventEmitter.emit('minimap', this.walkableTilesAs01)
+  createOrRefreshMinimap() {
+    if (!this.minimapGfx) {
+      this.minimapGfx = this.add.graphics({ fillStyle: { color: 0x0 }});
+    }
+    this.createWalkableGrid()
+    const minimap = this.walkableTilesAs01.slice()
+    for (let y = 0; y < minimap.length; y++) {
+      for (let x = 0; x < minimap[y].length; x++) {
+        const room = this.rooms.find(room => room.guid === (this.dungeon.getRoomAt(x, y) as RoomWithEnemies)?.guid)
+        if (!room?.guid) continue;
+        if (!this.revealedRooms.includes(room.guid)) {
+          // console.log({ room })
+          minimap[y][x] = 1
+        }
+      }
+    }
+
+    console.log(minimap)
+
+    this.drawMinimapTerrain(minimap)
+    if (!this.fellerMarker) {
+      this.createMinimapMarkers()
+    }
   }
 
   putPlayerInStartRoom() {
     const rooms = this.rooms
     const startRoom = this.startRoom = rooms.shift()!;
+    this.revealedRooms.push(startRoom.guid)
     const otherRooms = this.otherRooms = Phaser.Utils.Array.Shuffle(rooms);
 
     // Place the player in the first room
@@ -300,7 +323,7 @@ export class GameScene extends Phaser.Scene {
         || x - 1 === door.x && y === door.y // right
         || x === door.x && y + 1 === door.y // up
         || x === door.x && y - 1 === door.y // down
-        && Phaser.Math.Distance.BetweenPoints(this.map.tileToWorldXY(door.x, door.y)!, { x, y }) < threshold
+        // && Phaser.Math.Distance.BetweenPoints(this.map.tileToWorldXY(door.x, door.y)!, { x, y }) < threshold
       )) {
         return true
       }
@@ -313,30 +336,34 @@ export class GameScene extends Phaser.Scene {
       this.stuffs.forEach(o => o.destroy())
       this.stuffs = []
     }
-    this.rooms = this.dungeon.rooms.slice() as RoomWithEnemies[];
     this.rooms.forEach(room => {
       // Stuff room with stuff
       const rollForStuff = () => {
         const roll = Math.random()
         // debugger
         let [x, y] = this.findUnoccupiedRoomTile(room, 2)
-        while (this.tileIsNearDoor(x, y, room)) {
+        let tries = 0
+        while (this.tileIsNearDoor(x, y, room) && tries < 20) {
           [x, y] = this.findUnoccupiedRoomTile(room, 2)
+          tries++
         }
 
-        let object;
-        if (roll > 0.5) {
-          // this.stuffLayer.putTileAt(TILES.ROCK, x, y)   
-          object = new Rock(this, { room, damage: 0, health: 10, texture: 'rock' }, x, y)          
-        } else if (roll < 0.25) {
-          // this.stuffLayer.putTileAt(TILES.BARREL, x, y)
-          object = new Barrel(this, { room, damage: 3, health: 3, texture: 'barrel' }, x, y)
+        if (tries < 20) {
+          let object;
+          if (roll > 0.5) {
+            // this.stuffLayer.putTileAt(TILES.ROCK, x, y)   
+            object = new Rock(this, { room, damage: 0, health: 10, texture: 'rock' }, x, y)          
+          } else if (roll < 0.25) {
+            // this.stuffLayer.putTileAt(TILES.BARREL, x, y)
+            object = new Barrel(this, { room, damage: 3, health: 3, texture: 'barrel' }, x, y)
+          }
+          
+          if (object) this.stuffs.push(object)
         }
-
-        if (object) this.stuffs.push(object)
       }
 
-      let rolls = this.level * 4
+      // don't roll so much we run out of space in the room
+      let rolls = Math.round((room.width - 3)/3 * (room.height - 3)/3)
       while (rolls > 0) {
         rollForStuff()
         rolls--
@@ -355,7 +382,7 @@ export class GameScene extends Phaser.Scene {
     this.spawnEnemiesInRooms()
     this.addDoorSpritesToRooms()
     this.createWalkableGrid()
-    this.createMinimap()
+    this.createOrRefreshMinimap()
   }
 
   create() {
@@ -385,6 +412,86 @@ export class GameScene extends Phaser.Scene {
       this.gameOver = true
       this.deactivateSprites()
     })
+
+    EventEmitter.on('revealRoom', (guid: string) => {
+      const room = this.rooms.find(rm => rm.guid === guid) || this.fellerRoom
+      this.revealedRooms.push(room.guid)
+      console.log('room revealed', guid, room, this.rooms)
+      this.createOrRefreshMinimap()
+    })
+  }
+
+
+  fellerMarker!: Phaser.GameObjects.Sprite;
+  enemyMarkers!: Phaser.GameObjects.Sprite[];
+  minimapTileSize = 4;
+  minimapX = 0;
+  minimapY = 0;
+
+  createMinimapMarkers() {
+    this.enemyMarkers = [];
+
+    this.fellerMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-feller');
+    this.fellerMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
+
+    this.enemyMarkers = this.enemies.map(enemy => {
+      const enemyMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-demon');
+      enemyMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
+      return enemyMarker;
+    });
+  }
+
+  minimapGfx!: Phaser.GameObjects.Graphics;
+  drawMinimapTerrain(minimap: number[][]) {
+    this.minimapX = this.minimapY = 0
+    const minimapGfx = this.minimapGfx
+    minimapGfx.setX(this.minimapX)
+    .setY(this.minimapY)
+    .setDepth(this.feller.sprite.depth + 1)
+    .clear()
+
+    for (let y = 0; y < minimap.length; y++) {
+      for (let x = 0; x < minimap[y].length; x++) {
+        switch (minimap[y][x]) {
+          case 0:
+            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.TEXTBOX_BG_COLOR } });
+            break;
+          case 1:
+            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.LINE_COLOR } });
+            break;
+        }
+
+        const [drawX, drawY] = [x * this.minimapTileSize, y * this.minimapTileSize];
+        minimapGfx.fillRect(drawX, drawY, this.minimapTileSize, this.minimapTileSize);
+      }
+    }
+  }
+
+  moveMarkers() {
+    this.minimapX = this.cameras.main.width/2 - (this.walkableTilesAs01[0].length * this.minimapTileSize) + this.feller.sprite.x!;
+    this.minimapY = -this.cameras.main.height/2 + this.feller.sprite.y!;
+    
+    this.minimapGfx.setX(this.minimapX)
+    this.minimapGfx.setY(this.minimapY)
+
+    if (!this.fellerMarker || !this.feller.sprite.x || !this.feller.sprite.y) return
+    this.fellerMarker.setDepth(this.minimapGfx.depth + 1)
+    this.fellerMarker.x = this.minimapX + this.feller.sprite.x * this.minimapTileSize / this.map.tileWidth;
+    this.fellerMarker.y = this.minimapY + this.feller.sprite.y * this.minimapTileSize / this.map.tileHeight;
+    
+    for (let i = 0; i < this.enemyMarkers.length; i++) {
+      if (!this.enemies[i]?.x || !this.enemies[i]?.y) {
+        continue
+      }
+      if (!this.revealedRooms.includes(this.enemies[i].room?.guid) || this.enemies[i].dead) {
+        this.enemyMarkers[i].setVisible(false)
+        continue
+      }
+      this.enemyMarkers[i].setVisible(true)
+      this.enemyMarkers[i].setDepth(this.minimapGfx.depth + 1)
+      this.enemyMarkers[i].x = this.minimapX + this.enemies[i].x * this.minimapTileSize / this.map.tileWidth;
+      this.enemyMarkers[i].y = this.minimapY + this.enemies[i].y * this.minimapTileSize / this.map.tileHeight;
+    }
   }
 
   spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType, x?: number, y?: number) {
@@ -515,11 +622,14 @@ export class GameScene extends Phaser.Scene {
 
     this.feller.update(time, delta);
 
-     // Find the player's room using another helper method from the dungeon that converts from
+    // Find the player's room using another helper method from the dungeon that converts from
     // dungeon XY (in grid units) to the corresponding room instance
     const playerTileX = this.groundLayer.worldToTileX(this.feller.sprite.x);
     const playerTileY = this.groundLayer.worldToTileY(this.feller.sprite.y);
     this.fellerRoom = this.dungeon.getRoomAt(playerTileX, playerTileY)! as RoomWithEnemies;
+    if (this.revealedRooms.includes(this.fellerRoom.guid)) {
+      this.revealedRooms.push(this.fellerRoom.guid)
+    }
     
     this.tilemapVisibility.setActiveRoom(this.fellerRoom);
     // console.log(this.feller.sprite.body!.x, this.feller.sprite.body!.y)
@@ -530,6 +640,8 @@ export class GameScene extends Phaser.Scene {
       } else if (Phaser.Input.Keyboard.JustDown(this.keys?.plus)) {
         this.cameras.main.setZoom(this.cameras.main.zoom * 1.25)
       }
-    } 
+    }
+    
+    this.moveMarkers()
   }
 }

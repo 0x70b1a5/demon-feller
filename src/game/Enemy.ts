@@ -106,7 +106,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.lookForFeller()
-    if (time % 10000 === delta) {
+    if (time % 1000 === delta) {
       this.acquireTarget(time, delta)
     }
     if (this.scene.tileIsNearDoor(this.scene.map.worldToTileX(this.x)!, this.scene.map.worldToTileY(this.y)!, this.room)) {

@@ -91,7 +91,7 @@ export class MainMenuScene extends Phaser.Scene {
     playButton.on('pointerup', () => {
       // Transition to game scene
       this.scene.start('GameScene');
-      this.scene.bringToTop('GameScene')
+      this.scene.launch('UIScene');
       EventEmitter.emit('gameStarted')
     }, this);
 

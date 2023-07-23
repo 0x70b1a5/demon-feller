@@ -59,6 +59,7 @@ export class BootScene extends Phaser.Scene {
      * dirac sea - armiger
      * razorrhead - remains of a diary
      * dj - meeting miseria
+     * cor serpentis - atria
      */
     // Scripts
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
@@ -83,6 +84,8 @@ export class BootScene extends Phaser.Scene {
     this.load.image('soul', 'assets/soul.png')
     this.load.image('goo', 'assets/goo.png')
     this.load.image('pig', 'assets/pig.png')
+    this.load.image('mm-feller', 'assets/mm-feller.png')
+    this.load.image('mm-demon', 'assets/mm-demon.png')
     this.load.spritesheet(
       'feller-sheet',
       '../assets/spritesheets/feller.png',

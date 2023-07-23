@@ -104,6 +104,16 @@ body {
 
   .minimap-row {
     display: flex;
+
+    .feller {
+      color: lime;
+      border-radius: 999px;
+      border: 1px dotted black;
+    }
+
+    .enemy {
+      color: red
+    }
   }
 }
 

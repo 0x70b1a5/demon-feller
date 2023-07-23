@@ -156,6 +156,7 @@ export default class Feller {
       this.stun--
       this.sprite.anims.play('feller-hurt')
     }
+
   }
 
   pointAndShoot() {

@@ -6,6 +6,7 @@ import { MainMenuScene } from '../game/scenes/MainMenuScene';
 import { BootScene } from '../game/scenes/BootScene';
 import EventEmitter from '../game/EventEmitter';
 import classNames from 'classnames';
+import { UIScene } from '../game/scenes/UIScene';
 
 export const GameComponent: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -37,7 +38,7 @@ export const GameComponent: React.FC = () => {
       parent: 'game-container',
       width: windowSize.width,
       height: windowSize.height,
-      scene: [BootScene, MainMenuScene, GameScene],
+      scene: [BootScene, MainMenuScene, GameScene, UIScene],
       physics: {
         default: 'arcade',
       },
@@ -136,11 +137,6 @@ export const GameComponent: React.FC = () => {
       setDemonsToFell(demons)
     }
 
-    const minimapListener = (mm: number[][]) => {
-      console.log('minimap event')
-      setMinimap(mm)
-    }
-
     const gameOverListener = () => {
       setGameOver(true)
     }
@@ -162,7 +158,6 @@ export const GameComponent: React.FC = () => {
     EventEmitter.on('demonsFelledLevel', demonFelledLevelListener);
     EventEmitter.on('demonsFelled', demonsFelledListener);
     EventEmitter.on('demonsToFell', demonsToFellListener);
-    EventEmitter.on('minimap', minimapListener);
     EventEmitter.on('levelUp', levelUpListener);
     EventEmitter.on('damage', damageListener);
     
@@ -210,13 +205,6 @@ export const GameComponent: React.FC = () => {
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
     {gameStarted && stats}
-    {(minimap?.length > 0) && (minimap.find(r => r.find(c => c))) && <div id='minimap'>
-      {minimap.map((row, i) => <div key={i} className='minimap-row'>
-        {row.map((cell, j) => <div key={j} className='minimap-cell'>
-          {cell ? '█' : '　'}
-        </div>)}
-      </div>)}
-    </div>}
     {levelUp && <div className='level-up overlay'>
       <div className='notice'>
         <h1>LEVEL {level} COMPLETE!</h1>

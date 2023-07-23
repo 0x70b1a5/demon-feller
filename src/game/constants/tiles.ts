@@ -33,6 +33,12 @@ const TILE_MAPPING = {
     // [186],
     // [205]
   // ]
+  MINIMAP: {
+    EMPTY: 0,
+    FULL: 1,
+    FELLER: 2,
+    ENEMY: 3
+  }
 };
 
 export default TILE_MAPPING;
