@@ -35,20 +35,20 @@ export default class Barrel extends Stuff {
   }
 
   explode() {
-    const boom = this.scene.physics.add.sprite(this.x, this.y, 'boom')
+    const boom = this.scene?.physics.add.sprite(this.x, this.y, 'boom')
     .setScale(2)
-    this.scene.tweens.add({
+    this.scene?.tweens.add({
       targets: boom,
       ease: 'Elastic',
       duration: 250,
       x: Math.random() * 10 + this.x,
       onComplete: () => {
-        boom.destroy()
+        boom?.destroy()
 
-        const smoke = this.scene.physics.add.sprite(this.x, this.y, 'smoke')
+        const smoke = this.scene?.physics.add.sprite(this.x, this.y, 'smoke')
         animations.wobbleSprite(this.scene, smoke)
         setTimeout(() => {
-          smoke.destroy()
+          smoke?.destroy()
         }, 2000);
       }
     })

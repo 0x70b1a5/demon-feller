@@ -34,7 +34,7 @@ export class UIScene extends Phaser.Scene {
       this.currentSong.play();
       
       // When the music ends, play another track
-      this.currentSong.once('complete', () => {
+      this.currentSong.on('complete', () => {
         this.playRandomMusic();
       });
     }

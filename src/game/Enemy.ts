@@ -58,22 +58,42 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.collider(this, scene.stuffs)
     
     let [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 2)
-    while (this.scene.tileIsNearDoor(spawnX, spawnY, this.room, 300)) {
+    while (this.scene.tileIsNearDoor(spawnX, spawnY, this.room, 600)) {
       [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 2)
     }
     x ||= spawnX
     y ||= spawnY
 
-    this.setX(Phaser.Math.Clamp(scene.map.tileToWorldX(x)!, scene.map.tileToWorldX(this.room.x + 1)!, scene.map.tileToWorldX(this.room.x + this.room.width - 1)!))
-      .setY(Phaser.Math.Clamp(scene.map.tileToWorldY(y)!, scene.map.tileToWorldY(this.room.y + 1)!, scene.map.tileToWorldY(this.room.y + this.room.height - 1)!))
+    this.ensureIsInRoom(x, y)
+
+    this
       .setOrigin(0.5, 0.5)
       .setCircle(this.width/2)
+
 
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
     if (this.debug) {
       this.gfx
       .fillRect(this.x, this.y, 10, 10)
     }
+  }
+
+  ensureIsInRoom(x: number, y: number) {
+    const scene = this.scene
+    this
+      .setX(
+        Phaser.Math.Clamp(
+          scene.map.tileToWorldX(x)!, 
+          scene.map.tileToWorldX(this.room.x + 2)!, 
+          scene.map.tileToWorldX(this.room.x + this.room.width - 2)!
+        ))
+      .setY(
+        Phaser.Math.Clamp(
+          scene.map.tileToWorldY(y)!, 
+          scene.map.tileToWorldY(this.room.y + 2)!, 
+          scene.map.tileToWorldY(this.room.y + this.room.height - 2)!
+      ))
+    
   }
 
   attack(feller: Feller) {
@@ -215,7 +235,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   wobble() {
-    this.movementAngle += Phaser.Math.FloatBetween(-1, 1) * Phaser.Math.DegToRad(10)
+    this.movementAngle += Phaser.Math.FloatBetween(-1, 1) * Phaser.Math.DegToRad(40)
   }
 
   die() {

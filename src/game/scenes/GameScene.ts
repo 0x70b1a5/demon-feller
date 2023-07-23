@@ -442,6 +442,9 @@ export class GameScene extends Phaser.Scene {
 
     EventEmitter.on('revealRoom', (guid: string) => {
       const room = this.rooms.find(rm => rm.guid === guid) || this.fellerRoom
+      if (this.revealedRooms.includes(guid)) {
+        return
+      }
       this.revealedRooms.push(room.guid)
       console.log('room revealed', guid, room, this.rooms)
       this.createOrRefreshMinimap()
@@ -466,6 +469,8 @@ export class GameScene extends Phaser.Scene {
       this.fellerMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
     }
 
+    this.enemyMarkers?.forEach(m => m?.destroy())
+    
     this.enemyMarkers = this.enemies.map(enemy => {
       const enemyMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-demon');
       enemyMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
@@ -530,7 +535,7 @@ export class GameScene extends Phaser.Scene {
     y ||= this.map.tileToWorldY(room.centerY)!;
     
     // Add the lens flare sprite at the powerup position
-    const flare = this.add.sprite(x, y, 'boom').setScale(0.1);
+    const flare = this.add.sprite(x, y, 'powerupBG').setScale(0.1);
 
     // Create the tween
     this.tweens.add({
@@ -538,13 +543,13 @@ export class GameScene extends Phaser.Scene {
       angle: 360,
       duration: 750,
       onComplete: () => {
-        flare.destroy(); // Destroy the flare when the animation completes
+        flare?.destroy();
       },
       ease: 'Sine.easeInOut'
     });
     this.tweens.add({
       targets: flare,
-      scale: { start: 0.1, to: 10.0 },
+      scale: { start: 0.1, to: 3.0 },
       yoyo: true,
       duration: 450,
       ease: 'Sine.easeInOut'
