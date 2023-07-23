@@ -4,8 +4,8 @@ import EventEmitter from '../EventEmitter';
 
 export class MainMenuScene extends Phaser.Scene {
   private rexUI!: RexUIPlugin
-  bat!: Phaser.Sound.WebAudioSound
-  magic!: Phaser.Sound.WebAudioSound
+  bat!: Phaser.Sound.HTML5AudioSound
+  magic!: Phaser.Sound.HTML5AudioSound
 
   constructor() {
     super({ key: 'MainMenuScene' });
@@ -58,8 +58,8 @@ export class MainMenuScene extends Phaser.Scene {
     .setOrigin(0.5, 0.5)
     .layout()
 
-    this.bat = this.sound.add('bat') as Phaser.Sound.WebAudioSound
-    this.magic = this.sound.add('magic') as Phaser.Sound.WebAudioSound
+    this.bat = this.sound.add('bat') as Phaser.Sound.HTML5AudioSound
+    this.magic = this.sound.add('magic') as Phaser.Sound.HTML5AudioSound
 
     // Add play button
     const playButton = this.rexUI.add.label({

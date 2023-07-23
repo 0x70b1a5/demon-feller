@@ -64,8 +64,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     x ||= spawnX
     y ||= spawnY
 
-    this.setX(scene.map.tileToWorldX(x)!)
-      .setY(scene.map.tileToWorldY(y)!)
+    this.setX(Phaser.Math.Clamp(scene.map.tileToWorldX(x)!, scene.map.tileToWorldX(this.room.x + 1)!, scene.map.tileToWorldX(this.room.x + this.room.width - 1)!))
+      .setY(Phaser.Math.Clamp(scene.map.tileToWorldY(y)!, scene.map.tileToWorldY(this.room.y + 1)!, scene.map.tileToWorldY(this.room.y + this.room.height - 1)!))
       .setOrigin(0.5, 0.5)
       .setCircle(this.width/2)
 
@@ -154,8 +154,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.target) {
       this.chaseTarget()
     }
-    this.setVelocity(Math.cos(this.movementAngle) * this.speed, Math.sin(this.movementAngle) * this.speed)
     this.wobble()
+    this.setVelocity(Math.cos(this.movementAngle) * this.speed, Math.sin(this.movementAngle) * this.speed)
   }
 
   chaseTarget() {
@@ -215,14 +215,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   wobble() {
-    // assert(this.body)
-
-    // const wobbleFactor = this.speed / 2
-    // const angle = Math.random() * 2 * Math.PI
-    // const wobbleX = Math.random() * wobbleFactor * (Math.random() < 0.5 ? -1 : 1)
-    // const wobbleY = Math.random() * wobbleFactor * (Math.random() < 0.5 ? -1 : 1)
-    // this.body.velocity.x += Math.cos(angle) * wobbleFactor + wobbleX
-    // this.body.velocity.y += Math.sin(angle) * wobbleFactor + wobbleY
+    this.movementAngle += Phaser.Math.FloatBetween(-1, 1) * Phaser.Math.DegToRad(10)
   }
 
   die() {

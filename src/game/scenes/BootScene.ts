@@ -48,19 +48,6 @@ export class BootScene extends Phaser.Scene {
 
     // Preload all assets
 
-    // Music
-    /**
-     * i sekuin - heat
-     * system ready - captains of industry
-     * smoke access - clouds of smoke
-     * inner worlds - ouroboros
-     * actg - pentarchy
-     * mystery meat - deathkon iii
-     * dirac sea - armiger
-     * razorrhead - remains of a diary
-     * dj - meeting miseria
-     * cor serpentis - atria
-     */
     // Scripts
     this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
 
@@ -102,7 +89,25 @@ export class BootScene extends Phaser.Scene {
     // Audio
     this.load.audio('bat', 'assets/sounds/bat.mp3');
     this.load.audio('magic', 'assets/sounds/magic.mp3');
-    // this.load.audio('song2', 'assets/audio/song2.mp3');
+
+    // Music
+    /**
+     * i sekuin - heat
+     * system ready - captains of industry
+     * smoke access - clouds of smoke
+     * inner worlds - ouroboros
+     * actg - pentarchy
+     * mystery meat - deathkon iii
+     * dirac sea - armiger
+     * razorrhead - remains of a diary
+     * dj - meeting miseria
+     * cor serpentis - atria
+     * smoke access - back into the cracks
+     * smoke access - faithless predator
+     */
+    this.load.audio('fate', 'assets/music/cor_serpentis-fate.ogg');
+    this.load.audio('faithless', 'assets/music/smoke_access-faithless_predator.ogg');
+    this.load.audio('cracks', 'assets/music/smoke_access-back_into_the_cracks.ogg');
     // this.load.audio('song3', 'assets/audio/song3.mp3');
 
     // Tilemap

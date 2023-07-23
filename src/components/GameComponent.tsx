@@ -29,6 +29,7 @@ export const GameComponent: React.FC = () => {
   const [damageUp, setDamageUp] = useState(false)
   const [speedUp, setSpeedUp] = useState(false)
   const [hpUp, setHpUp] = useState(false)
+  const [paused, setPaused] = useState(false)
 
   const minimapRef = useRef<HTMLDivElement | null>(null);
 
@@ -49,6 +50,9 @@ export const GameComponent: React.FC = () => {
           plugin: RexUIPlugin,
           mapping: 'rexUI'
         }]
+      },
+      audio: {
+        disableWebAudio: true 
       },
       fps: {
         target: 60,
@@ -149,6 +153,10 @@ export const GameComponent: React.FC = () => {
     const gameStartedListener = () => {
       setGameStarted(true)
     }
+
+    const pausedListener = () => {
+      setPaused(true)
+    }
     
     EventEmitter.on('gameStarted', gameStartedListener);
     EventEmitter.on('health', healthListener);
@@ -160,6 +168,7 @@ export const GameComponent: React.FC = () => {
     EventEmitter.on('demonsToFell', demonsToFellListener);
     EventEmitter.on('levelUp', levelUpListener);
     EventEmitter.on('damage', damageListener);
+    EventEmitter.on('pause', pausedListener);
     
     return () => {
       EventEmitter.off('gameStarted', gameStartedListener);
@@ -172,6 +181,7 @@ export const GameComponent: React.FC = () => {
       EventEmitter.off('demonsFelled', demonsFelledListener);
       EventEmitter.off('demonsToFell', demonsToFellListener);
       EventEmitter.off('levelUp', levelUpListener);
+      EventEmitter.off('pause', pausedListener);
     };
   }, [])
 
@@ -201,6 +211,12 @@ export const GameComponent: React.FC = () => {
       <div className={classNames('stat', { rainbowShake: fallenFelled })}>{demonsFelled}</div>
     </div>
   </div>
+  // const restartButton = <button className='big-btn restart' onClick={() => {
+  //   gameRef?.current?.scene.remove('GameScene');
+  //   gameRef?.current?.scene.add('GameScene', GameScene, true);
+  //   setGameOver(false)
+  //   setPaused(false)
+  // }}>RESTART GAME</button>
   return <>
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
@@ -225,13 +241,21 @@ export const GameComponent: React.FC = () => {
         <p className='ty'>
           THANK YOU FOR YOUR SERVICE
         </p>
-        <button className='big-btn restart' onClick={() => {
-          setGameOver(false)
-          // Remove the GameScene completely
-          gameRef?.current?.scene.remove('GameScene');
-          // Add it back in and start it
-          gameRef?.current?.scene.add('GameScene', GameScene, true);
-        }}>TRY AGAIN</button>
+        {/* {restartButton} */}
+      </div>
+    </div>}
+    {paused && <div className='pause-menu overlay'>
+      <div className='notice'>
+        <h1>GAME PAUSED</h1>
+        {stats}
+        <h2>CONTROLS:</h2>
+        <p>WASD or arrow keys: move</p>
+        <p>Click: shoot</p>
+        <div className='big-btn resume' onClick={() => {
+          EventEmitter.emit('unpause')
+          setPaused(false)
+        }}>RESUME</div>
+        {/* {restartButton} */}
       </div>
     </div>}
   </>;

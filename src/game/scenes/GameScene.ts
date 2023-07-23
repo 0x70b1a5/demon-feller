@@ -84,8 +84,8 @@ export class GameScene extends Phaser.Scene {
       height: 28 + this.level,
       doorPadding: 2,
       rooms: {
-        width: { min: 5, max: roomSize },
-        height: { min: 5, max: roomSize },
+        width: { min: 7, max: roomSize },
+        height: { min: 7, max: roomSize },
       }
       // // DEBUG: SMALL DONJON
       // width: 14,
@@ -121,9 +121,11 @@ export class GameScene extends Phaser.Scene {
     const stuffLayer = this.stuffLayer = map.createBlankLayer('Stuff', tileset)!
     stuffLayer.fill(-1);
 
-    this.dungeon.rooms.forEach((room) => {
+    this.dungeon.rooms.forEach((room, i) => {
       const { x, y, width, height, left, right, top, bottom } = room;
-      (room as RoomWithEnemies).guid = uuid()
+      const guid = uuid();
+      (room as RoomWithEnemies).guid = guid
+      if (i === 0) this.revealedRooms.push(guid)
 
       // Fill the floor with mostly clean tiles
       this.groundLayer.weightedRandomize(TILES.FLOOR, x + 1, y + 1, width - 2, height - 2);
@@ -183,7 +185,7 @@ export class GameScene extends Phaser.Scene {
     return map
   }
 
-  findUnoccupiedRoomTile(room: Room, padding = 2): [x: number, y: number] {
+  findUnoccupiedRoomTile(room: Room, padding = 1): [x: number, y: number] {
     let tries = 0
     let [relativeX, relativeY] = [0, 0]
 
@@ -192,33 +194,40 @@ export class GameScene extends Phaser.Scene {
       relativeX = Math.round(Math.random() * room.width)
       relativeY = Math.round(Math.random() * room.height)
       tries++
+      
       return ( // these are the FAILURE conditions. returning true means ROLL AGAIN
         relativeX < padding || 
         relativeY < padding ||
-        relativeX > room.width - 1 - padding || 
-        relativeY > room.height - 1 - padding ||
-        this.tileIsOccupied(relativeX + room.x, relativeY + room.y)
+        relativeX > room.width - padding || 
+        relativeY > room.height - padding ||
+        this.walkableTilesAs01[relativeY + room.y][relativeX + room.x] !== 0
       )
     }
-    
+
     let tile = rollForTile()
     
     while (tile) { // seek an empty
       tile = rollForTile()
     }
 
-    console.log(`FURT took ${tries} tries`)
+    this.debug && console.log(`FURT took ${tries} tries`)
 
     return [relativeX + room.x, relativeY + room.y]
   }
 
-  tileIsOccupied(x: number, y: number) {
+  minimapUseOnly_tileIsOccupied(x: number, y: number) {
     return (
       TILE_MAPPING.WALLS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
       TILE_MAPPING.ITEMS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
       TILE_MAPPING.DOORS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
-      this.stuffs.find(stuff => this.map.worldToTileX(stuff.x) === x && this.map.worldToTileY(stuff.y) === y)
+      this.tileHasStuff(x, y)
     )
+  }
+
+  tileHasStuff(x: number, y: number) {
+    return this.stuffs
+      .filter(stuff => !stuff.dead)
+      .find(stuff => this.map.worldToTileX(stuff.x) === x && this.map.worldToTileY(stuff.y) === y)
   }
 
   pathfindingGrid!: Pathfinding.Grid
@@ -229,11 +238,11 @@ export class GameScene extends Phaser.Scene {
     for (let y = 0; y < this.map.height; y++) {
       this.walkableTilesAs01.push([])
       for (let x = 0; x < this.map.width; x++) {
-        const collides = this.tileIsOccupied(x, y)
+        const collides = this.minimapUseOnly_tileIsOccupied(x, y)
         this.walkableTilesAs01[y][x] = collides ? 1 : 0
       }
     }
-    console.log(this.walkableTilesAs01)
+    this.debug && console.log({walkable: this.walkableTilesAs01})
     this.pathfindingGrid = new Pathfinding.Grid(this.walkableTilesAs01)
     this.pathfinder = new Pathfinding.AStarFinder({ 
       diagonalMovement: DiagonalMovement.IfAtMostOneObstacle
@@ -245,38 +254,32 @@ export class GameScene extends Phaser.Scene {
       this.minimapGfx = this.add.graphics({ fillStyle: { color: 0x0 }});
     }
     this.createWalkableGrid()
-    const minimap = this.walkableTilesAs01.slice()
-    for (let y = 0; y < minimap.length; y++) {
-      for (let x = 0; x < minimap[y].length; x++) {
-        const room = this.rooms.find(room => room.guid === (this.dungeon.getRoomAt(x, y) as RoomWithEnemies)?.guid)
-        if (!room?.guid) continue;
-        if (!this.revealedRooms.includes(room.guid)) {
-          // console.log({ room })
-          minimap[y][x] = 1
-        }
+    const minimap = this.walkableTilesAs01.map((rowOfWalkables, y) => rowOfWalkables.map((walkableInt, x) => {
+      const room = this.rooms.find(room => room.guid === (this.dungeon.getRoomAt(x, y) as RoomWithEnemies)?.guid)
+      if (!room?.guid) return walkableInt
+      if (!this.revealedRooms.includes(room.guid)) {
+        // console.log({ room })
+        return 1
       }
-    }
+      return walkableInt
+    }))
 
-    console.log(minimap)
+    console.log({minimap})
 
     this.drawMinimapTerrain(minimap)
-    if (!this.fellerMarker) {
-      this.createMinimapMarkers()
-    }
   }
 
   putPlayerInStartRoom() {
     const rooms = this.rooms
     const startRoom = this.startRoom = rooms.shift()!;
-    this.revealedRooms.push(startRoom.guid)
     const otherRooms = this.otherRooms = Phaser.Utils.Array.Shuffle(rooms);
 
     // Place the player in the first room
     this.fellerRoom = startRoom!;
     const [spawnX, spawnY] = this.findUnoccupiedRoomTile(this.fellerRoom)
 
-    const x = this.map.tileToWorldX(spawnX)!;
-    const y = this.map.tileToWorldY(spawnY)!;
+    const x = this.map.tileToWorldX(spawnX)! + this.map.tileWidth/2;
+    const y = this.map.tileToWorldY(spawnY)! + this.map.tileHeight/2;
 
     if (this.feller) {
       this.feller.createNewSprite(x, y)
@@ -318,12 +321,13 @@ export class GameScene extends Phaser.Scene {
 
   tileIsNearDoor(x: number, y: number, room: Room, threshold = 200) {
     for (let door of room.getDoorLocations()) {
+      const [realDoorX, realDoorY] = [door.x + room.x, door.y + room.y]
       if ((
-           x + 1 === door.x && y === door.y // left
-        || x - 1 === door.x && y === door.y // right
-        || x === door.x && y + 1 === door.y // up
-        || x === door.x && y - 1 === door.y // down
-        // && Phaser.Math.Distance.BetweenPoints(this.map.tileToWorldXY(door.x, door.y)!, { x, y }) < threshold
+           x + 1 === realDoorX && y === realDoorY // left
+        || x - 1 === realDoorX && y === realDoorY // right
+        || x === realDoorX && y + 1 === realDoorY // up
+        || x === realDoorX && y - 1 === realDoorY // down
+        && Phaser.Math.Distance.BetweenPoints(this.map.tileToWorldXY(realDoorX, realDoorY)!, { x, y }) < threshold
       )) {
         return true
       }
@@ -338,37 +342,57 @@ export class GameScene extends Phaser.Scene {
     }
     this.rooms.forEach(room => {
       // Stuff room with stuff
-      const rollForStuff = () => {
-        const roll = Math.random()
-        // debugger
-        let [x, y] = this.findUnoccupiedRoomTile(room, 2)
-        let tries = 0
-        while (this.tileIsNearDoor(x, y, room) && tries < 20) {
-          [x, y] = this.findUnoccupiedRoomTile(room, 2)
-          tries++
-        }
-
-        if (tries < 20) {
-          let object;
-          if (roll > 0.5) {
-            // this.stuffLayer.putTileAt(TILES.ROCK, x, y)   
-            object = new Rock(this, { room, damage: 0, health: 10, texture: 'rock' }, x, y)          
-          } else if (roll < 0.25) {
-            // this.stuffLayer.putTileAt(TILES.BARREL, x, y)
-            object = new Barrel(this, { room, damage: 3, health: 3, texture: 'barrel' }, x, y)
+      let maxPossibleItems = -room.getDoorLocations().length
+      for (let y = room.y; y < room.y + room.height; y++) {
+        for (let x = room.x; x < room.x + room.width; x++) {
+          if (this.walkableTilesAs01[y][x] === 1) {
+            continue
           }
-          
-          if (object) this.stuffs.push(object)
+          maxPossibleItems++
         }
       }
 
-      // don't roll so much we run out of space in the room
-      let rolls = Math.round((room.width - 3)/3 * (room.height - 3)/3)
-      while (rolls > 0) {
-        rollForStuff()
-        rolls--
+      this.debug && console.log({maxPossibleItems, room})
+
+      for (let i = 0; i < maxPossibleItems/3; i++) {
+        this.rollForStuff(room)
       }
     })
+  }
+
+  rollForStuff(room: RoomWithEnemies) {
+    const roll = Math.random()
+    // debugger
+    let [x, y] = this.findUnoccupiedRoomTile(room, 2)
+    let tries = 0
+    while (this.tileIsNearDoor(x, y, room) && tries < 20) {
+      [x, y] = this.findUnoccupiedRoomTile(room, 2)
+      tries++
+    }
+
+    if (tries < 20) {
+      let object;
+      if (roll < 0.25) {
+        object = new Barrel(this, { room, damage: 3, health: 3, texture: 'barrel' }, x, y)
+      } else if (roll < 0.75) {
+        object = new Rock(this, { room, damage: 0, health: 10, texture: 'rock' }, x, y)          
+      }
+      
+      if (object) {
+        this.stuffs.push(object)
+        this.makeTileUnwalkable(x, y)
+        this.debug && console.log(this.walkableTilesAs01)
+      }
+    }
+    return tries
+  }
+
+  makeTileUnwalkable(x: number, y: number) {
+    const newWalkable = this.walkableTilesAs01.map((row, _y) => row.map((tile, _x) => {
+      return x === _x && y === _y ? 1 : tile
+    }))
+    this.walkableTilesAs01 = newWalkable
+    this.debug && console.log({ newWalkable })
   }
 
   createNewLevel() {
@@ -376,23 +400,25 @@ export class GameScene extends Phaser.Scene {
     console.log('level', this.level)
     this.createDungeon()
     this.createTilemap()
+    this.createOrRefreshMinimap()
     this.addStuffToRooms()
     this.putPlayerInStartRoom()
-    this.setupCamera()
     this.spawnEnemiesInRooms()
+    this.createMinimapMarkers()
+    this.setupCamera()
     this.addDoorSpritesToRooms()
     this.createWalkableGrid()
-    this.createOrRefreshMinimap()
   }
 
   create() {
     if (this.debug) {
       this.physics.world.createDebugGraphic();  
-      this.keys = this.input.keyboard?.addKeys({
-        minus: Phaser.Input.Keyboard.KeyCodes.MINUS,
-        plus: Phaser.Input.Keyboard.KeyCodes.PLUS,
-      }) 
     }
+    this.keys = this.input.keyboard?.addKeys({
+      minus: Phaser.Input.Keyboard.KeyCodes.MINUS,
+      plus: Phaser.Input.Keyboard.KeyCodes.PLUS,
+      esc: Phaser.Input.Keyboard.KeyCodes.ESC,
+    }) 
 
     this.createNewLevel()
 
@@ -404,6 +430,7 @@ export class GameScene extends Phaser.Scene {
     })
 
     EventEmitter.on('goToNextLevel', () => {
+      this.scene.resume()
       this.createNewLevel()
       this.levellingUp = false // don't resume updating until the new level is done
     })
@@ -419,6 +446,9 @@ export class GameScene extends Phaser.Scene {
       console.log('room revealed', guid, room, this.rooms)
       this.createOrRefreshMinimap()
     })
+
+    this.scene.launch('UIScene')
+    this.scene.bringToTop('UIScene')
   }
 
 
@@ -431,8 +461,10 @@ export class GameScene extends Phaser.Scene {
   createMinimapMarkers() {
     this.enemyMarkers = [];
 
-    this.fellerMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-feller');
-    this.fellerMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
+    if (!this.fellerMarker) {
+      this.fellerMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-feller');
+      this.fellerMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
+    }
 
     this.enemyMarkers = this.enemies.map(enemy => {
       const enemyMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-demon');
@@ -447,7 +479,6 @@ export class GameScene extends Phaser.Scene {
     const minimapGfx = this.minimapGfx
     minimapGfx.setX(this.minimapX)
     .setY(this.minimapY)
-    .setDepth(this.feller.sprite.depth + 1)
     .clear()
 
     for (let y = 0; y < minimap.length; y++) {
@@ -559,6 +590,7 @@ export class GameScene extends Phaser.Scene {
   }
   
   deactivateSprites() {
+    this.scene.pause();
     [...this.enemies, ...this.stuffs, ...this.feller.bullets].forEach(thing => {
       thing.setActive(false)
     })
@@ -641,6 +673,14 @@ export class GameScene extends Phaser.Scene {
         this.cameras.main.setZoom(this.cameras.main.zoom * 1.25)
       }
     }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keys?.esc)) {
+      EventEmitter.emit('pause')
+      this.scene.pause()
+    }
+
+    if (this.feller.sprite)
+    this.minimapGfx.setDepth(this.feller.sprite.depth + 1)
     
     this.moveMarkers()
   }
