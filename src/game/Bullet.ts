@@ -32,7 +32,7 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
     scene.tweens.add({
       targets: smoke,
       rotation: {
-        value: { from: Phaser.Math.DegToRad(-5), to: Phaser.Math.DegToRad(5) },
+        value: { from: Phaser.Math.DegToRad(-5) + bulletAngle, to: Phaser.Math.DegToRad(5) + bulletAngle },
         duration: 100,
         ease: 'Sine.easeInOut',
       },

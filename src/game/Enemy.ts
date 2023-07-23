@@ -225,24 +225,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     // this.body.velocity.y += Math.sin(angle) * wobbleFactor + wobbleY
   }
 
-  pushAway(other: Phaser.Physics.Arcade.Sprite) {
-    if (this.pushing > 0) {
-      this.pushing--
-      return
-    }
-    this.pushing = 100
-    const overlapAngle = Phaser.Math.Angle.BetweenPoints(other, this)
-    const distance = Phaser.Math.Distance.BetweenPoints(other, this)
-    const force = 200 / ((distance * distance) || 1)
-    if (this.debug) {
-      console.log('pushing away', { velocity: this.body?.velocity, overlapAngle, distance, force, })
-    }
-    if (other.body && !isNaN(other.body.velocity.x) && !isNaN(other.body.velocity.y)) {
-      other.body.velocity.x -= force * Math.sin(overlapAngle)
-      other.body.velocity.y -= force * Math.cos(overlapAngle)
-    }
-  }
-
   die() {
     if (this.debug) {
       this.gfx.clear()

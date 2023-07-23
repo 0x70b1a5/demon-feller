@@ -17,7 +17,7 @@ export default class Pig extends Enemy {
     super(scene, config, x, y)
     this.setScale(0.9, 0.9)
     EventEmitter.on('gameOver', () => {
-      this.bullets.forEach(bullet => (bullet as Bullet).bulletHitSomething(this.scene))
+      this.bullets.forEach(bullet => bullet.destroy())
     })
   }
 

@@ -183,12 +183,14 @@ export class GameScene extends Phaser.Scene {
   }
 
   findUnoccupiedRoomTile(room: Room, padding = 2): [x: number, y: number] {
+    let tries = 0
     let [relativeX, relativeY] = [0, 0]
 
     const rollForTile = () => {
       // -1/+1 = don't spawn in a wall
       relativeX = Math.round(Math.random() * room.width)
       relativeY = Math.round(Math.random() * room.height)
+      tries++
       return ( // these are the FAILURE conditions. returning true means ROLL AGAIN
         relativeX < padding || 
         relativeY < padding ||
@@ -203,6 +205,8 @@ export class GameScene extends Phaser.Scene {
     while (tile) { // seek an empty
       tile = rollForTile()
     }
+
+    console.log(`FURT took ${tries} tries`)
 
     return [relativeX + room.x, relativeY + room.y]
   }
@@ -296,6 +300,7 @@ export class GameScene extends Phaser.Scene {
         || x - 1 === door.x && y === door.y // right
         || x === door.x && y + 1 === door.y // up
         || x === door.x && y - 1 === door.y // down
+        && Phaser.Math.Distance.BetweenPoints(this.map.tileToWorldXY(door.x, door.y)!, { x, y }) < threshold
       )) {
         return true
       }
@@ -477,10 +482,6 @@ export class GameScene extends Phaser.Scene {
         }
       }
     });
-
-    this.physics.add.overlap(this.enemies, this.enemies, (enemy1, enemy2) => {
-      (enemy1 as Enemy).pushAway(enemy2 as Enemy)
-    })
 
     let demonsToFell = 0
     for (let room of this.rooms) {

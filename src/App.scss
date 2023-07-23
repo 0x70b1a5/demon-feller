@@ -120,22 +120,46 @@ body {
 }
 
 @keyframes shake {
-  0%, 50% {
-    transform: translateX(0px) scale(3)
+  0% {
+    transform: translateX(-25px) scale(3)
   }
 
-  17%, 67% {
-    transform: translateX(-20px) scale(3)
+  12% {
+    transform: translateX(25px) scale(3)
   }
 
-  34%, 100% {
-    transform: translateX(0px) scale(3)
+  25% {
+    transform: translateX(-12.5px) scale(3)
+  }
+
+  37% {
+    transform: translateX(12.5px) scale(2)
+  }
+
+  50% {
+    transform: translateX(-6.25px) scale(2)
+  }
+
+  62% {
+    transform: translateX(6.25px) scale(2)
+  }
+
+  75% {
+    transform: translateX(-3.125px)
+  }
+
+  87% {
+    transform: translateX(3.125px)
+  }
+
+  100% {
+    transform: translateX(0px);
   }
 }
 
 .rainbowShake {
   transform-origin: center;
   animation: 
-    0.25s ease-in-out rainbow,
-    0.25s cubic-bezier(0.21,-1.1, 0.56, 2.02) shake;
+    0.5s linear rainbow,
+    0.25s ease-out shake;
 }
