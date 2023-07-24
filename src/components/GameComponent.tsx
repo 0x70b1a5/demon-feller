@@ -30,6 +30,8 @@ export const GameComponent: React.FC = () => {
   const [speedUp, setSpeedUp] = useState(false)
   const [hpUp, setHpUp] = useState(false)
   const [paused, setPaused] = useState(false)
+  const [stun, setStun] = useState(0)
+  const [stunUp, setStunUp] = useState(false)
 
   const minimapRef = useRef<HTMLDivElement | null>(null);
 
@@ -141,6 +143,11 @@ export const GameComponent: React.FC = () => {
       setDemonsToFell(demons)
     }
 
+    const stunListener = (newStun: number) => {
+      setStun(newStun)
+      toggle1s(setStunUp)
+    }
+
     const gameOverListener = () => {
       setGameOver(true)
     }
@@ -166,6 +173,7 @@ export const GameComponent: React.FC = () => {
     EventEmitter.on('demonsFelledLevel', demonFelledLevelListener);
     EventEmitter.on('demonsFelled', demonsFelledListener);
     EventEmitter.on('demonsToFell', demonsToFellListener);
+    EventEmitter.on('stun', stunListener);
     EventEmitter.on('levelUp', levelUpListener);
     EventEmitter.on('damage', damageListener);
     EventEmitter.on('pause', pausedListener);
@@ -180,6 +188,7 @@ export const GameComponent: React.FC = () => {
       EventEmitter.off('demonsFelledLevel', demonFelledLevelListener);
       EventEmitter.off('demonsFelled', demonsFelledListener);
       EventEmitter.off('demonsToFell', demonsToFellListener);
+      EventEmitter.off('stun', stunListener);
       EventEmitter.off('levelUp', levelUpListener);
       EventEmitter.off('pause', pausedListener);
     };
@@ -201,6 +210,10 @@ export const GameComponent: React.FC = () => {
     <div className='reloadSpeed bar'>
       R.O.F.:
       <div className={classNames('stat', { rainbowShake: reloadSpeedUp })}>{Number(40 / (reloadSpeed || 40)).toPrecision(3)}x</div>
+    </div>
+    <div className='stun bar'>
+      STUN:
+      <div className={classNames('stat', { rainbowShake: stunUp })}>{Number(stun / 100).toPrecision(3)}x</div>
     </div>
     <div className='demonsFelled bar'>
       FELLED (LV):

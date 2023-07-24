@@ -34,12 +34,11 @@ export default class Pig extends Enemy {
   }
 
   spit() {
+    if (this.stun) return 
+    
     const angle = Phaser.Math.Angle.BetweenPoints(this, this.scene.feller.sprite)
     const bullet = new Bullet(this.scene, this.x, this.y, { angle, texture: 'bigbullet', speed: 300 }); 
     assert(bullet.body && this.body)
-    
-    bullet.body.velocity.x += this.body.velocity.x
-    bullet.body.velocity.y += this.body.velocity.y
 
     this.bullets.push(bullet)
 

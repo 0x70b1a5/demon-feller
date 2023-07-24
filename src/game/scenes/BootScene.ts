@@ -132,15 +132,15 @@ export class BootScene extends Phaser.Scene {
      * x smoke access - back into the cracks
      * x smoke access - faithless predator
      */
-    this.load.audio('pentarchy', 'assets/music/actg-pentarchy.mp3');
+    this.load.audio('pentarchy', 'assets/music/actg-pentarchy.ogg');
     this.load.audio('cracks', 'assets/music/smoke_access-back_into_the_cracks.ogg');
     this.load.audio('faithless', 'assets/music/smoke_access-faithless_predator.ogg');
     this.load.audio('fate', 'assets/music/cor_serpentis-fate.ogg');
-    this.load.audio('armiger', 'assets/music/dirac_sea-armiger.mp3');
-    this.load.audio('ouroboros', 'assets/music/inner_worlds-ouroboros.mp3');
+    this.load.audio('armiger', 'assets/music/dirac_sea-armiger.ogg');
+    this.load.audio('ouroboros', 'assets/music/inner_worlds-ouroboros.ogg');
     this.load.audio('remains', 'assets/music/razorrhead-remains_of_a_diary.ogg');
-    this.load.audio('clouds', 'assets/music/smoke_access-clouds_of_smoke.mp3');
-    this.load.audio('surrender', 'assets/music/system_ready-captains_of_industry.mp3');
+    this.load.audio('clouds', 'assets/music/smoke_access-clouds_of_smoke.ogg');
+    this.load.audio('surrender', 'assets/music/system_ready-captains_of_industry.ogg');
     // this.load.audio('song3', 'assets/audio/song3.mp3');
 
     // Tilemap

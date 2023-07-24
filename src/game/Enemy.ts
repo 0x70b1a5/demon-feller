@@ -117,8 +117,10 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback);
       let knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback);
       
-      (this.body as Phaser.Physics.Arcade.Body).velocity.x += knockbackVelocityX;
-      (this.body as Phaser.Physics.Arcade.Body).velocity.y += knockbackVelocityY;
+      this.setVelocityX(knockbackVelocityX);
+      this.setVelocityY(knockbackVelocityY);
+
+      animations.wobbleSprite(this.scene, this, -360, 360, this.stun * 100, false, false)
     }
   }
 

@@ -34,6 +34,7 @@ export default class Feller {
   iframes = 0
   stun = 0
   speed = 300
+  bulletSpeed = 300
   damage = 1
 
   constructor(scene: GameScene, x: number, y: number) {
@@ -250,8 +251,8 @@ export default class Feller {
     let knockbackVelocityX = (by.x < this.sprite.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback)
     let knockbackVelocityY = (by.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback)
 
-    this.bodify(this.sprite).velocity.x += knockbackVelocityX
-    this.bodify(this.sprite).velocity.y += knockbackVelocityY
+    this.sprite.setVelocityX(knockbackVelocityX)
+    this.sprite.setVelocityY(knockbackVelocityY)
   }
 
   pickupPowerUp(powerup: PowerUp) {
@@ -279,7 +280,8 @@ export default class Feller {
         EventEmitter.emit('speed', this.speed)
         break
       case PowerUpType.RateOfFire:
-        this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.95, 1)
+        this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.85, 1)
+        this.bulletSpeed *= 1.25
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
         break
       case PowerUpType.Bullet:
@@ -287,7 +289,8 @@ export default class Feller {
         EventEmitter.emit('damage', this.damage)
         break
       case PowerUpType.Knockback:
-        this.knockback += 100
+        this.knockback += 33
+        EventEmitter.emit('stun', this.knockback)
         break
       default:
         break
@@ -310,7 +313,7 @@ export default class Feller {
     const barrelY = this.gunSprite.y + barrelDistance * Math.sin(bulletAngle + offset);
 
     // Create new bullet at the barrel's position and set its velocity.
-    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle: bulletAngle, scale: this.damage/2, speed: this.speed + 600 }); 
+    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle: bulletAngle, scale: this.damage/2, speed: this.bulletSpeed + this.speed * 0.5 }); 
     assert(bullet.body && this.sprite.body)
     bullet.body.velocity.x += this.sprite.body.velocity.x
     bullet.body.velocity.y += this.sprite.body.velocity.y
@@ -318,7 +321,7 @@ export default class Feller {
     this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
       const enemy = _enemy as Enemy
       console.log('bullet hit enemy', enemy);
-      enemy.hit(this);
+      enemy.hit( { ...this.sprite, damage: this.damage, knockback: this.knockback } );
       (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
     })
     this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
