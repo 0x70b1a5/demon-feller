@@ -13,6 +13,8 @@ export class UIScene extends Phaser.Scene {
     'remains',
     'clouds',
     'surrender',
+    'radio',
+    'miseria',
   ]
   songs: Phaser.Sound.HTML5AudioSound[] = []
   currentSong?: Phaser.Sound.HTML5AudioSound
