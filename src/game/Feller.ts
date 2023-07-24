@@ -27,6 +27,7 @@ export default class Feller {
   RELOAD_COOLDOWN = 40
   IFRAMES_DURATION = 100
   STUN_DURATION = 25
+  knockback = 0
   bullets: Bullet[] = []
   hp = 3
   MAX_HEALTH = 3
@@ -285,6 +286,9 @@ export default class Feller {
         this.damage++;
         EventEmitter.emit('damage', this.damage)
         break
+      case PowerUpType.Knockback:
+        this.knockback += 100
+        break
       default:
         break
     }
@@ -306,7 +310,7 @@ export default class Feller {
     const barrelY = this.gunSprite.y + barrelDistance * Math.sin(bulletAngle + offset);
 
     // Create new bullet at the barrel's position and set its velocity.
-    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle: bulletAngle, scale: this.damage/2 }); 
+    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle: bulletAngle, scale: this.damage/2, speed: this.speed + 600 }); 
     assert(bullet.body && this.sprite.body)
     bullet.body.velocity.x += this.sprite.body.velocity.x
     bullet.body.velocity.y += this.sprite.body.velocity.y
@@ -314,7 +318,7 @@ export default class Feller {
     this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
       const enemy = _enemy as Enemy
       console.log('bullet hit enemy', enemy);
-      enemy.hit(this.damage);
+      enemy.hit(this);
       (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
     })
     this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {

@@ -57,6 +57,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('powerup1', 'assets/powerupSpeed.png');
     this.load.image('powerup2', 'assets/powerupFast.png');
     this.load.image('powerup3', 'assets/powerupShoot.png');
+    this.load.image('powerup4', 'assets/powerupFist.png');
     this.load.image('gun', 'assets/gun.png');
     this.load.image('boom', 'assets/boom.png');
     this.load.image('bullet', 'assets/bullet.png');
@@ -71,6 +72,33 @@ export class BootScene extends Phaser.Scene {
     this.load.image('soul', 'assets/soul.png')
     this.load.image('goo', 'assets/goo.png')
     this.load.image('pig', 'assets/pig.png')
+    this.load.image('imp', 'assets/imp.png')
+    this.load.image('belcher', 'assets/belcher.png')
+    this.load.spritesheet('soul-sheet', 'assets/spritesheets/soul.png', {
+      frameWidth: 200,
+      frameHeight: 235,
+      margin: 0,
+      spacing: 0
+    })
+    this.load.spritesheet('belcher-sheet', 'assets/spritesheets/belcher.png', {
+      frameWidth: 200,
+      frameHeight: 167,
+      margin: 0,
+      spacing: 0
+    })
+    this.load.spritesheet('goo-sheet', 'assets/spritesheets/goo.png', {
+      frameWidth: 200,
+      frameHeight: 153,
+      margin: 0,
+      spacing: 0
+    })
+    this.load.spritesheet('pig-sheet', 'assets/spritesheets/pig.png',
+    {
+      frameWidth: 250,
+      frameHeight: 261,
+      margin: 0,
+      spacing: 0
+    })
     this.load.image('mm-feller', 'assets/mm-feller.png')
     this.load.image('mm-demon', 'assets/mm-demon.png')
     this.load.spritesheet(

@@ -55,7 +55,7 @@ export default class Barrel extends Stuff {
 
     this.scene.enemies
       .filter(enemy => !enemy.dead && Phaser.Math.Distance.BetweenPoints(enemy, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)  
-      .forEach(enemy => enemy.hit(this.damage))
+      .forEach(enemy => enemy.hit(this))
 
     this.scene.stuffs
       .filter(stuff => Phaser.Math.Distance.BetweenPoints(stuff, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)

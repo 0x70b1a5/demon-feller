@@ -16,6 +16,18 @@ export default class Pig extends Enemy {
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
     this.setScale(0.9, 0.9)
+
+    if ((!scene.anims.exists('pig-walk'))) {   
+      scene.anims.create({
+        key: 'pig-walk',
+        frames: scene.anims.generateFrameNumbers('pig-sheet', { frames: [0,1,0,2] }),
+        frameRate: 2,
+        repeat: -1
+      })
+    }
+
+    this.anims.play('pig-walk')
+
     EventEmitter.on('gameOver', () => {
       this.bullets.forEach(bullet => bullet.destroy())
     })

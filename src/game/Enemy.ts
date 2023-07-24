@@ -22,6 +22,8 @@ export enum EnemyType {
   Goo,
   Pig,
   Soul,
+  Belcher,
+  Imp,
 }
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
@@ -57,9 +59,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.collider(this, scene.stuffLayer)
     scene.physics.add.collider(this, scene.stuffs)
     
-    let [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 2)
+    let [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 3)
     while (this.scene.tileIsNearDoor(spawnX, spawnY, this.room, 600)) {
-      [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 2)
+      [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 3)
     }
     x ||= spawnX
     y ||= spawnY
@@ -101,10 +103,20 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     feller.hit(this)
   }
 
-  hit(damage = 1) {
-    this.health -= damage;
+  hit(by: Phaser.Types.Math.Vector2Like & { damage: number, knockback: number }) {
+    this.health -= by.damage;
     if (this.health <= 0) {
       this.die();
+    }
+
+    if (by.knockback) {
+      // radians 
+      const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this)
+      let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback);
+      let knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback);
+      
+      (this.body as Phaser.Physics.Arcade.Body).velocity.x += knockbackVelocityX;
+      (this.body as Phaser.Physics.Arcade.Body).velocity.y += knockbackVelocityY;
     }
   }
 
@@ -185,11 +197,15 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   path!: number[][]
   findPathToTarget() {
+    if (!(this.x && this.y && this.target.x && this.target.y)) {
+      return
+    }
+    
     this.path = this.scene.pathfinder.findPath(
-      this.scene.map.worldToTileX(this.x!)!, 
-      this.scene.map.worldToTileY(this.y!)!, 
-      this.scene.map.worldToTileX(this.target.x!)!, 
-      this.scene.map.worldToTileY(this.target.y!)!, 
+      this.scene.map.worldToTileX(this.x)!, 
+      this.scene.map.worldToTileY(this.y)!, 
+      this.scene.map.worldToTileX(this.target.x)!, 
+      this.scene.map.worldToTileY(this.target.y)!, 
       this.scene.pathfindingGrid.clone()
     )
 

@@ -26,6 +26,8 @@ import TILE_MAPPING from '../constants/tiles';
 import Rock from '../Rock';
 import Stuff from '../Stuff';
 import assert from '../util/assert';
+import Belcher from '../Belcher';
+import Imp from '../Imp';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -250,9 +252,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   createOrRefreshMinimap() {
-    if (!this.minimapGfx) {
-      this.minimapGfx = this.add.graphics({ fillStyle: { color: 0x0 }});
-    }
     this.createWalkableGrid()
     const minimap = this.walkableTilesAs01.map((rowOfWalkables, y) => rowOfWalkables.map((walkableInt, x) => {
       const room = this.rooms.find(room => room.guid === (this.dungeon.getRoomAt(x, y) as RoomWithEnemies)?.guid)
@@ -264,9 +263,7 @@ export class GameScene extends Phaser.Scene {
       return walkableInt
     }))
 
-    console.log({minimap})
-
-    this.drawMinimapTerrain(minimap)
+    EventEmitter.emit('drawMinimap', minimap)
   }
 
   putPlayerInStartRoom() {
@@ -404,7 +401,6 @@ export class GameScene extends Phaser.Scene {
     this.addStuffToRooms()
     this.putPlayerInStartRoom()
     this.spawnEnemiesInRooms()
-    this.createMinimapMarkers()
     this.setupCamera()
     this.addDoorSpritesToRooms()
     this.createWalkableGrid()
@@ -452,82 +448,6 @@ export class GameScene extends Phaser.Scene {
 
     this.scene.launch('UIScene')
     this.scene.bringToTop('UIScene')
-  }
-
-
-  fellerMarker!: Phaser.GameObjects.Sprite;
-  enemyMarkers!: Phaser.GameObjects.Sprite[];
-  minimapTileSize = 4;
-  minimapX = 0;
-  minimapY = 0;
-
-  createMinimapMarkers() {
-    this.enemyMarkers = [];
-
-    if (!this.fellerMarker) {
-      this.fellerMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-feller');
-      this.fellerMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
-    }
-
-    this.enemyMarkers?.forEach(m => m?.destroy())
-    
-    this.enemyMarkers = this.enemies.map(enemy => {
-      const enemyMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-demon');
-      enemyMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
-      return enemyMarker;
-    });
-  }
-
-  minimapGfx!: Phaser.GameObjects.Graphics;
-  drawMinimapTerrain(minimap: number[][]) {
-    this.minimapX = this.minimapY = 0
-    const minimapGfx = this.minimapGfx
-    minimapGfx.setX(this.minimapX)
-    .setY(this.minimapY)
-    .clear()
-
-    for (let y = 0; y < minimap.length; y++) {
-      for (let x = 0; x < minimap[y].length; x++) {
-        switch (minimap[y][x]) {
-          case 0:
-            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.TEXTBOX_BG_COLOR } });
-            break;
-          case 1:
-            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.LINE_COLOR } });
-            break;
-        }
-
-        const [drawX, drawY] = [x * this.minimapTileSize, y * this.minimapTileSize];
-        minimapGfx.fillRect(drawX, drawY, this.minimapTileSize, this.minimapTileSize);
-      }
-    }
-  }
-
-  moveMarkers() {
-    this.minimapX = this.cameras.main.width/2 - (this.walkableTilesAs01[0].length * this.minimapTileSize) + this.feller.sprite.x!;
-    this.minimapY = -this.cameras.main.height/2 + this.feller.sprite.y!;
-    
-    this.minimapGfx.setX(this.minimapX)
-    this.minimapGfx.setY(this.minimapY)
-
-    if (!this.fellerMarker || !this.feller.sprite.x || !this.feller.sprite.y) return
-    this.fellerMarker.setDepth(this.minimapGfx.depth + 1)
-    this.fellerMarker.x = this.minimapX + this.feller.sprite.x * this.minimapTileSize / this.map.tileWidth;
-    this.fellerMarker.y = this.minimapY + this.feller.sprite.y * this.minimapTileSize / this.map.tileHeight;
-    
-    for (let i = 0; i < this.enemyMarkers.length; i++) {
-      if (!this.enemies[i]?.x || !this.enemies[i]?.y) {
-        continue
-      }
-      if (!this.revealedRooms.includes(this.enemies[i].room?.guid) || this.enemies[i].dead) {
-        this.enemyMarkers[i].setVisible(false)
-        continue
-      }
-      this.enemyMarkers[i].setVisible(true)
-      this.enemyMarkers[i].setDepth(this.minimapGfx.depth + 1)
-      this.enemyMarkers[i].x = this.minimapX + this.enemies[i].x * this.minimapTileSize / this.map.tileWidth;
-      this.enemyMarkers[i].y = this.minimapY + this.enemies[i].y * this.minimapTileSize / this.map.tileHeight;
-    }
   }
 
   spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType, x?: number, y?: number) {
@@ -613,8 +533,14 @@ export class GameScene extends Phaser.Scene {
           case EnemyType.Pig:
             enemy = new Pig(this, { room, enemyType, texture: 'pig' })
             break
+          case EnemyType.Belcher:
+            enemy = new Belcher(this, { room, enemyType, texture: 'belcher' })
+            break
           case EnemyType.Soul:
             enemy = new Soul(this, { room, enemyType, texture: 'soul' })
+            break
+          case EnemyType.Imp:
+            enemy = new Imp(this, { room, enemyType, texture: 'imp' })
             break
           default:
             break
@@ -683,10 +609,5 @@ export class GameScene extends Phaser.Scene {
       EventEmitter.emit('pause')
       this.scene.pause()
     }
-
-    if (this.feller.sprite)
-    this.minimapGfx.setDepth(this.feller.sprite.depth + 1)
-    
-    this.moveMarkers()
   }
 }

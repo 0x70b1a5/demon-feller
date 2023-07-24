@@ -4,7 +4,8 @@ export enum PowerUpType {
   Health,
   Speed,
   RateOfFire,
-  Bullet
+  Bullet,
+  Knockback
 }
 
 export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
