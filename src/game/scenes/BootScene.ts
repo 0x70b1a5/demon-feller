@@ -137,8 +137,8 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('faithless', 'assets/music/smoke_access-faithless_predator.ogg');
     this.load.audio('fate', 'assets/music/cor_serpentis-fate.ogg');
     this.load.audio('armiger', 'assets/music/dirac_sea-armiger.mp3');
-    this.load.audio('ouroboros', 'assets/music/ouroboros.mp3');
-    this.load.audio('remains', 'assets/music/rzorrhead-remains_of_a_diary.ogg');
+    this.load.audio('ouroboros', 'assets/music/inner_worlds-ouroboros.mp3');
+    this.load.audio('remains', 'assets/music/razorrhead-remains_of_a_diary.ogg');
     this.load.audio('clouds', 'assets/music/smoke_access-clouds_of_smoke.mp3');
     this.load.audio('surrender', 'assets/music/system_ready-captains_of_industry.mp3');
     // this.load.audio('song3', 'assets/audio/song3.mp3');

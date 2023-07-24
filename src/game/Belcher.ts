@@ -58,7 +58,8 @@ export default class Belcher extends Enemy {
       this.scene.physics.add.collider(bullet, [
         this.scene.groundLayer, this.scene.stuffLayer, this.scene.shadowLayer
       ], () => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle))
-      this.scene.physics.add.collider(bullet, this.scene.stuffs, (bullet, _stuff) => {
+
+      this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
         (_stuff as Stuff)?.hit(this.damage);
         (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
       })
@@ -67,6 +68,8 @@ export default class Belcher extends Enemy {
 
   preUpdate(time: any, delta: any) {
     super.preUpdate(time, delta)
-    this.belch()
+    if (this.seenFeller) {
+      this.belch()
+    }
   }
 }

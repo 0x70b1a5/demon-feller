@@ -43,6 +43,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   pushing = 0
   enemyType?: EnemyType
   movementAngle = 0
+  stun = 0
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, 0, 0, config.texture);
@@ -110,6 +111,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (by.knockback) {
+      this.stun = by.knockback
       // radians 
       const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this)
       let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback);
@@ -137,14 +139,18 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         // .fillRect(this.x, this.y, 5, 5)
     }
 
-    this.lookForFeller()
-    if (time % 1000 === delta) {
-      this.acquireTarget(time, delta)
+    if (this.stun < 1) {
+      this.lookForFeller()
+      if (time % 1000 === delta) {
+        this.acquireTarget(time, delta)
+      }
+      if (this.scene.tileIsNearDoor(this.scene.map.worldToTileX(this.x)!, this.scene.map.worldToTileY(this.y)!, this.room)) {
+        this.acquireTarget(time, delta); 
+      }
+      this.move(time, delta)
+    } else {
+      this.stun--
     }
-    if (this.scene.tileIsNearDoor(this.scene.map.worldToTileX(this.x)!, this.scene.map.worldToTileY(this.y)!, this.room)) {
-      this.acquireTarget(time, delta); 
-    }
-    this.move(time, delta)
   }
 
   lookForFeller() {
