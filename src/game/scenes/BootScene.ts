@@ -120,22 +120,27 @@ export class BootScene extends Phaser.Scene {
 
     // Music
     /**
-     * i sekuin - heat
-     * system ready - captains of industry
-     * smoke access - clouds of smoke
-     * inner worlds - ouroboros
-     * actg - pentarchy
-     * mystery meat - deathkon iii
-     * dirac sea - armiger
-     * razorrhead - remains of a diary
+     * x i sekuin - heat
+     * x system ready - captains of industry
+     * x smoke access - clouds of smoke
+     * x inner worlds - ouroboros
+     * x actg - pentarchy
+     * x dirac sea - armiger
+     * x razorrhead - remains of a diary
      * dj - meeting miseria
-     * cor serpentis - atria
-     * smoke access - back into the cracks
-     * smoke access - faithless predator
+     * x cor serpentis - fate
+     * x smoke access - back into the cracks
+     * x smoke access - faithless predator
      */
-    this.load.audio('fate', 'assets/music/cor_serpentis-fate.ogg');
-    this.load.audio('faithless', 'assets/music/smoke_access-faithless_predator.ogg');
+    this.load.audio('pentarchy', 'assets/music/actg-pentarchy.mp3');
     this.load.audio('cracks', 'assets/music/smoke_access-back_into_the_cracks.ogg');
+    this.load.audio('faithless', 'assets/music/smoke_access-faithless_predator.ogg');
+    this.load.audio('fate', 'assets/music/cor_serpentis-fate.ogg');
+    this.load.audio('armiger', 'assets/music/dirac_sea-armiger.mp3');
+    this.load.audio('ouroboros', 'assets/music/ouroboros.mp3');
+    this.load.audio('remains', 'assets/music/rzorrhead-remains_of_a_diary.ogg');
+    this.load.audio('clouds', 'assets/music/smoke_access-clouds_of_smoke.mp3');
+    this.load.audio('surrender', 'assets/music/system_ready-captains_of_industry.mp3');
     // this.load.audio('song3', 'assets/audio/song3.mp3');
 
     // Tilemap

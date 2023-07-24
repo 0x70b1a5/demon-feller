@@ -3,7 +3,17 @@ import colors from "../constants/colors";
 import { GameScene } from "./GameScene";
 
 export class UIScene extends Phaser.Scene {
-  songNames: string[] = ['fate', 'faithless', 'cracks']
+  songNames: string[] = [
+    'pentarchy',
+    'cracks',
+    'faithless',
+    'fate',
+    'armiger',
+    'ouroboros',
+    'remains',
+    'clouds',
+    'surrender',
+  ]
   songs: Phaser.Sound.HTML5AudioSound[] = []
   currentSong?: Phaser.Sound.HTML5AudioSound
   songIndex = 0
