@@ -12,6 +12,15 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   create() {
+    const prefix = '__demonfeller-'
+    let startMuted: any = localStorage.getItem(prefix+'isMuted')
+    if (startMuted) startMuted = (startMuted === true || startMuted === 'true')
+    let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
+    startMusicVolume = isNaN(startMusicVolume) ? 0.5 : startMusicVolume
+    let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
+    startSfxVolume = isNaN(startSfxVolume) ? 0.5 : startSfxVolume
+
+
     // Add title image
     const demon = this.rexUI.add.label({
       width: 40,
@@ -60,6 +69,9 @@ export class MainMenuScene extends Phaser.Scene {
 
     this.bat = this.sound.add('bat') as Phaser.Sound.HTML5AudioSound
     this.magic = this.sound.add('magic') as Phaser.Sound.HTML5AudioSound
+
+    this.sound.setVolume(startMusicVolume)
+    this.sound.setMute(startMuted)
 
     // Add play button
     const playButton = this.rexUI.add.label({
