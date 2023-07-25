@@ -13,7 +13,6 @@ export class UIScene extends Phaser.Scene {
     'remains',
     'clouds',
     'surrender',
-    'radio',
     'miseria',
   ]
   songs: Phaser.Sound.HTML5AudioSound[] = []
@@ -42,6 +41,32 @@ export class UIScene extends Phaser.Scene {
       this.drawMinimapTerrain(minimap)
       this.createMinimapMarkers()
     })
+
+    EventEmitter.on('gameRestarted', () => {
+      this.fellerMarker?.destroy()
+      this.enemyMarkers?.forEach(e => e?.destroy())
+      this.minimapGfx?.clear()
+      this.scene.bringToTop(this)
+    })
+
+    EventEmitter.on('muteChanged', (isMuted: boolean) => {
+      this.sound.setMute(isMuted)
+    });
+
+    EventEmitter.on('recreateWalkableGrid', () => {
+      // this.createOrRefreshMinimap()
+      // this.drawMinimapTerrain(minimap)
+      // this.createMinimapMarkers()
+    });
+
+    EventEmitter.on('musicVolumeChanged', (volume: number) => {
+      this.sound.setVolume(volume)
+    });
+
+    EventEmitter.on('sfxVolumeChanged', (volume: number) => {
+      this.sound.setVolume(volume)
+    });
+
   }
 
   playRandomMusic() {
@@ -62,6 +87,8 @@ export class UIScene extends Phaser.Scene {
         this.playRandomMusic();
       });
     }
+
+    this.sound.pauseOnBlur = false
   }
 
   minimapGfx!: Phaser.GameObjects.Graphics
@@ -69,12 +96,11 @@ export class UIScene extends Phaser.Scene {
   minimapY = 10
   minimapTileSize = 8
   createOrRefreshMinimap() {
-    if (!this.minimapGfx) {
-      this.minimapGfx = this.add.graphics({ fillStyle: { color: colors.TEXTBOX_BG_COLOR, alpha: 0.8 } })
-    }
+    this.minimapGfx = this.add.graphics({ fillStyle: { color: colors.TEXTBOX_BG_COLOR, alpha: 0.8 } })
   }
 
   drawMinimapTerrain(minimap: number[][]) {
+    console.log('draw minimap terrain')
     const minimapGfx = this.minimapGfx
     minimapGfx.clear()
     .setX(this.minimapX)
@@ -84,10 +110,10 @@ export class UIScene extends Phaser.Scene {
       for (let x = 0; x < minimap[y].length; x++) {
         switch (minimap[y][x]) {
           case 0:
-            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.TEXTBOX_BG_COLOR, alpha: 0.8 } });
+            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.TEXTBOX_BG_COLOR, alpha: 0.5 } });
             break;
           case 1:
-            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.LINE_COLOR, alpha: 0.8 } });
+            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.LINE_COLOR, alpha: 0.5 } });
             break;
         }
         

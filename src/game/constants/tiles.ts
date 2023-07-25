@@ -38,6 +38,12 @@ const TILE_MAPPING = {
     FULL: 1,
     FELLER: 2,
     ENEMY: 3
+  },
+  DUNGEON_TILES: {
+    EMPTY: 0,
+    WALL: 1,
+    FLOOR: 2,
+    DOOR: 3,
   }
 };
 

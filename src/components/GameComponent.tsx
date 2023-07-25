@@ -7,6 +7,7 @@ import { BootScene } from '../game/scenes/BootScene';
 import EventEmitter from '../game/EventEmitter';
 import classNames from 'classnames';
 import { UIScene } from '../game/scenes/UIScene';
+import AudioControl from './AudioControls';
 
 export const GameComponent: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -194,6 +195,23 @@ export const GameComponent: React.FC = () => {
     };
   }, [])
 
+  // Define the function to generate the tweet URL
+  const tweetStats = () => {
+    const message = `Check out my stats! \n
+      Health: ${currentHp}/${maxHp} \n
+      Speed: ${Math.round(speed / 24)}MPH \n
+      Damage: ${damage || 1} \n
+      Rate of Fire: ${Number(40 / (reloadSpeed || 40)).toPrecision(3)}x \n
+      Stun: ${Number(stun / 100).toPrecision(3)}x \n
+      Demons Felled (Level): ${demonsFelledLevel}/${demonsToFell} \n
+      Demons Felled: ${demonsFelled}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodedMessage}`;
+
+    return tweetUrl;
+  };
+
   const stats = <div className='stats'>
     <div className='health bar'>
       HP:
@@ -224,12 +242,12 @@ export const GameComponent: React.FC = () => {
       <div className={classNames('stat', { rainbowShake: fallenFelled })}>{demonsFelled}</div>
     </div>
   </div>
-  // const restartButton = <button className='big-btn restart' onClick={() => {
-  //   gameRef?.current?.scene.remove('GameScene');
-  //   gameRef?.current?.scene.add('GameScene', GameScene, true);
-  //   setGameOver(false)
-  //   setPaused(false)
-  // }}>RESTART GAME</button>
+  const restartButton = <button className='big-btn restart' onClick={() => {
+    // (gameRef?.current?.scene.getScene('GameScene') as GameScene).restart()
+    setGameOver(false)
+    setPaused(false)
+    window.location.reload()
+  }}>RESTART GAME</button>
   return <>
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
@@ -250,16 +268,21 @@ export const GameComponent: React.FC = () => {
     {gameOver && <div className='game-over overlay'>
       <div className='notice'>
         <h1>GAME OVER</h1>
-        {stats}
         <p className='ty'>
           THANK YOU FOR YOUR SERVICE
         </p>
-        {/* {restartButton} */}
+        {restartButton}
+        <div className='after-action-report'>
+          {stats}
+          <p style={{marginBottom: '1em'}}>IF YOU CAN'T BEAT EM...</p>
+          <button className='big-btn tweet-em' onClick={() => window.open(tweetStats(), '_blank')}>TWEET 'EM</button>
+        </div>
       </div>
     </div>}
     {paused && <div className='pause-menu overlay'>
       <div className='notice'>
         <h1>GAME PAUSED</h1>
+        <AudioControl />
         {stats}
         <h2>CONTROLS:</h2>
         <p>WASD or arrow keys: move</p>

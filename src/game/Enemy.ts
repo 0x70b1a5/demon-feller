@@ -8,8 +8,10 @@ import { Exception } from 'sass';
 import assert from './util/assert';
 import Pathfinding, { DiagonalMovement } from 'pathfinding';
 import TILE_MAPPING from './constants/tiles';
+import { v4 as uuid } from 'uuid'
 
 export interface EnemyConfig {
+  level?: number
   damage?: number
   health?: number
   room: RoomWithEnemies
@@ -44,11 +46,13 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   enemyType?: EnemyType
   movementAngle = 0
   stun = 0
+  stunImmunity = 0
+  guid = uuid()
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, 0, 0, config.texture);
-    this.health = config.health || 3;
-    this.damage = config.damage || 1;
+    this.health = (config.health || 3) * (config.level ? Math.ceil(config.level / 2) : 1);
+    this.damage = (config.damage || 1) * (config.level ? Math.ceil(config.level / 2) : 1);
     this.room = config.room
     this.scene = scene
     this.speed = config.velocity || this.speed
@@ -60,18 +64,22 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.collider(this, scene.stuffLayer)
     scene.physics.add.collider(this, scene.stuffs)
     
-    let [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 3)
-    while (this.scene.tileIsNearDoor(spawnX, spawnY, this.room, 600)) {
-      [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 3)
+    if (!(x && y)) {
+      let [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 3)
+      while (this.scene.tileIsNearDoor(spawnX, spawnY, this.room, 600)) { 
+        [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 3)
+      }
+      
+      x = spawnX
+      y = spawnY
     }
-    x ||= spawnX
-    y ||= spawnY
 
     this.ensureIsInRoom(x, y)
 
     this
       .setOrigin(0.5, 0.5)
       .setCircle(this.width/2)
+      .setBounce(1, 1)
 
 
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
@@ -110,8 +118,9 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.die();
     }
 
-    if (by.knockback) {
+    if (by.knockback && this.stunImmunity < 1) {
       this.stun = by.knockback
+      this.stunImmunity = by.knockback * 2
       // radians 
       const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this)
       let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback);
@@ -120,14 +129,24 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.setVelocityX(knockbackVelocityX);
       this.setVelocityY(knockbackVelocityY);
 
-      animations.wobbleSprite(this.scene, this, -360, 360, this.stun * 100, false, false)
+      const origRotation = this.rotation
+      this.scene.tweens.add({
+        targets: this,
+        rotation: {
+          value: { from: Phaser.Math.DegToRad(-20), to: origRotation },
+          duration: this.stun * 10,
+          repeat: false,  
+          ease: 'Elastic',
+        },
+        onComplete: () => {
+          this.setRotation(origRotation)
+        }
+      });
     }
   }
 
-  preUpdate(time: any, delta: any) {
+  preUpdate(time: any, delta: any) {    
     super.preUpdate(time, delta);
-
-    assert(this.room)
 
     if (this.debug) {
       this.gfx
@@ -142,31 +161,27 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (this.stun < 1) {
-      this.lookForFeller()
-      if (time % 1000 === delta) {
+      this.stunImmunity > 0 && this.stunImmunity--
+      if (!this.seenFeller) {
         this.acquireTarget(time, delta)
-      }
-      if (this.scene.tileIsNearDoor(this.scene.map.worldToTileX(this.x)!, this.scene.map.worldToTileY(this.y)!, this.room)) {
-        this.acquireTarget(time, delta); 
       }
       this.move(time, delta)
     } else {
       this.stun--
     }
+
+    !this.seenFeller && this.showIfInRoom()
   }
 
-  lookForFeller() {
+  showIfInRoom() {
     if (this.room.guid === this.scene.fellerRoom.guid) {
       !this.visible && this.setVisible(true)
-
-      if (!this.seenFeller) {
-        console.log('seen feller', this)
-        this.seenFeller = true
-        if(this.debug) {
-          this.gfx.setDefaultStyles({ fillStyle: { color: 0x0000ff }})
-        }
-        this.target = this.scene.feller.sprite
+      console.log('seen feller', this)
+      this.seenFeller = true
+      if(this.debug) {
+        this.gfx.setDefaultStyles({ fillStyle: { color: 0x0000ff }})
       }
+      this.target = this.scene.feller.sprite
     } else {
       // if we are not in same room as player, hide sprite
       this.setVisible(false)
@@ -175,7 +190,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   acquireTarget(time: any, delta: any) {
-    if (!this.seenFeller) {
+    if (!this.seenFeller && time % 1000 === delta) {
       const newTarget = () => this.scene.findUnoccupiedRoomTile(this.room, 2)
 
       let [x, y] = newTarget()
@@ -217,8 +232,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.scene.pathfindingGrid.clone()
     )
 
-    for (let step of this.path) {
-      if (this.debug) {
+    if (this.debug) {
+      for (let step of this.path) {
         this.gfx.fillCircle((this.x!)!, (this.y!)!,5)
         .fillRect((this.target.x!)!, (this.target.y!)!, 5, 5)
         .fillRect( this.scene.map.tileToWorldX(step[0])!, this.scene.map.tileToWorldY(step[1])!, 5,5 )
@@ -236,21 +251,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       dest.y += this.scene.map.tileHeight / 2
       if (this.debug) {
         this.gfx.fillCircle(dest.x, dest.y, 10)
-      }
-
-      // maybe/maybe not
-      // const distance = Phaser.Math.Distance.BetweenPoints(this, dest)
-      // // if we're close enough to the goal, move on to the next tile
-      // if (distance <= this.scene.map.tileWidth/4) {
-      //   const thirdStep = this.path?.[2]
-      //   if (thirdStep?.length) {
-      //     dest = this.scene.map.tileToWorldXY(thirdStep[0], thirdStep[1])!
-      //     dest.x += this.scene.map.tileWidth / 2
-      //     dest.y += this.scene.map.tileHeight / 2
-      //   }
-      // }
-      
-      if (this.debug) {
         this.gfx.setDefaultStyles({ lineStyle:{ color: 0x0000ff } })
         .lineBetween(this.x, this.y, dest.x, dest.y)
       }

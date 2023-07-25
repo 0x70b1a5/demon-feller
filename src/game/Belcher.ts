@@ -72,4 +72,9 @@ export default class Belcher extends Enemy {
       this.belch()
     }
   }
+
+  destroy(fromScene?: boolean | undefined): void {
+    super.destroy()
+    this.bullets.forEach(b => b.destroy())
+  }
 }

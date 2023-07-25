@@ -5,7 +5,7 @@ import animations from '../util/animate'
 import colors from '../constants/colors'
 import scales from '../constants/scaling'; 
 import TILES from '../constants/tiles'
-import Dungeon, { Room } from '@mikewesthad/dungeon';
+import Dungeon, { Point, Room } from '@mikewesthad/dungeon';
 import Feller from '../Feller';
 import TilemapVisibility from '../TilemapVisibility';
 import Enemy, { EnemyConfig, EnemyType } from '../Enemy';
@@ -61,6 +61,7 @@ export class GameScene extends Phaser.Scene {
   demonsFelled = 0
   demonsFelledLevel = 0
   gameOver = false
+  creatingNewLevel = true
   keys!: any
   stuffs: Stuff[] = []
   get rooms() {
@@ -73,10 +74,73 @@ export class GameScene extends Phaser.Scene {
     this.level = 0
   }
 
+  create() {
+    if (this.debug) {
+      this.physics.world.createDebugGraphic();  
+    }
+    this.keys = this.input.keyboard?.addKeys({
+      minus: Phaser.Input.Keyboard.KeyCodes.MINUS,
+      plus: Phaser.Input.Keyboard.KeyCodes.PLUS,
+      esc: Phaser.Input.Keyboard.KeyCodes.ESC,
+    }) 
+
+    this.createNewLevel()
+
+    EventEmitter.on('demonFelled', () => {
+      this.demonsFelled++
+      this.demonsFelledLevel++
+      EventEmitter.emit('demonsFelled', this.demonsFelled)
+      EventEmitter.emit('demonsFelledLevel', this.demonsFelledLevel)
+    })
+
+    EventEmitter.on('goToNextLevel', () => {
+      this.scene.resume()
+      this.createNewLevel()
+      this.levellingUp = false // don't resume updating until the new level is done
+    })
+
+    EventEmitter.on('gameOver', () => {
+      this.gameOver = true
+      this.scene.pause()
+    })
+
+    EventEmitter.on('recreateWalkableGrid', () => {
+      this.createWalkableGrid()
+    })
+
+    EventEmitter.on('revealRoom', (guid: string) => {
+      const room = this.rooms.find(rm => rm.guid === guid) || this.fellerRoom
+      if (this.revealedRooms.includes(guid)) {
+        return
+      }
+      this.revealedRooms.push(room.guid)
+      console.log('room revealed', guid, room, this.rooms)
+      this.emitMinimap()
+    })
+
+    this.scene.launch('UIScene')
+    this.scene.bringToTop('UIScene')
+  }
+
   preload() {
   }
 
   init() {
+  }
+
+  restart() {
+    EventEmitter.emit('gameRestarted')
+    this.level = 0
+    this.gameOver = false
+    this.demonsFelled = 0
+    this.demonsFelledLevel = 0
+    this.physics.world.colliders.destroy()
+    this.enemies.forEach(e => e.destroy())
+    this.stuffs.forEach(e => e.destroy())
+    this.rooms.forEach(r => r?.enemies.forEach(e => e.destroy()))
+    this.feller.destroy()
+    this.feller = new Feller(this, 0, 0)
+    this.create()
   }
 
   createDungeon() {
@@ -209,6 +273,8 @@ export class GameScene extends Phaser.Scene {
     let tile = rollForTile()
     
     while (tile) { // seek an empty
+      if (tries > 50) 
+        return [-1, -1]
       tile = rollForTile()
     }
 
@@ -251,7 +317,7 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
-  createOrRefreshMinimap() {
+  emitMinimap() {
     this.createWalkableGrid()
     const minimap = this.walkableTilesAs01.map((rowOfWalkables, y) => rowOfWalkables.map((walkableInt, x) => {
       const room = this.rooms.find(room => room.guid === (this.dungeon.getRoomAt(x, y) as RoomWithEnemies)?.guid)
@@ -352,14 +418,13 @@ export class GameScene extends Phaser.Scene {
       this.debug && console.log({maxPossibleItems, room})
 
       for (let i = 0; i < maxPossibleItems/3; i++) {
-        this.rollForStuff(room)
+        this.addOneRandomStuffToRoom(room)
       }
     })
   }
 
-  rollForStuff(room: RoomWithEnemies) {
+  addOneRandomStuffToRoom(room: RoomWithEnemies) {
     const roll = Math.random()
-    // debugger
     let [x, y] = this.findUnoccupiedRoomTile(room, 2)
     let tries = 0
     while (this.tileIsNearDoor(x, y, room) && tries < 20) {
@@ -393,62 +458,24 @@ export class GameScene extends Phaser.Scene {
   }
 
   createNewLevel() {
+    this.creatingNewLevel = true
+
     this.level++
     console.log('level', this.level)
     this.createDungeon()
     this.createTilemap()
-    this.createOrRefreshMinimap()
+    this.emitMinimap()
     this.addStuffToRooms()
     this.putPlayerInStartRoom()
     this.spawnEnemiesInRooms()
     this.setupCamera()
     this.addDoorSpritesToRooms()
     this.createWalkableGrid()
+
+    this.creatingNewLevel = false
   }
 
-  create() {
-    if (this.debug) {
-      this.physics.world.createDebugGraphic();  
-    }
-    this.keys = this.input.keyboard?.addKeys({
-      minus: Phaser.Input.Keyboard.KeyCodes.MINUS,
-      plus: Phaser.Input.Keyboard.KeyCodes.PLUS,
-      esc: Phaser.Input.Keyboard.KeyCodes.ESC,
-    }) 
-
-    this.createNewLevel()
-
-    EventEmitter.on('demonFelled', () => {
-      this.demonsFelled++
-      this.demonsFelledLevel++
-      EventEmitter.emit('demonsFelled', this.demonsFelled)
-      EventEmitter.emit('demonsFelledLevel', this.demonsFelledLevel)
-    })
-
-    EventEmitter.on('goToNextLevel', () => {
-      this.scene.resume()
-      this.createNewLevel()
-      this.levellingUp = false // don't resume updating until the new level is done
-    })
-
-    EventEmitter.on('gameOver', () => {
-      this.gameOver = true
-      this.deactivateSprites()
-    })
-
-    EventEmitter.on('revealRoom', (guid: string) => {
-      const room = this.rooms.find(rm => rm.guid === guid) || this.fellerRoom
-      if (this.revealedRooms.includes(guid)) {
-        return
-      }
-      this.revealedRooms.push(room.guid)
-      console.log('room revealed', guid, room, this.rooms)
-      this.createOrRefreshMinimap()
-    })
-
-    this.scene.launch('UIScene')
-    this.scene.bringToTop('UIScene')
-  }
+  
 
   spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType, x?: number, y?: number) {
     x ||= this.map.tileToWorldX(room.centerX)!;
@@ -456,6 +483,8 @@ export class GameScene extends Phaser.Scene {
     
     // Add the lens flare sprite at the powerup position
     const flare = this.add.sprite(x, y, 'powerupBG').setScale(0.1);
+
+    this.cameras.main.flash(100)
 
     // Create the tween
     this.tweens.add({
@@ -523,24 +552,46 @@ export class GameScene extends Phaser.Scene {
 
   spawnEnemiesInRooms() {
     this.otherRooms.forEach(room => {
-      for(let i = 0; i < Math.random() * 3 * this.level; i++) {
+      let acceptableTiles: Point[] = []
+
+      room.forEachTile(({ x, y }, tile) => {
+        if (tile !== TILES.DUNGEON_TILES.FLOOR) return
+        const leftTile = room.getTileAt(x - 1, y)
+        const rightTile = room.getTileAt(x + 1, y)
+        const downTile = room.getTileAt(x, y + 1)
+        const upTile = room.getTileAt(x, y - 1)
+        if ([leftTile, rightTile, downTile, upTile].find(t => t === TILES.DUNGEON_TILES.DOOR)) return
+        acceptableTiles.push({ x, y })
+      })
+      
+      const numToSpawn = Phaser.Math.Clamp(
+        Math.floor(Math.random() * acceptableTiles.length), 
+        this.level * 2, 
+        this.level * 3
+      )
+    
+      acceptableTiles = Phaser.Utils.Array.Shuffle(acceptableTiles)
+      console.log({ room, acceptableTiles, numToSpawn })
+
+      for (let i = 0; i < numToSpawn; i++) {
         const enemyType = roll(enemyWeights)
         let enemy: Enemy | null = null;
+        let {x, y} = acceptableTiles[i]
         switch(enemyType) {
           case EnemyType.Goo:
-            enemy = new Goo(this, { room, enemyType, texture: 'goo' })
+            enemy = new Goo(this, { level: this.level, room, enemyType, texture: 'goo' }, x, y)
             break
           case EnemyType.Pig:
-            enemy = new Pig(this, { room, enemyType, texture: 'pig' })
+            enemy = new Pig(this, { level: this.level, room, enemyType, texture: 'pig' }, x, y)
             break
           case EnemyType.Belcher:
-            enemy = new Belcher(this, { room, enemyType, texture: 'belcher' })
+            enemy = new Belcher(this, { level: this.level, room, enemyType, texture: 'belcher' }, x, y)
             break
           case EnemyType.Soul:
-            enemy = new Soul(this, { room, enemyType, texture: 'soul' })
+            enemy = new Soul(this, { level: this.level, room, enemyType, texture: 'soul' }, x, y)
             break
           case EnemyType.Imp:
-            enemy = new Imp(this, { room, enemyType, texture: 'imp' })
+            enemy = new Imp(this, { level: this.level, room, enemyType, texture: 'imp' }, x, y)
             break
           default:
             break
@@ -555,7 +606,7 @@ export class GameScene extends Phaser.Scene {
 
     let demonsToFell = 0
     for (let room of this.rooms) {
-      demonsToFell += room.enemies.length
+      demonsToFell += room.enemies.length 
     }
 
     this.demonsFelledLevel = 0
@@ -579,9 +630,14 @@ export class GameScene extends Phaser.Scene {
       return
     }
 
+    if (this.creatingNewLevel) {
+      return
+    }
+
     if (this.levellingUp) {
       return
     }
+    
 
     this.feller.update(time, delta);
 

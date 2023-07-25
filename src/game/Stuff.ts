@@ -1,3 +1,4 @@
+import EventEmitter from './EventEmitter';
 import { GameScene, RoomWithEnemies } from './scenes/GameScene'
 import { v4 as uuid } from 'uuid';
 
@@ -70,5 +71,6 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
     this.setVisible(false)
     this.setActive(false)
     this.body!.destroy()
+    EventEmitter.emit('recreateWalkableGrid')
   }
 }

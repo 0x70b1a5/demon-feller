@@ -1,11 +1,28 @@
 export class BootScene extends Phaser.Scene {
+  texts = [
+    'Performing rituals \n of cleansing...',
+    'Imploring divine assistance...',
+    'Going to confession...',
+    'Holying water...',
+    'Repenting of sins...',
+    'Beseeching the Almighty...',
+    'Feeding the hungry...',
+    'Clothing the naked...',
+    'Tending to the sick...',
+    'Visiting the imprisoned...',
+    'Admonishing the heretic...',
+    'Offering up suffering...',
+    'Anointing the sick...',
+    'Consecrating ammunition...',
+    'Imploring \n St. Gabriel Possenti, \n patron of marksmen...'
+  ]
   constructor() {
     super('BootScene');
   }
 
   preload() {
     // Create loading text
-    const loadingText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 50, 'Loading...', { font: '20px Arial', color: '#ffffff' });
+    const loadingText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 50, 'Loading...', { font: '20px pkmn', color: '#ffffff' });
     loadingText.setOrigin(0.5);
 
     // Create progress bar
@@ -15,6 +32,7 @@ export class BootScene extends Phaser.Scene {
     progressBox.fillRect(this.cameras.main.centerX - 160, this.cameras.main.centerY, 320, 50);
     
     this.load.on('progress', (value: number) => {
+      loadingText.text = this.texts[Math.floor(Math.random() * this.texts.length)]
       progressBar.clear();
       progressBar.fillStyle(0xffffff, 1);
       progressBar.fillRect(this.cameras.main.centerX - 150, this.cameras.main.centerY + 10, 300 * value, 30);
@@ -119,19 +137,7 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('magic', 'assets/sounds/magic.mp3');
 
     // Music
-    /**
-     * x i sekuin - heat
-     * x system ready - captains of industry
-     * x smoke access - clouds of smoke
-     * x inner worlds - ouroboros
-     * x actg - pentarchy
-     * x dirac sea - armiger
-     * x razorrhead - remains of a diary
-     * dj - meeting miseria
-     * x cor serpentis - fate
-     * x smoke access - back into the cracks
-     * x smoke access - faithless predator
-     */
+    //TODO lazyload
     this.load.audio('pentarchy', 'assets/music/actg-pentarchy.ogg');
     this.load.audio('cracks', 'assets/music/smoke_access-back_into_the_cracks.ogg');
     this.load.audio('faithless', 'assets/music/smoke_access-faithless_predator.ogg');
@@ -141,6 +147,7 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('remains', 'assets/music/razorrhead-remains_of_a_diary.ogg');
     this.load.audio('clouds', 'assets/music/smoke_access-clouds_of_smoke.ogg');
     this.load.audio('surrender', 'assets/music/system_ready-captains_of_industry.ogg');
+    this.load.audio('miseria', 'assets/music/dj-meeting_miseria.ogg');
     // this.load.audio('song3', 'assets/audio/song3.mp3');
 
     // Tilemap

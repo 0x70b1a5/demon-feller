@@ -40,18 +40,22 @@ export default class Feller {
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
     const anims = scene.anims;
-    anims.create({
-      key: 'feller-walk',
-      frames: anims.generateFrameNumbers('feller-sheet', { frames: [1,2,3,2] }),
-      frameRate: 10,
-      repeat: -1
-    })
-    anims.create({
-      key: 'feller-hurt',
-      frames: anims.generateFrameNumbers('feller-sheet', { start: 4, end: 4 }),
-      frameRate: 12,
-      repeat: -1
-    })
+    if (!(anims.exists('feller-walk') && anims.exists('feller-sheet'))) {
+      anims.create({
+        key: 'feller-walk',
+        frames: anims.generateFrameNumbers('feller-sheet', { frames: [1,2,3,2] }),
+        frameRate: 10,
+        repeat: -1
+      })
+      anims.create({
+        key: 'feller-hurt',
+        frames: anims.generateFrameNumbers('feller-sheet', { start: 4, end: 4 }),
+        frameRate: 12,
+        repeat: -1
+      })
+    }
+
+    console.log('newed up a feller')
 
     this.createNewSprite(x, y)
 
@@ -98,6 +102,7 @@ export default class Feller {
     // DO NOT CHAIN THESE CALLS TO THE ABOVE CALLS
     this.sprite
     .setScale(0.5)
+    .setBounce(1, 1)
     .setCircle(this.sprite.width/3, this.sprite.width/5, this.sprite.height/4)
 
     this.sprite.anims.play('feller-walk');
@@ -233,7 +238,7 @@ export default class Feller {
 
     console.log('feller hit by enemy', by, this.hp)
 
-    this.hp -= by.damage;
+    this.hp = Math.max(0, this.hp - by.damage)
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     
@@ -339,5 +344,6 @@ export default class Feller {
   destroy() {
     this.sprite.destroy();
     this.gunSprite.destroy();
+    this.bullets.forEach(b => b.destroy())
   }
 }
