@@ -3,11 +3,12 @@ import EventEmitter from "../game/EventEmitter";
 
 const AudioControl = () => {
   const prefix = '__demonfeller-'
-  let startMuted: any = localStorage.getItem(prefix+'isMuted')
+  let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
+  let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')! || 1
+  let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')! || 1
+  
   if (startMuted) startMuted = (startMuted === true || startMuted === 'true')
-  let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
   startMusicVolume = isNaN(startMusicVolume) ? 0.5 : startMusicVolume
-  let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
   startSfxVolume = isNaN(startSfxVolume) ? 0.5 : startSfxVolume
 
   const [isMuted, setMuted] = useState(startMuted);

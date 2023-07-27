@@ -637,6 +637,19 @@ export class GameScene extends Phaser.Scene {
     if (this.levellingUp) {
       return
     }
+
+    if (this.debug) {
+      if (Phaser.Input.Keyboard.JustDown(this.keys?.minus)) {
+        this.cameras.main.setZoom(this.cameras.main.zoom / 1.25)
+      } else if (Phaser.Input.Keyboard.JustDown(this.keys?.plus)) {
+        this.cameras.main.setZoom(this.cameras.main.zoom * 1.25)
+      }
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keys?.esc)) {
+      EventEmitter.emit('pause')
+      this.scene.pause()
+    }
     
 
     this.feller.update(time, delta);
@@ -652,18 +665,5 @@ export class GameScene extends Phaser.Scene {
     
     this.tilemapVisibility.setActiveRoom(this.fellerRoom);
     // console.log(this.feller.sprite.body!.x, this.feller.sprite.body!.y)
-
-    if (this.debug) {
-      if (Phaser.Input.Keyboard.JustDown(this.keys?.minus)) {
-        this.cameras.main.setZoom(this.cameras.main.zoom / 1.25)
-      } else if (Phaser.Input.Keyboard.JustDown(this.keys?.plus)) {
-        this.cameras.main.setZoom(this.cameras.main.zoom * 1.25)
-      }
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(this.keys?.esc)) {
-      EventEmitter.emit('pause')
-      this.scene.pause()
-    }
   }
 }
