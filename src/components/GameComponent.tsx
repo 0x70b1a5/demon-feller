@@ -274,7 +274,6 @@ export const GameComponent: React.FC = () => {
         {restartButton}
         <div className='after-action-report'>
           {stats}
-          <p style={{marginBottom: '1em'}}>IF YOU CAN'T BEAT EM...</p>
           <button className='big-btn tweet-em' onClick={() => window.open(tweetStats(), '_blank')}>TWEET 'EM</button>
         </div>
       </div>

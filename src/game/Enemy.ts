@@ -66,15 +66,18 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     
     if (!(x && y)) {
       let [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 3)
-      while (this.scene.tileIsNearDoor(spawnX, spawnY, this.room, 600)) { 
-        [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 3)
-      }
       
       x = spawnX
       y = spawnY
+
     }
 
-    this.ensureIsInRoom(x, y)
+    console.log('actually spawning enemy at', { x, y })
+
+    this
+    .ensureIsInRoom(x, y)
+    .setX(scene.map.tileToWorldX(this.room.x + x)! + scene.map.tileWidth / 2)
+    .setY(scene.map.tileToWorldY(this.room.y + y)! + scene.map.tileHeight / 2)
 
     this
       .setOrigin(0.5, 0.5)
@@ -83,6 +86,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
 
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
+    this.gfx.strokeCircle(this.x, this.y, this.width)
+
     if (this.debug) {
       this.gfx
       .fillRect(this.x, this.y, 10, 10)
@@ -104,7 +109,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
           scene.map.tileToWorldY(this.room.y + 2)!, 
           scene.map.tileToWorldY(this.room.y + this.room.height - 2)!
       ))
-    
+
+    return this
   }
 
   attack(feller: Feller) {
@@ -160,17 +166,16 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         // .fillRect(this.x, this.y, 5, 5)
     }
 
-    if (this.stun < 1) {
-      this.stunImmunity > 0 && this.stunImmunity--
-      if (!this.seenFeller) {
-        this.acquireTarget(time, delta)
+    if (this.seenFeller) {
+      if (this.stun < 1) {
+        this.stunImmunity > 0 && this.stunImmunity--
+        this.move(time, delta)
+      } else {
+        this.stun--
       }
-      this.move(time, delta)
     } else {
-      this.stun--
+      this.showIfInRoom()
     }
-
-    !this.seenFeller && this.showIfInRoom()
   }
 
   showIfInRoom() {
@@ -178,10 +183,11 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       !this.visible && this.setVisible(true)
       console.log('seen feller', this)
       this.seenFeller = true
+      this.target = this.scene.feller.sprite
+      
       if(this.debug) {
         this.gfx.setDefaultStyles({ fillStyle: { color: 0x0000ff }})
       }
-      this.target = this.scene.feller.sprite
     } else {
       // if we are not in same room as player, hide sprite
       this.setVisible(false)
@@ -189,26 +195,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  acquireTarget(time: any, delta: any) {
-    if (!this.seenFeller && time % 1000 === delta) {
-      const newTarget = () => this.scene.findUnoccupiedRoomTile(this.room, 2)
-
-      let [x, y] = newTarget()
-
-      while (this.scene.tileIsNearDoor(this.scene.map.worldToTileX(x)!, this.scene.map.worldToTileY(y)!, this.room, 500)) {
-        [x, y] = newTarget()
-      }
-
-      this.target = { x, y }
-    } else {
-      this.target = this.scene.feller.sprite
-    }
-  }
-
   move(time: any, delta: any) {
-    if (this.target) {
-      this.chaseTarget()
-    }
+    this.chaseTarget()
     this.wobble()
     this.setVelocity(Math.cos(this.movementAngle) * this.speed, Math.sin(this.movementAngle) * this.speed)
   }
@@ -220,7 +208,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   path!: number[][]
   findPathToTarget() {
-    if (!(this.x && this.y && this.target.x && this.target.y)) {
+    if (!(this.x && this.y && this.target?.x && this.target?.y)) {
       return
     }
     
@@ -259,7 +247,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   wobble() {
-    this.movementAngle += Phaser.Math.FloatBetween(-1, 1) * Phaser.Math.DegToRad(40)
+    this.movementAngle += Phaser.Math.FloatBetween(-1, 1) * Phaser.Math.DegToRad(20)
   }
 
   die() {

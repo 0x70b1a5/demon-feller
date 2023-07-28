@@ -3,17 +3,17 @@ import EventEmitter from "../game/EventEmitter";
 
 const AudioControl = () => {
   const prefix = '__demonfeller-'
-  let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
-  let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')! || 1
+  let startMuted: any = localStorage.getItem(prefix+'isMuted') === 'true'
+  let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')! || 0.5
   let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')! || 1
   
-  if (startMuted) startMuted = (startMuted === true || startMuted === 'true')
   startMusicVolume = isNaN(startMusicVolume) ? 0.5 : startMusicVolume
   startSfxVolume = isNaN(startSfxVolume) ? 0.5 : startSfxVolume
 
   const [isMuted, setMuted] = useState(startMuted);
   const [musicVolume, setMusicVolume] = useState(startMusicVolume);
   const [sfxVolume, setSfxVolume] = useState(startSfxVolume);
+  const [rwdFwdDisabled, setRwdFwdDisabled] = useState(false)
 
   const handleMute = () => {
     const nextMuteState = !isMuted;
@@ -36,6 +36,18 @@ const AudioControl = () => {
     EventEmitter.emit('sfxVolumeChanged', volume);
   };
 
+  const handleRewind = (event: any) => {
+    setRwdFwdDisabled(true)
+    EventEmitter.emit('musicRewind');
+    setTimeout(() => setRwdFwdDisabled(false), 1000)
+  };
+
+  const handleForward = (event: any) => {
+    setRwdFwdDisabled(true)
+    EventEmitter.emit('musicForward');
+    setTimeout(() => setRwdFwdDisabled(false), 1000)
+  };
+
   return (
     <div className="audio-controls">
       <div>
@@ -50,8 +62,16 @@ const AudioControl = () => {
         />
       </div>
 
-      <button className="btn" onClick={handleMute}>
+      <button className="btn mute" onClick={handleMute}>
         {isMuted ? "Unmute" : "Mute"}
+      </button>
+
+      {/* <button className="btn rwd" disabled={rwdFwdDisabled} onClick={handleRewind}>
+        ⏪
+      </button> */}
+
+      <button className="btn fwd" disabled={rwdFwdDisabled} onClick={handleForward}>
+        Skip Current Track ⏩
       </button>
 
       {/* <div>

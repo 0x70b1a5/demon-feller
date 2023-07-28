@@ -17,7 +17,6 @@ export default class Barrel extends Stuff {
     this.damage = config.damage || this.damage
     this.MAX_HEALTH = this.health
 
-    this.setSize(this.scene.map.tileWidth - 20, this.scene.map.tileHeight - 20)
     this.setImmovable(true)
   }
 

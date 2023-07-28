@@ -41,7 +41,7 @@ export interface OurCursorKeys extends Phaser.Types.Input.Keyboard.CursorKeys {
 }
 
 export class GameScene extends Phaser.Scene {
-  debug = false
+  debug = true
 
 
   feller!: Feller
@@ -532,7 +532,7 @@ export class GameScene extends Phaser.Scene {
   
   checkLevelComplete() {
     const roomsWithEnemies = this.rooms.filter(room => room.enemies?.filter(e => !e.dead).length > 0)
-    console.log({roomsWithEnemies})
+    // console.log({roomsWithEnemies})
     if (roomsWithEnemies.length > 0) {
       return false
     }
@@ -556,11 +556,20 @@ export class GameScene extends Phaser.Scene {
 
       room.forEachTile(({ x, y }, tile) => {
         if (tile !== TILES.DUNGEON_TILES.FLOOR) return
-        const leftTile = room.getTileAt(x - 1, y)
-        const rightTile = room.getTileAt(x + 1, y)
-        const downTile = room.getTileAt(x, y + 1)
-        const upTile = room.getTileAt(x, y - 1)
-        if ([leftTile, rightTile, downTile, upTile].find(t => t === TILES.DUNGEON_TILES.DOOR)) return
+        // within 2 tiles of door: RAUS!
+        for (let y1 = -2; y1 < 2; y1++) {
+          for (let x1 = -2; x1 < 2; x1++) {
+            let maybeTile = -1;
+            try {
+              maybeTile = room.getTileAt(x1 + x, y1 + y)
+              if (maybeTile === TILES.DUNGEON_TILES.DOOR) {
+                return
+              }
+            } catch {
+              continue
+            }
+          }
+        }
         acceptableTiles.push({ x, y })
       })
       
@@ -577,6 +586,7 @@ export class GameScene extends Phaser.Scene {
         const enemyType = roll(enemyWeights)
         let enemy: Enemy | null = null;
         let {x, y} = acceptableTiles[i]
+        console.log('spawning enemy at', { x, y })
         switch(enemyType) {
           case EnemyType.Goo:
             enemy = new Goo(this, { level: this.level, room, enemyType, texture: 'goo' }, x, y)

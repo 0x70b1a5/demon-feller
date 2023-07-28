@@ -15,6 +15,7 @@ export class UIScene extends Phaser.Scene {
     'surrender',
     'miseria',
   ]
+  queue: string[] = []
   songs: Phaser.Sound.HTML5AudioSound[] = []
   currentSong?: Phaser.Sound.HTML5AudioSound
   songIndex = 0
@@ -67,6 +68,13 @@ export class UIScene extends Phaser.Scene {
       this.sound.setVolume(volume)
     });
 
+    EventEmitter.on('musicRewind', (volume: number) => {
+      // ?
+    });
+
+    EventEmitter.on('musicForward', (volume: number) => {
+      this.playRandomMusic()
+    });
   }
 
   playRandomMusic() {
@@ -89,6 +97,7 @@ export class UIScene extends Phaser.Scene {
     }
 
     this.sound.pauseOnBlur = false
+    this.queue.push(this.songNames[randomIndex])
   }
 
   minimapGfx!: Phaser.GameObjects.Graphics
@@ -96,7 +105,7 @@ export class UIScene extends Phaser.Scene {
   minimapY = 10
   minimapTileSize = 8
   createOrRefreshMinimap() {
-    this.minimapGfx = this.add.graphics({ fillStyle: { color: colors.TEXTBOX_BG_COLOR, alpha: 0.8 } })
+    this.minimapGfx = this.add.graphics({ fillStyle: { color: colors.TEXTBOX_BG_COLOR } })
   }
 
   drawMinimapTerrain(minimap: number[][]) {
@@ -110,10 +119,10 @@ export class UIScene extends Phaser.Scene {
       for (let x = 0; x < minimap[y].length; x++) {
         switch (minimap[y][x]) {
           case 0:
-            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.TEXTBOX_BG_COLOR, alpha: 0.5 } });
+            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.TEXTBOX_BG_COLOR } });
             break;
           case 1:
-            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.LINE_COLOR, alpha: 0.5 } });
+            minimapGfx.setDefaultStyles({ fillStyle: { color: colors.LINE_COLOR } });
             break;
         }
         

@@ -13,11 +13,11 @@ export class MainMenuScene extends Phaser.Scene {
 
   create() {
     const prefix = '__demonfeller-'
-    let startMuted: any = localStorage.getItem(prefix+'isMuted')
-    if (startMuted) startMuted = (startMuted === true || startMuted === 'true')
-    let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
+    let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
+    if (startMuted) startMuted = (startMuted === true || startMuted === 'true') 
+    let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')! || 1
     startMusicVolume = isNaN(startMusicVolume) ? 0.5 : startMusicVolume
-    let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
+    let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')! || 1
     startSfxVolume = isNaN(startSfxVolume) ? 0.5 : startSfxVolume
 
 
