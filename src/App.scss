@@ -218,3 +218,34 @@ body {
   align-self: stretch;
   align-items: center;
 }
+
+@keyframes pop-in-from-below {
+  0% {
+    top: -10em;
+  }
+
+  100% {
+    top: 3em;
+  }
+}
+
+.now-playing-container {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  pointer-events: none;
+
+  .now-playing {
+    top: 3em;
+    position: relative;
+    background-color: colors.$parchment-tr;
+    padding: 1em 2em;
+    border-radius: 4px;
+    animation: 1s ease-out pop-in-from-below;
+  }
+}

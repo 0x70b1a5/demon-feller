@@ -1,20 +1,10 @@
 import EventEmitter from "../EventEmitter";
+import audioFiles from "../constants/audioFiles";
 import colors from "../constants/colors";
 import { GameScene } from "./GameScene";
 
 export class UIScene extends Phaser.Scene {
-  songNames: string[] = [
-    'pentarchy',
-    'cracks',
-    'faithless',
-    'fate',
-    'armiger',
-    'ouroboros',
-    'remains',
-    'clouds',
-    'surrender',
-    'miseria',
-  ]
+  songNames: string[] = Object.keys(audioFiles)
   queue: string[] = []
   songs: Phaser.Sound.HTML5AudioSound[] = []
   currentSong?: Phaser.Sound.HTML5AudioSound
@@ -89,6 +79,9 @@ export class UIScene extends Phaser.Scene {
     this.currentSong = this.sound.add(this.songNames[randomIndex]) as any;
     if (this.currentSong) {
       this.currentSong.play();
+      const zong = (audioFiles as any)?.[this.currentSong.key as any]
+      if (zong && !this.sound.mute)
+        EventEmitter.emit('nowPlaying', zong.split('/').pop().replace(/\.(mp3|ogg)/, ''))
       
       // When the music ends, play another track
       this.currentSong.on('complete', () => {

@@ -33,6 +33,7 @@ export const GameComponent: React.FC = () => {
   const [paused, setPaused] = useState(false)
   const [stun, setStun] = useState(0)
   const [stunUp, setStunUp] = useState(false)
+  const [nowPlaying, setNowPlaying] = useState('')
 
   const minimapRef = useRef<HTMLDivElement | null>(null);
 
@@ -165,6 +166,13 @@ export const GameComponent: React.FC = () => {
     const pausedListener = () => {
       setPaused(true)
     }
+
+    const nowPlayingListener = (song: string) => {
+      setNowPlaying(old => song)
+      setTimeout(() => {
+        setNowPlaying(old => '')
+      }, 5000)
+    }
     
     EventEmitter.on('gameStarted', gameStartedListener);
     EventEmitter.on('health', healthListener);
@@ -178,7 +186,8 @@ export const GameComponent: React.FC = () => {
     EventEmitter.on('levelUp', levelUpListener);
     EventEmitter.on('damage', damageListener);
     EventEmitter.on('pause', pausedListener);
-    
+    EventEmitter.on('nowPlaying', nowPlayingListener)
+
     return () => {
       EventEmitter.off('gameStarted', gameStartedListener);
       EventEmitter.off('health', healthListener);
@@ -192,6 +201,7 @@ export const GameComponent: React.FC = () => {
       EventEmitter.off('stun', stunListener);
       EventEmitter.off('levelUp', levelUpListener);
       EventEmitter.off('pause', pausedListener);
+      EventEmitter.off('nowPlaying', nowPlayingListener)
     };
   }, [])
 
@@ -252,6 +262,11 @@ export const GameComponent: React.FC = () => {
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
     {gameStarted && stats}
+    {nowPlaying && <div className='now-playing-container'>
+      <div className='now-playing'>
+        {nowPlaying.replace(/_/g, ' ').replace(/-/g, ' - ').toUpperCase()}
+      </div>
+    </div>}
     {levelUp && <div className='level-up overlay'>
       <div className='notice'>
         <h1>LEVEL {level} COMPLETE!</h1>

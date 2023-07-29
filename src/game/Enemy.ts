@@ -81,12 +81,10 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this
       .setOrigin(0.5, 0.5)
-      .setCircle(this.width/2)
       .setBounce(1, 1)
 
-
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
-    this.gfx.strokeCircle(this.x, this.y, this.width)
+    // this.gfx.strokeCircle(this.x, this.y, this.width)
 
     if (this.debug) {
       this.gfx

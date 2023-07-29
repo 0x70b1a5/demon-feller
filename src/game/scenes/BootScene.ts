@@ -1,3 +1,5 @@
+import audioFiles from "../constants/audioFiles";
+
 export class BootScene extends Phaser.Scene {
   texts = [
     'Performing rituals \n of cleansing...',
@@ -137,17 +139,7 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('magic', 'assets/sounds/magic.mp3');
 
     // Music
-    //TODO lazyload
-    this.load.audio('pentarchy', 'assets/music/actg-pentarchy.ogg');
-    this.load.audio('cracks', 'assets/music/smoke_access-back_into_the_cracks.ogg');
-    this.load.audio('faithless', 'assets/music/smoke_access-faithless_predator.ogg');
-    this.load.audio('fate', 'assets/music/cor_serpentis-fate.ogg');
-    this.load.audio('armiger', 'assets/music/dirac_sea-armiger.ogg');
-    this.load.audio('ouroboros', 'assets/music/inner_worlds-ouroboros.ogg');
-    this.load.audio('remains', 'assets/music/razorrhead-remains_of_a_diary.ogg');
-    this.load.audio('clouds', 'assets/music/smoke_access-clouds_of_smoke.ogg');
-    this.load.audio('surrender', 'assets/music/system_ready-captains_of_industry.ogg');
-    this.load.audio('miseria', 'assets/music/dj-meeting_miseria.ogg');
+    Object.entries(audioFiles).forEach(([songKey, songFile]) => this.load.audio(songKey, songFile))
     // this.load.audio('song3', 'assets/audio/song3.mp3');
 
     // Tilemap

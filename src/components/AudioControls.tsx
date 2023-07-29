@@ -48,6 +48,7 @@ const AudioControl = () => {
     setTimeout(() => setRwdFwdDisabled(false), 1000)
   };
 
+
   return (
     <div className="audio-controls">
       <div>
