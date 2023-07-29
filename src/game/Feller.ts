@@ -36,6 +36,7 @@ export default class Feller {
   speed = 300
   bulletSpeed = 300
   damage = 1
+  container!: Phaser.GameObjects.Container;
 
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
@@ -57,6 +58,7 @@ export default class Feller {
 
     console.log('newed up a feller')
 
+    this.container = this.scene.add.container(x, y);
     this.createNewSprite(x, y)
 
     this.keys = this.scene.input.keyboard!.addKeys({
@@ -111,6 +113,9 @@ export default class Feller {
 
     // animations.enshadow(this.sprite)
     // animations.enshadow(this.gunSprite)
+
+    // this.container.add(this.sprite)
+    // this.container.add(this.gunSprite)
   }
 
   freeze() {
@@ -226,9 +231,10 @@ export default class Feller {
     }
 
     let depth = this.sprite.depth
-    const stuffDepth = this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
+    this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
     this.sprite.setDepth(depth+2)
     this.gunSprite.setDepth(depth+1)
+    this.bullets.forEach(b => b.fixedUpdate(time, delta))
   }
 
   hit(by: Phaser.Physics.Arcade.Sprite & { damage: number, knockback: number }) {
@@ -335,9 +341,9 @@ export default class Feller {
       stuff.hit(this.damage);
       (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
     })
-    this.scene.physics.add.collider(bullet, this.scene.groundLayer, (bullet) => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle))
-    this.scene.physics.add.collider(bullet, this.scene.stuffLayer, (bullet) => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle))
-    this.scene.physics.add.collider(bullet, this.scene.shadowLayer, (bullet) => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle))
+    this.scene.physics.add.collider(bullet, [
+      this.scene.groundLayer, this.scene.stuffLayer, this.scene.shadowLayer
+    ], (bullet) => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle))
     this.shootCooldown = this.RELOAD_COOLDOWN;
   }
   

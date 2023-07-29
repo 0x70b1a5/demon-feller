@@ -19,7 +19,11 @@ export class UIScene extends Phaser.Scene {
   create() {
     this.gameScene = this.scene.get('GameScene') as GameScene
 
-    this.songs = this.songNames.map(songName => this.sound.add(songName) as Phaser.Sound.HTML5AudioSound)
+    this.songs = this.songNames
+      .filter(songName => this.songIsLoaded(songName))
+      .map(songName => this.sound.add(songName) as Phaser.Sound.HTML5AudioSound)
+
+    console.log('loaded songs:', this.songs)
 
     this.playRandomMusic()
 
@@ -65,6 +69,21 @@ export class UIScene extends Phaser.Scene {
     EventEmitter.on('musicForward', (volume: number) => {
       this.playRandomMusic()
     });
+
+    Object.entries(audioFiles).forEach(([key, file]) => {
+      if (!this.songIsLoaded(key))
+        this.load.audio(key, file)
+    })
+
+    this.load.on('complete', () => {
+      Object.entries(audioFiles).forEach(([key, file]) => {
+        this.sound.add(key)
+      })
+    })
+  }
+
+  songIsLoaded(key: string) {
+    return this.cache.audio.has(key)
   }
 
   playRandomMusic() {
@@ -72,11 +91,15 @@ export class UIScene extends Phaser.Scene {
       this.currentSong.stop();
     }
 
+    // Filter out songs that haven't been loaded yet
+    const eligibleSongs = this.songNames.filter(songName => this.songIsLoaded(songName))
+
+    console.log({eligibleSongs})
     // Shuffling the tracks
-    const randomIndex = Phaser.Math.Between(0, this.songNames.length - 1);
+    const nextSong = Phaser.Utils.Array.Shuffle(eligibleSongs.slice()).pop()!
 
     // Play the selected track
-    this.currentSong = this.sound.add(this.songNames[randomIndex]) as any;
+    this.currentSong = this.sound.add(nextSong) as Phaser.Sound.HTML5AudioSound
     if (this.currentSong) {
       this.currentSong.play();
       const zong = (audioFiles as any)?.[this.currentSong.key as any]
@@ -87,10 +110,12 @@ export class UIScene extends Phaser.Scene {
       this.currentSong.on('complete', () => {
         this.playRandomMusic();
       });
+    } else {
+      throw ''
     }
 
     this.sound.pauseOnBlur = false
-    this.queue.push(this.songNames[randomIndex])
+    this.queue.push(nextSong)
   }
 
   minimapGfx!: Phaser.GameObjects.Graphics
@@ -107,6 +132,9 @@ export class UIScene extends Phaser.Scene {
     minimapGfx.clear()
     .setX(this.minimapX)
     .setY(this.minimapY)
+
+    minimapGfx.setDefaultStyles({ fillStyle: { color: colors.LINE_COLOR }})
+    minimapGfx.fillRect(this.minimapX-1, this.minimapY-1, this.minimapTileSize*minimap[0].length+2, this.minimapTileSize*minimap.length+2)
 
     for (let y = 0; y < minimap.length; y++) {
       for (let x = 0; x < minimap[y].length; x++) {

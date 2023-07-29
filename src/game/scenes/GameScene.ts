@@ -44,6 +44,7 @@ export class GameScene extends Phaser.Scene {
   debug = true
 
 
+
   feller!: Feller
   rexUI!: RexUIPlugin
   level!: number
@@ -511,7 +512,6 @@ export class GameScene extends Phaser.Scene {
       gfx.lineBetween(x, y, this.feller.sprite.x, this.feller.sprite.y)
     }
 
-
     this.physics.add.overlap(this.feller.sprite, powerup, () => {
       this.feller.pickupPowerUp(powerup);
       powerup.destroy();
@@ -635,7 +635,7 @@ export class GameScene extends Phaser.Scene {
     this.enemies.push(enemy)
   }
 
-  update(time: any, delta: any) {
+  fixedUpdate(time: any, delta: any) {
     if (this.gameOver) {
       return
     }
@@ -663,6 +663,7 @@ export class GameScene extends Phaser.Scene {
     
 
     this.feller.update(time, delta);
+    [...this.enemies, ...this.stuffs].forEach(x => x.fixedUpdate(time, delta))
 
     // Find the player's room using another helper method from the dungeon that converts from
     // dungeon XY (in grid units) to the corresponding room instance
@@ -675,5 +676,16 @@ export class GameScene extends Phaser.Scene {
     
     this.tilemapVisibility.setActiveRoom(this.fellerRoom);
     // console.log(this.feller.sprite.body!.x, this.feller.sprite.body!.y)
+  }
+
+  fixedDeltaTime = 1/60
+  lastUpdateTime = performance.now()
+  update(time: any, delta: any) {
+    let currentTime = performance.now()
+    const deltaTime = currentTime - this.lastUpdateTime
+    if (deltaTime > this.fixedDeltaTime) {
+      this.fixedUpdate(currentTime, deltaTime)
+      this.lastUpdateTime = currentTime - (deltaTime % this.fixedDeltaTime);
+    }
   }
 }

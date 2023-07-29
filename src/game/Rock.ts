@@ -19,8 +19,8 @@ export default class Rock extends Stuff {
     this.setImmovable(true)
   }
 
-  preUpdate(time: number, delta: number) {
-    super.preUpdate(time, delta);
+  fixedUpdate(time: number, delta: number) {
+    super.fixedUpdate(time, delta);
   }
 
   hit(damage: number) {

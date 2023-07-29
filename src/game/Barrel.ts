@@ -20,8 +20,8 @@ export default class Barrel extends Stuff {
     this.setImmovable(true)
   }
 
-  preUpdate(time: number, delta: number) {
-    super.preUpdate(time, delta);
+  fixedUpdate(time: number, delta: number) {
+    super.fixedUpdate(time, delta);
     this.gfx.clear()
 
     if (0 < this.health && this.health < 3) {

@@ -66,8 +66,8 @@ export default class Belcher extends Enemy {
     }
   }
 
-  preUpdate(time: any, delta: any) {
-    super.preUpdate(time, delta)
+  fixedUpdate(time: any, delta: any) {
+    super.fixedUpdate(time, delta)
     if (this.seenFeller) {
       this.belch()
     }

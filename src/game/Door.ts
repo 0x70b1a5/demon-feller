@@ -92,9 +92,4 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
       }
     })
   }
-
-  preUpdate(time: any, delta: any) {
-    super.preUpdate(time, delta);
-
-  }
 }

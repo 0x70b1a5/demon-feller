@@ -149,7 +149,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  preUpdate(time: any, delta: any) {    
+  fixedUpdate(time: any, delta: any) {    
     super.preUpdate(time, delta);
 
     if (this.debug) {

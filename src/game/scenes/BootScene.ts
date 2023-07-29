@@ -45,8 +45,6 @@ export class BootScene extends Phaser.Scene {
       progressBox.destroy();
       loadingText.destroy();
 
-
-
       // Fonts 
       (window as any).WebFont.load({
         custom: {
@@ -63,7 +61,6 @@ export class BootScene extends Phaser.Scene {
           console.log('fonts loaded')
         }
       });
-
     }, this);
 
     // Preload all assets
@@ -95,8 +92,8 @@ export class BootScene extends Phaser.Scene {
     this.load.image('imp', 'assets/imp.png')
     this.load.image('belcher', 'assets/belcher.png')
     this.load.spritesheet('soul-sheet', 'assets/spritesheets/soul.png', {
-      frameWidth: 200,
-      frameHeight: 235,
+      frameWidth: 173,
+      frameHeight: 233,
       margin: 0,
       spacing: 0
     })
@@ -107,8 +104,8 @@ export class BootScene extends Phaser.Scene {
       spacing: 0
     })
     this.load.spritesheet('goo-sheet', 'assets/spritesheets/goo.png', {
-      frameWidth: 200,
-      frameHeight: 153,
+      frameWidth: 161,
+      frameHeight: 151,
       margin: 0,
       spacing: 0
     })
@@ -139,7 +136,8 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('magic', 'assets/sounds/magic.mp3');
 
     // Music
-    Object.entries(audioFiles).forEach(([songKey, songFile]) => this.load.audio(songKey, songFile))
+    const [firstSongKey, firstSongFile] = Phaser.Utils.Array.Shuffle(Object.entries(audioFiles)).pop()!
+    this.load.audio(firstSongKey, firstSongFile)
     // this.load.audio('song3', 'assets/audio/song3.mp3');
 
     // Tilemap
@@ -152,6 +150,6 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     // Switch to the main menu scene when all assets are loaded
-    this.scene.start('MainMenuScene');
+    this.scene.launch('MainMenuScene');
   }
 }

@@ -33,7 +33,8 @@ export const GameComponent: React.FC = () => {
   const [paused, setPaused] = useState(false)
   const [stun, setStun] = useState(0)
   const [stunUp, setStunUp] = useState(false)
-  const [nowPlaying, setNowPlaying] = useState('')
+  const [temporaryNowPlaying, setTemporaryNowPlaying] = useState('')
+  const [persistentNowPlaying, setPersistentNowPlaying] = useState('')
 
   const minimapRef = useRef<HTMLDivElement | null>(null);
 
@@ -76,6 +77,11 @@ export const GameComponent: React.FC = () => {
   const toggle1s = (fn: (b: boolean) => void): void => {
     fn(true)
     setTimeout(() => fn(false), 1000)
+  }
+
+  const onUnpause = () => {
+    EventEmitter.emit('unpause')
+    setPaused(false)
   }
 
   useEffect(() => {
@@ -168,9 +174,10 @@ export const GameComponent: React.FC = () => {
     }
 
     const nowPlayingListener = (song: string) => {
-      setNowPlaying(old => song)
+      setTemporaryNowPlaying(old => song)
+      setPersistentNowPlaying(old => song)
       setTimeout(() => {
-        setNowPlaying(old => '')
+        setTemporaryNowPlaying(old => '')
       }, 5000)
     }
     
@@ -262,9 +269,9 @@ export const GameComponent: React.FC = () => {
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" style={{ width: '100%', height: '100%' }} />
     {gameStarted && stats}
-    {nowPlaying && <div className='now-playing-container'>
+    {temporaryNowPlaying && <div className='now-playing-container'>
       <div className='now-playing'>
-        {nowPlaying.replace(/_/g, ' ').replace(/-/g, ' - ').toUpperCase()}
+        🔊 {temporaryNowPlaying.replace(/_/g, ' ').replace(/-/g, ' - ').toUpperCase()} 🎵
       </div>
     </div>}
     {levelUp && <div className='level-up overlay'>
@@ -296,16 +303,18 @@ export const GameComponent: React.FC = () => {
     {paused && <div className='pause-menu overlay'>
       <div className='notice'>
         <h1>GAME PAUSED</h1>
+        <h2>AUDIO:</h2>
+        {persistentNowPlaying && <p>NOW PLAYING: {persistentNowPlaying}</p>}
         <AudioControl />
-        {stats}
+        <br/>
         <h2>CONTROLS:</h2>
         <p>WASD or arrow keys: move</p>
         <p>Click: shoot</p>
-        <div className='big-btn resume' onClick={() => {
-          EventEmitter.emit('unpause')
-          setPaused(false)
-        }}>RESUME</div>
-        {/* {restartButton} */}
+        <br/>
+        <h2>STATS:</h2>
+        {stats}
+        <div className='big-btn resume' onClick={onUnpause}>RESUME</div>
+        {restartButton}
       </div>
     </div>}
   </>;

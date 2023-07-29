@@ -58,8 +58,8 @@ export default class Pig extends Enemy {
     this.spitCooldown = this.SPIT_COOLDOWN_DURATION;
   }
 
-  preUpdate(time: any, delta: any): void {
-    super.preUpdate(time, delta)
+  fixedUpdate(time: any, delta: any): void {
+    super.fixedUpdate(time, delta)
 
     if (this.seenFeller) {
       if (this.spitCooldown > 0) {

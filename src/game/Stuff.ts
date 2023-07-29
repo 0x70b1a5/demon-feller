@@ -48,7 +48,7 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  preUpdate(time: number, delta: number) {
+  fixedUpdate(time: number, delta: number) {
     super.preUpdate(time, delta);
 
     if (this.room.guid !== this.scene.fellerRoom.guid) {

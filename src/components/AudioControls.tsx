@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import EventEmitter from "../game/EventEmitter";
+import classNames from "classnames";
 
 const AudioControl = () => {
   const prefix = '__demonfeller-'
@@ -63,7 +64,7 @@ const AudioControl = () => {
         />
       </div>
 
-      <button className="btn mute" onClick={handleMute}>
+      <button className={classNames("btn mute", { isMuted })} onClick={handleMute}>
         {isMuted ? "Unmute" : "Mute"}
       </button>
 
