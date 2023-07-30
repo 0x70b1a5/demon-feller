@@ -1,4 +1,5 @@
 import Enemy, { EnemyConfig } from "./Enemy";
+import EventEmitter from "./EventEmitter";
 import { GameScene } from "./scenes/GameScene";
 
 export default class Goo extends Enemy {
@@ -19,5 +20,10 @@ export default class Goo extends Enemy {
     }
 
     this.anims.play('goo-walk')
+  }
+
+  hit(by: Phaser.Types.Math.Vector2Like & { damage: number, knockback: number }) {
+    super.hit(by)
+    EventEmitter.emit('playSound', 'goosquelch')
   }
 }

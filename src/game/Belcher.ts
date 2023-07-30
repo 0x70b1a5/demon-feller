@@ -1,5 +1,6 @@
 import Bullet from "./Bullet";
 import Enemy, { EnemyConfig } from "./Enemy";
+import EventEmitter from "./EventEmitter";
 import Stuff from "./Stuff";
 import { GameScene } from "./scenes/GameScene";
 import assert from "./util/assert";
@@ -30,13 +31,17 @@ export default class Belcher extends Enemy {
       this.belching--
 
       if (this.belching < this.BELCH_TIMER/2) {
-        this.anims.stop()
+        if (this.anims.isPlaying) {
+          this.anims.stop()
+          EventEmitter.emit('playSound', 'belcherbreathe')
+        }
       }
 
       return
     }
 
     this.anims.play('belcher-belch')
+    EventEmitter.emit('playSound', 'belcherbelch')
 
     this.belching = this.BELCH_TIMER
     const burps = Math.random() * 8

@@ -1,6 +1,7 @@
 import EventEmitter from "../EventEmitter";
 import audioFiles from "../constants/audioFiles";
 import colors from "../constants/colors";
+import TILE_MAPPING from "../constants/tiles";
 import { GameScene } from "./GameScene";
 
 export class UIScene extends Phaser.Scene {
@@ -18,9 +19,9 @@ export class UIScene extends Phaser.Scene {
     })
 
     EventEmitter.on('drawMinimap', (minimap: number[][]) => {
-      this.createOrRefreshMinimap()
-      this.drawMinimapTerrain(minimap)
-      this.createMinimapMarkers()
+      // this.createOrRefreshMinimap()
+      // this.drawMinimapTerrain(minimap)
+      // this.createMinimapMarkers()
     })
 
     EventEmitter.on('gameRestarted', () => {
@@ -30,7 +31,7 @@ export class UIScene extends Phaser.Scene {
       this.scene.bringToTop(this)
     })
   }
-  
+
   minimapGfx!: Phaser.GameObjects.Graphics
   minimapX = 10
   minimapY = 10
@@ -47,13 +48,11 @@ export class UIScene extends Phaser.Scene {
     .setY(this.minimapY)
 
     minimapGfx.setDefaultStyles({ fillStyle: { color: colors.LINE_COLOR }})
-    minimapGfx.fillRect(this.minimapX-1, this.minimapY-1, this.minimapTileSize*minimap[0].length+2, this.minimapTileSize*minimap.length+2)
 
     for (let y = 0; y < minimap.length; y++) {
       for (let x = 0; x < minimap[y].length; x++) {
         switch (minimap[y][x]) {
           case 0:
-          case 2:
             minimapGfx.setDefaultStyles({ fillStyle: { color: colors.TEXTBOX_BG_COLOR } });
             break;
           case 1:

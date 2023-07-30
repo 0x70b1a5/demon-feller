@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GameScene } from './scenes/GameScene';
+import EventEmitter from './EventEmitter';
 export interface BulletConfig {
   scale?: number,
   angle: number,
@@ -23,9 +24,13 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
     this.setVelocityY(Math.sin(angle) * this.bulletSpeed);
 
     this.setScale(scale || 1)
+    .setOrigin(0.5, 0.5)
+    .setCircle(this.width/2, 0, 0)
   }
 
   bulletHitSomething(scene: GameScene, damage = 0, bulletAngle = 0) {
+    EventEmitter.emit('playSound', 'bullethit')
+
     const smoke = scene.add.sprite(this.x, this.y, 'smoke')
       .setScale(0.25 * damage)
       .setRotation(bulletAngle)

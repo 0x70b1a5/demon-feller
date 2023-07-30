@@ -9,7 +9,20 @@ export class AudioScene extends Phaser.Scene {
   currentSong?: Phaser.Sound.HTML5AudioSound
   songIndex = 0
 
+  musicVolume = 0.5
+  sfxVolume = 0.5
+
   gameScene!: GameScene
+
+  grunt!: Phaser.Sound.HTML5AudioSound
+  squeal!: Phaser.Sound.HTML5AudioSound
+  belch!: Phaser.Sound.HTML5AudioSound
+  breathe!: Phaser.Sound.HTML5AudioSound
+  impsqueak!: Phaser.Sound.HTML5AudioSound
+  soulgrunt!: Phaser.Sound.HTML5AudioSound
+  soulgrumble!: Phaser.Sound.HTML5AudioSound
+  bat!: Phaser.Sound.HTML5AudioSound
+  magic!: Phaser.Sound.HTML5AudioSound
 
   constructor() {
     super({ key: 'AudioScene' });
@@ -17,6 +30,17 @@ export class AudioScene extends Phaser.Scene {
   
   create() {
     this.gameScene = this.scene.get('GameScene') as GameScene
+    const prefix = '__demonfeller-'
+    const DEFAULT_VOLUME = 0.5
+
+    let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
+    if (startMuted) startMuted = (startMuted === true || startMuted === 'true') 
+    let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
+    let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
+    
+    this.musicVolume = isNaN(startMusicVolume) ? DEFAULT_VOLUME : startMusicVolume
+    this.sfxVolume = isNaN(startSfxVolume) ? DEFAULT_VOLUME : startSfxVolume
+    this.sound.setMute(startMuted)
 
     this.songs = this.songNames
       .filter(songName => this.songIsLoaded(songName))
@@ -24,7 +48,19 @@ export class AudioScene extends Phaser.Scene {
 
     console.log('loaded songs:', this.songs)
 
-    this.playRandomMusic()
+    this.bat = this.sound.add('bat') as Phaser.Sound.HTML5AudioSound
+    this.magic = this.sound.add('magic') as Phaser.Sound.HTML5AudioSound
+    this.grunt = this.sound.add('piggrunt') as Phaser.Sound.HTML5AudioSound
+    this.squeal = this.sound.add('pigsqueal') as Phaser.Sound.HTML5AudioSound
+    this.belch = this.sound.add('belcherbelch') as Phaser.Sound.HTML5AudioSound
+    this.breathe = this.sound.add('belcherbreathe') as Phaser.Sound.HTML5AudioSound
+    this.impsqueak = this.sound.add('impsqueak') as Phaser.Sound.HTML5AudioSound
+    this.soulgrunt = this.sound.add('soulgrunt') as Phaser.Sound.HTML5AudioSound
+    this.soulgrumble = this.sound.add('soulgrumble') as Phaser.Sound.HTML5AudioSound
+
+    EventEmitter.on('gameStarted', () => {
+      this.playRandomMusic()
+    })
 
     EventEmitter.on('unpause', () => {
       this.scene.resume('GameScene')
@@ -35,11 +71,13 @@ export class AudioScene extends Phaser.Scene {
     });
 
     EventEmitter.on('musicVolumeChanged', (volume: number) => {
-      this.sound.setVolume(volume)
+      this.musicVolume = volume
+      this.currentSong?.setVolume(volume)
     });
 
     EventEmitter.on('sfxVolumeChanged', (volume: number) => {
-      this.sound.setVolume(volume)
+      this.sfxVolume = volume 
+      this.grunt.play({ volume: this.sfxVolume })
     });
 
     EventEmitter.on('musicRewind', (volume: number) => {
@@ -49,6 +87,12 @@ export class AudioScene extends Phaser.Scene {
     EventEmitter.on('musicForward', (volume: number) => {
       this.playRandomMusic()
     });
+
+    EventEmitter.on('playSound', (key: string, config: Phaser.Types.Sound.SoundConfig) => {
+      if (!this.songIsLoaded(key)) return
+      console.log('playsound', key, config)
+      this.sound.play(key, { volume: this.sfxVolume, ...config })
+    })
 
     Object.entries(audioFiles).forEach(([key, file]) => {
       if (!this.songIsLoaded(key))
@@ -81,7 +125,7 @@ export class AudioScene extends Phaser.Scene {
     // Play the selected track
     this.currentSong = this.sound.add(nextSong) as Phaser.Sound.HTML5AudioSound
     if (this.currentSong) {
-      this.currentSong.play();
+      this.currentSong.play({ volume: this.musicVolume });
       const zong = (audioFiles as any)?.[this.currentSong.key as any]
       if (zong && !this.sound.mute)
         EventEmitter.emit('nowPlaying', zong.split('/').pop().replace(/\.(mp3|ogg)/, ''))

@@ -104,15 +104,12 @@ export default class Feller {
     // DO NOT CHAIN THESE CALLS TO THE ABOVE CALLS
     this.sprite
     .setScale(0.5)
+    .setSize(135, 185)
     .setBounce(1, 1)
-    .setCircle(this.sprite.width/3, this.sprite.width/5, this.sprite.height/4)
 
     this.sprite.anims.play('feller-walk');
 
     this.scene.physics.add.collider(this.sprite, this.scene.stuffs)
-
-    // animations.enshadow(this.sprite)
-    // animations.enshadow(this.gunSprite)
 
     // this.container.add(this.sprite)
     // this.container.add(this.gunSprite)
@@ -130,7 +127,6 @@ export default class Feller {
     const keys = this.keys;
     const sprite = this.sprite;
     const body = this.bodify(sprite)
-
 
     if (this.stun <= 0) {
       // Stop any previous movement from the last frame
@@ -213,9 +209,6 @@ export default class Feller {
   }
 
   update(time: any, delta: any) {
-    const keys = this.keys;
-    const sprite = this.sprite;
-
     this.move()  
     this.pointAndShoot()
 
@@ -242,8 +235,7 @@ export default class Feller {
       return
     }
 
-
-    this.scene.cameras.main.flash(10, 255, 0, 0, true)
+    this.scene.cameras.main.flash(10, 255, 100, 100, true)
 
     console.log('feller hit by enemy', by, this.hp)
 
@@ -328,10 +320,11 @@ export default class Feller {
 
     // Create new bullet at the barrel's position and set its velocity.
     const bullet = new Bullet(this.scene, barrelX, barrelY, { angle: bulletAngle, scale: this.damage/2, speed: this.bulletSpeed + this.speed * 0.5 }); 
-    assert(bullet.body && this.sprite.body)
-    bullet.body.velocity.x += this.sprite.body.velocity.x
-    bullet.body.velocity.y += this.sprite.body.velocity.y
+    
     this.bullets.push(bullet)
+    
+    EventEmitter.emit('playSound', 'shoot')
+
     this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
       const enemy = _enemy as Enemy
       console.log('bullet hit enemy', enemy);

@@ -1,15 +1,22 @@
-import React, { useState } from "react";
-import EventEmitter from "../game/EventEmitter";
-import classNames from "classnames";
+import React, { useEffect, useState } from 'react';
+import EventEmitter from '../game/EventEmitter';
+import classNames from 'classnames';
 
-const AudioControl = () => {
+interface AudioControlsProps {
+  nowPlaying: string
+}
+
+const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
   const prefix = '__demonfeller-'
+  const DEFAULT_VOLUME = 0.5
   let startMuted: any = localStorage.getItem(prefix+'isMuted') === 'true'
-  let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')! || 0.5
-  let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')! || 1
+  let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
+  let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
   
-  startMusicVolume = isNaN(startMusicVolume) ? 0.5 : startMusicVolume
-  startSfxVolume = isNaN(startSfxVolume) ? 0.5 : startSfxVolume
+  startMusicVolume = isNaN(startMusicVolume) ? DEFAULT_VOLUME : startMusicVolume
+  startSfxVolume = isNaN(startSfxVolume) ? DEFAULT_VOLUME : startSfxVolume
+
+  console.log({ startMusicVolume, startSfxVolume, localStorage })
 
   const [isMuted, setMuted] = useState(startMuted);
   const [musicVolume, setMusicVolume] = useState(startMusicVolume);
@@ -49,45 +56,55 @@ const AudioControl = () => {
     setTimeout(() => setRwdFwdDisabled(false), 1000)
   };
 
-
   return (
-    <div className="audio-controls">
-      <div>
-        <label>Volume:</label>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step={0.1}
-          value={musicVolume}
-          onChange={handleMusicVolumeChange}
-        />
+    <div className='audio-controls'>
+      <h2> 
+        AUDIO: 
+      </h2>
+
+      <div className='controls'>
+        <div>
+          <label>Music:</label>
+          <input
+            type='range'
+            min='0'
+            max='1'
+            step={0.01}
+            value={musicVolume}
+            onChange={handleMusicVolumeChange}
+          />
+        </div>
+
+        <div>
+          <label>SFX:</label>
+          <input
+            type='range'
+            min='0'
+            max='1'
+            step={0.01}
+            value={sfxVolume}
+            onChange={handleSfxVolumeChange}
+          />
+        </div>
+        
+        <button className={classNames('btn mute', { isMuted })} onClick={handleMute}>
+          {isMuted ? 'Unmute' : 'Mute'} All
+        </button>
       </div>
 
-      <button className={classNames("btn mute", { isMuted })} onClick={handleMute}>
-        {isMuted ? "Unmute" : "Mute"}
-      </button>
+      {nowPlaying && <div className='now-playing-mini'>
+        <p>🔊 NOW PLAYING: {nowPlaying.replace(/_/g, ' ').replace(/-/g, ' - ').toUpperCase()} 🎵</p>
+          
+        {/* <button className="btn rwd" disabled={rwdFwdDisabled} onClick={handleRewind}>
+          ⏪
+        </button> */}
 
-      {/* <button className="btn rwd" disabled={rwdFwdDisabled} onClick={handleRewind}>
-        ⏪
-      </button> */}
-
-      <button className="btn fwd" disabled={rwdFwdDisabled} onClick={handleForward}>
-        Skip Current Track ⏩
-      </button>
-
-      {/* <div>
-        <label>SFX Volume:</label>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={sfxVolume}
-          onChange={handleSfxVolumeChange}
-        />
-      </div> */}
+        <button className="btn fwd" disabled={rwdFwdDisabled} onClick={handleForward}>
+          Skip ⏩
+        </button>
+      </div>}
     </div>
   );
 };
 
-export default AudioControl;
+export default AudioControls;

@@ -1,4 +1,5 @@
 import Enemy, { EnemyConfig } from "./Enemy";
+import EventEmitter from "./EventEmitter";
 import { GameScene } from "./scenes/GameScene";
 
 export default class Soul extends Enemy {
@@ -20,5 +21,15 @@ export default class Soul extends Enemy {
     }
 
     this.anims.play('soul-walk')
+  }
+
+  hit(by: any) {
+    super.hit(by)
+    EventEmitter.emit('playSound', 'soulgrunt')
+  }
+
+  die() {
+    super.die()
+    EventEmitter.emit('playSound', 'soulgrumble')
   }
 }

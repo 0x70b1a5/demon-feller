@@ -7,7 +7,7 @@ import { BootScene } from '../game/scenes/BootScene';
 import EventEmitter from '../game/EventEmitter';
 import classNames from 'classnames';
 import { UIScene } from '../game/scenes/UIScene';
-import AudioControl from './AudioControls';
+import AudioControls from './AudioControls';
 import { AudioScene } from '../game/scenes/AudioScene';
 
 export const GameComponent: React.FC = () => {
@@ -34,7 +34,7 @@ export const GameComponent: React.FC = () => {
   const [paused, setPaused] = useState(false)
   const [stun, setStun] = useState(0)
   const [stunUp, setStunUp] = useState(false)
-  const [temporaryNowPlaying, setTemporaryNowPlaying] = useState('')
+  const [temporaryNowPlaying, setNowPlaying] = useState('')
   const [persistentNowPlaying, setPersistentNowPlaying] = useState('')
 
   const minimapRef = useRef<HTMLDivElement | null>(null);
@@ -175,10 +175,10 @@ export const GameComponent: React.FC = () => {
     }
 
     const nowPlayingListener = (song: string) => {
-      setTemporaryNowPlaying(old => song)
+      setNowPlaying(old => song)
       setPersistentNowPlaying(old => song)
       setTimeout(() => {
-        setTemporaryNowPlaying(old => '')
+        setNowPlaying(old => '')
       }, 5000)
     }
     
@@ -260,7 +260,7 @@ export const GameComponent: React.FC = () => {
       <div className={classNames('stat', { rainbowShake: fallenFelled })}>{demonsFelled}</div>
     </div>
   </div>
-  const restartButton = <button className='big-btn restart' onClick={() => {
+  const restartButton = <button className='btn restart' onClick={() => {
     // (gameRef?.current?.scene.getScene('GameScene') as GameScene).restart()
     setGameOver(false)
     setPaused(false)
@@ -297,24 +297,21 @@ export const GameComponent: React.FC = () => {
         {restartButton}
         <div className='after-action-report'>
           {stats}
-          <button className='big-btn tweet-em' onClick={() => window.open(tweetStats(), '_blank')}>TWEET 'EM</button>
+          <button className='btn tweet-em' onClick={() => window.open(tweetStats(), '_blank')}>TWEET 'EM</button>
         </div>
       </div>
     </div>}
     {paused && <div className='pause-menu overlay'>
       <div className='notice'>
         <h1>GAME PAUSED</h1>
-        <h2>AUDIO:</h2>
-        {persistentNowPlaying && <p>NOW PLAYING: {persistentNowPlaying}</p>}
-        <AudioControl />
-        <br/>
+        <AudioControls nowPlaying={persistentNowPlaying} />
         <h2>CONTROLS:</h2>
         <p>WASD or arrow keys: move</p>
         <p>Click: shoot</p>
         <br/>
         <h2>STATS:</h2>
         {stats}
-        <div className='big-btn resume' onClick={onUnpause}>RESUME</div>
+        <div className='btn resume' onClick={onUnpause}>RESUME</div>
         {restartButton}
       </div>
     </div>}

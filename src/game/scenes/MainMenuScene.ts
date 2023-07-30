@@ -4,23 +4,12 @@ import EventEmitter from '../EventEmitter';
 
 export class MainMenuScene extends Phaser.Scene {
   private rexUI!: RexUIPlugin
-  bat!: Phaser.Sound.HTML5AudioSound
-  magic!: Phaser.Sound.HTML5AudioSound
 
   constructor() {
     super({ key: 'MainMenuScene' });
   }
 
   create() {
-    const prefix = '__demonfeller-'
-    let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
-    if (startMuted) startMuted = (startMuted === true || startMuted === 'true') 
-    let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')! || 1
-    startMusicVolume = isNaN(startMusicVolume) ? 0.5 : startMusicVolume
-    let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')! || 1
-    startSfxVolume = isNaN(startSfxVolume) ? 0.5 : startSfxVolume
-
-
     // Add title image
     const demon = this.rexUI.add.label({
       width: 40,
@@ -67,12 +56,6 @@ export class MainMenuScene extends Phaser.Scene {
     .setOrigin(0.5, 0.5)
     .layout()
 
-    this.bat = this.sound.add('bat') as Phaser.Sound.HTML5AudioSound
-    this.magic = this.sound.add('magic') as Phaser.Sound.HTML5AudioSound
-
-    this.sound.setVolume(startMusicVolume)
-    this.sound.setMute(startMuted)
-
     // Add play button
     const playButton = this.rexUI.add.label({
       width: 40,
@@ -104,7 +87,6 @@ export class MainMenuScene extends Phaser.Scene {
       // Transition to game scene
       this.scene.start('GameScene');
       this.scene.launch('UIScene');
-      this.scene.launch('AudioScene');
       EventEmitter.emit('gameStarted')
     }, this);
 
@@ -158,14 +140,14 @@ export class MainMenuScene extends Phaser.Scene {
     beginButton.on('pointerup', () => {
       beginButton.destroy()
 
-      this.bat.play();
+      EventEmitter.emit('playSound', 'bat')
       this.tweens.add({
         targets: demon,
         x: this.cameras.main.centerX,
         ease: 'Elastic',
         duration: 700,
         onComplete: () => {
-          this.bat.play();
+          EventEmitter.emit('playSound', 'bat')
   
           this.tweens.add({
             targets: feller,
@@ -173,7 +155,7 @@ export class MainMenuScene extends Phaser.Scene {
             ease: 'Elastic',
             duration: 700,
             onComplete: () => {
-              this.magic.play()
+              EventEmitter.emit('playSound', 'magic')
               playButton.setVisible(true)
               presented.setVisible(true)
               this.cameras.main.flash(1000)

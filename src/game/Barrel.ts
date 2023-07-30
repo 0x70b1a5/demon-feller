@@ -36,6 +36,7 @@ export default class Barrel extends Stuff {
   explode() {
     const boom = this.scene?.physics.add.sprite(this.x, this.y, 'boom')
     .setScale(2)
+    this.scene.cameras.main.shake()
     this.scene?.tweens.add({
       targets: boom,
       ease: 'Elastic',
