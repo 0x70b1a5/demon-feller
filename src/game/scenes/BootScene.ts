@@ -140,6 +140,15 @@ export class BootScene extends Phaser.Scene {
     this.load.audio(firstSongKey, firstSongFile)
     // this.load.audio('song3', 'assets/audio/song3.mp3');
 
+    // SFX
+    this.load.audio('belcherbelch', 'assets/sounds/belcherbelch.ogg')
+    this.load.audio('belcherbreathe', 'assets/sounds/belcherbreathe.ogg')
+    this.load.audio('piggrunt', 'assets/sounds/piggrunt.ogg')
+    this.load.audio('pigsqueal', 'assets/sounds/pigsqueal.ogg')
+    this.load.audio('shoot', 'assets/sounds/shoot.ogg')
+    this.load.audio('bullethit', 'assets/sounds/bullethit.ogg')
+    this.load.audio('goosquelch', 'assets/sounds/goosquelch.ogg')
+
     // Tilemap
     // this.load.image('tiles', 'assets/tilemaps/tiles.png');
   }

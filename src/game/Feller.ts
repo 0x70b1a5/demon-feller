@@ -341,9 +341,13 @@ export default class Feller {
       stuff.hit(this.damage);
       (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
     })
-    this.scene.physics.add.collider(bullet, [
-      this.scene.groundLayer, this.scene.stuffLayer, this.scene.shadowLayer
-    ], (bullet) => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle))
+    this.scene.physics.add.overlap(bullet, [
+      this.scene.groundLayer, 
+    ], (bullet, tile) => {
+      if ((tile as Phaser.Tilemaps.Tile).collides) {
+        (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
+      }
+    })
     this.shootCooldown = this.RELOAD_COOLDOWN;
   }
   

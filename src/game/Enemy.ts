@@ -150,6 +150,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   fixedUpdate(time: any, delta: any) {    
+    if (this.dead) return
+    
     super.preUpdate(time, delta);
 
     if (this.debug) {

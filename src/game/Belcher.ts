@@ -15,11 +15,11 @@ export default class Belcher extends Enemy {
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
 
-    if ((!scene.anims.exists('belcher-belch'))) {   
+    if ((!scene.anims.exists('belcher-belch'))) {
       scene.anims.create({
         key: 'belcher-belch',
         frames: scene.anims.generateFrameNumbers('belcher-sheet', { frames: [0, 1] }),
-        frameRate: 5,
+        frameRate: 1,
         repeat: -1
       })
     }
@@ -68,7 +68,7 @@ export default class Belcher extends Enemy {
 
   fixedUpdate(time: any, delta: any) {
     super.fixedUpdate(time, delta)
-    if (this.seenFeller) {
+    if (!this.dead && this.seenFeller) {
       this.belch()
     }
   }

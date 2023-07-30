@@ -6,7 +6,7 @@ import animations from './util/animate';
 import Stuff, { StuffConfig } from './Stuff';
 
 export default class Barrel extends Stuff {
-  knockback = 200 
+  knockback = 120 
   damage = 3
   dangerRadiusInTiles = 1.5
   MAX_HEALTH = 1

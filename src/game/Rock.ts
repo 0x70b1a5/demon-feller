@@ -38,8 +38,11 @@ export default class Rock extends Stuff {
       this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
     ]
 
+    const minDepth = Math.min(...this.scene.enemies.map(e => e.depth))
+
     remains.forEach(r => {
       r.setRotation(Math.random() * 2 * Math.PI)
+      .setDepth(minDepth)
     })
 
     if (Math.random() < 0.1) {

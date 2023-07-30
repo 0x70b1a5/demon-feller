@@ -41,7 +41,7 @@ export interface OurCursorKeys extends Phaser.Types.Input.Keyboard.CursorKeys {
 }
 
 export class GameScene extends Phaser.Scene {
-  debug = true
+  debug = false
 
 
 
@@ -106,7 +106,7 @@ export class GameScene extends Phaser.Scene {
     })
 
     EventEmitter.on('recreateWalkableGrid', () => {
-      this.createWalkableGrid()
+      this.createAndEmitMinimap()
     })
 
     EventEmitter.on('revealRoom', (guid: string) => {
@@ -116,7 +116,7 @@ export class GameScene extends Phaser.Scene {
       }
       this.revealedRooms.push(room.guid)
       console.log('room revealed', guid, room, this.rooms)
-      this.emitMinimap()
+      this.createAndEmitMinimap()
     })
 
     this.scene.launch('UIScene')
@@ -147,7 +147,7 @@ export class GameScene extends Phaser.Scene {
   createDungeon() {
     const roomSize = 7 + this.level
     const dungeon = this.dungeon = new Dungeon({
-      width: 28 + this.level,
+      width: 36 + this.level,
       height: 28 + this.level,
       doorPadding: 2,
       rooms: {
@@ -318,7 +318,7 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
-  emitMinimap() {
+  createAndEmitMinimap() {
     this.createWalkableGrid()
     const minimap = this.walkableTilesAs01.map((rowOfWalkables, y) => rowOfWalkables.map((walkableInt, x) => {
       const room = this.rooms.find(room => room.guid === (this.dungeon.getRoomAt(x, y) as RoomWithEnemies)?.guid)
@@ -383,7 +383,7 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
-  tileIsNearDoor(x: number, y: number, room: Room, threshold = 200) {
+  tileIsNearDoor(x: number, y: number, room: Room, threshold = 400) {
     for (let door of room.getDoorLocations()) {
       const [realDoorX, realDoorY] = [door.x + room.x, door.y + room.y]
       if ((
@@ -391,7 +391,7 @@ export class GameScene extends Phaser.Scene {
         || x - 1 === realDoorX && y === realDoorY // right
         || x === realDoorX && y + 1 === realDoorY // up
         || x === realDoorX && y - 1 === realDoorY // down
-        && Phaser.Math.Distance.BetweenPoints(this.map.tileToWorldXY(realDoorX, realDoorY)!, { x, y }) < threshold
+        || Phaser.Math.Distance.BetweenPoints(this.map.tileToWorldXY(realDoorX, realDoorY)!, { x, y }) < threshold
       )) {
         return true
       }
@@ -465,7 +465,7 @@ export class GameScene extends Phaser.Scene {
     console.log('level', this.level)
     this.createDungeon()
     this.createTilemap()
-    this.emitMinimap()
+    this.createAndEmitMinimap()
     this.addStuffToRooms()
     this.putPlayerInStartRoom()
     this.spawnEnemiesInRooms()
@@ -556,9 +556,10 @@ export class GameScene extends Phaser.Scene {
 
       room.forEachTile(({ x, y }, tile) => {
         if (tile !== TILES.DUNGEON_TILES.FLOOR) return
-        // within 2 tiles of door: RAUS!
-        for (let y1 = -2; y1 < 2; y1++) {
-          for (let x1 = -2; x1 < 2; x1++) {
+        // within this many tiles of door: RAUS!
+        let notWithinThisManyTiles = 2
+        for (let y1 = -notWithinThisManyTiles; y1 < notWithinThisManyTiles; y1++) {
+          for (let x1 = -notWithinThisManyTiles; x1 < notWithinThisManyTiles; x1++) {
             let maybeTile = -1;
             try {
               maybeTile = room.getTileAt(x1 + x, y1 + y)
@@ -579,7 +580,7 @@ export class GameScene extends Phaser.Scene {
         this.level * 3
       )
     
-      acceptableTiles = Phaser.Utils.Array.Shuffle(acceptableTiles)
+      acceptableTiles = Phaser.Utils.Array.Shuffle(acceptableTiles.filter(t => t))
       console.log({ room, acceptableTiles, numToSpawn })
 
       for (let i = 0; i < numToSpawn; i++) {

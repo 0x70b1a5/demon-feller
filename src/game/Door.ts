@@ -47,7 +47,7 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
       // when feller enters a room for the first time, push him in and lock
       scene.feller.sprite.setVelocity(0)
       const push = [0,0]
-      const pushFactor = 1.5
+      const pushFactor = 2
 
       switch(nesw) {
         case 'E':
@@ -66,8 +66,16 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
           break
       }
 
-      scene.feller.sprite.x += push[0]
-      scene.feller.sprite.y += push[1]
+      console.log(push[0], push[1])
+      this.scene.tweens.add({
+        targets: this.scene.feller.sprite,
+        x: scene.feller.sprite.x + push[0],
+        y: scene.feller.sprite.y + push[1],
+        duration: 1000,
+        ease: 'Power2'
+      })
+      scene.feller.stun += 30
+      scene.feller.iframes += 30
 
       EventEmitter.emit('spawnDoors', this.room.guid)
     })
