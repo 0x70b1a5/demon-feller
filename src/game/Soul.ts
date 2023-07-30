@@ -24,12 +24,12 @@ export default class Soul extends Enemy {
   }
 
   hit(by: any) {
-    super.hit(by)
     EventEmitter.emit('playSound', 'soulgrunt')
+    super.hit(by)
   }
 
   die() {
-    super.die()
     EventEmitter.emit('playSound', 'soulgrumble')
+    super.die()
   }
 }

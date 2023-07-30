@@ -436,9 +436,9 @@ export class GameScene extends Phaser.Scene {
     if (tries < 20) {
       let object;
       if (roll < 0.25) {
-        object = new Barrel(this, { room, damage: 3, health: 3, texture: 'barrel' }, x, y)
+        object = new Barrel(this, { room, damage: 3, health: 3 * this.level, texture: 'barrel' }, x, y)
       } else if (roll < 0.75) {
-        object = new Rock(this, { room, damage: 0, health: 10, texture: 'rock' }, x, y)          
+        object = new Rock(this, { room, damage: 0, health: 10 * this.level, texture: 'rock' }, x, y)          
       }
       
       if (object) {
@@ -581,13 +581,13 @@ export class GameScene extends Phaser.Scene {
       )
     
       acceptableTiles = Phaser.Utils.Array.Shuffle(acceptableTiles.filter(t => t))
-      console.log({ room, acceptableTiles, numToSpawn })
+      this.debug && console.log({ room, acceptableTiles, numToSpawn })
 
       for (let i = 0; i < numToSpawn; i++) {
         const enemyType = roll(enemyWeights)
         let enemy: Enemy | null = null;
         let {x, y} = acceptableTiles[i]
-        console.log('spawning enemy at', { x, y })
+        this.debug && console.log('spawning enemy at', { x, y })
         switch(enemyType) {
           case EnemyType.Goo:
             enemy = new Goo(this, { level: this.level, room, enemyType, texture: 'goo' }, x, y)
@@ -688,5 +688,6 @@ export class GameScene extends Phaser.Scene {
       this.fixedUpdate(currentTime, deltaTime)
       this.lastUpdateTime = currentTime - (deltaTime % this.fixedDeltaTime);
     }
+    this.feller.makeGunFollowPointer()
   }
 }

@@ -1,4 +1,5 @@
 import Enemy, { EnemyConfig } from "./Enemy";
+import EventEmitter from "./EventEmitter";
 import { GameScene } from "./scenes/GameScene";
 
 export default class Imp extends Enemy {
@@ -14,5 +15,10 @@ export default class Imp extends Enemy {
     if (time % 1000 === delta) {
       this.movementAngle *= Math.random()
     }
+  }
+
+  die() {
+    EventEmitter.emit('playSound', 'impsqueak')
+    super.die()
   }
 }

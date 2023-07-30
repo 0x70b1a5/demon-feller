@@ -58,7 +58,6 @@ export default class Feller {
 
     console.log('newed up a feller')
 
-    this.container = this.scene.add.container(x, y);
     this.createNewSprite(x, y)
 
     this.keys = this.scene.input.keyboard!.addKeys({
@@ -90,6 +89,10 @@ export default class Feller {
       this.gunSprite.destroy()
     }
 
+    if (this.container) {
+      this.container.destroy()
+    }
+
     this.gunSprite = this.scene.physics.add
       .sprite(x, y, 'gun')
       .setScale(0.35)
@@ -111,7 +114,10 @@ export default class Feller {
 
     this.scene.physics.add.collider(this.sprite, this.scene.stuffs)
 
+    // this.container = this.scene.add.container(x, y);
     // this.container.add(this.sprite)
+    // this.container.add(this.gunSprite)
+    // this.scene.physics.world.enable(this.container)
     // this.container.add(this.gunSprite)
   }
 
@@ -167,7 +173,7 @@ export default class Feller {
 
   }
 
-  pointAndShoot() {
+  makeGunFollowPointer() {
     const sprite = this.sprite;
     // Calculate the angle between the gun and the mouse cursor
     const pointer = this.scene.input.mousePointer;
@@ -198,19 +204,18 @@ export default class Feller {
 
     this.gunSprite.flipY = this.gunSprite.x < sprite.x
 
-
-    if (this.shootCooldown <= 0) {
-      if (pointer.primaryDown || this.keys.space.isDown) {
-        this.shoot(angleToPointer);
-      }
-    } else {
-      this.shootCooldown--
-    }
+    return angleToPointer
   }
 
   update(time: any, delta: any) {
     this.move()  
-    this.pointAndShoot()
+    const angleToPointer = this.makeGunFollowPointer()
+
+    if (this.shootCooldown > 0) {
+      this.shootCooldown--
+    } else if (this.scene.input.mousePointer.primaryDown || this.keys.space.isDown) {
+      this.shoot(angleToPointer);
+    }
 
     if (this.iframes > 0) {
       this.iframes--
@@ -287,7 +292,7 @@ export default class Feller {
         break
       case PowerUpType.RateOfFire:
         this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.85, 1)
-        this.bulletSpeed *= 1.25
+        this.bulletSpeed *= 1.05
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
         break
       case PowerUpType.Bullet:

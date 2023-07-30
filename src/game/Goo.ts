@@ -23,7 +23,12 @@ export default class Goo extends Enemy {
   }
 
   hit(by: Phaser.Types.Math.Vector2Like & { damage: number, knockback: number }) {
-    super.hit(by)
     EventEmitter.emit('playSound', 'goosquelch')
+    super.hit(by)
+  }
+
+  die() {
+    EventEmitter.emit('playSound', 'goosquish')
+    super.die()
   }
 }

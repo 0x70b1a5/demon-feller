@@ -18,6 +18,13 @@ export default class Barrel extends Stuff {
     this.MAX_HEALTH = this.health
 
     this.setImmovable(true)
+    this.boom = this.scene?.physics.add.sprite(this.x, this.y, 'boom')
+    .setScale(2)
+    .setVisible(false)
+    .setActive(false)
+
+    this.smoke = this.scene?.physics.add.sprite(this.x, this.y, 'smoke')
+    .setActive(false).setVisible(false)
   }
 
   fixedUpdate(time: number, delta: number) {
@@ -33,22 +40,23 @@ export default class Barrel extends Stuff {
     }
   }
 
+  boom!: Phaser.GameObjects.Sprite
+  smoke!: Phaser.GameObjects.Sprite
   explode() {
-    const boom = this.scene?.physics.add.sprite(this.x, this.y, 'boom')
-    .setScale(2)
+    this.boom.setActive(true).setVisible(true)
     this.scene.cameras.main.shake()
     this.scene?.tweens.add({
-      targets: boom,
+      targets: this.boom,
       ease: 'Elastic',
       duration: 250,
       x: Math.random() * 10 + this.x,
       onComplete: () => {
-        boom?.destroy()
+        this.boom?.destroy()
 
-        const smoke = this.scene?.physics.add.sprite(this.x, this.y, 'smoke')
-        animations.wobbleSprite(this.scene, smoke)
+        this.smoke.setActive(true).setVisible(true)
+        animations.wobbleSprite(this.scene, this.smoke)
         setTimeout(() => {
-          smoke?.destroy()
+          this.smoke?.destroy()
         }, 2000);
       }
     })

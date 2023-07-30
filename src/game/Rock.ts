@@ -11,12 +11,19 @@ export default class Rock extends Stuff {
   constructor(scene: GameScene, config: StuffConfig, x: number, y: number) {
     super(scene, config, x, y);
     this.scene = scene
-    // Set up physics
     scene.physics.world.enable(this);
     scene.add.existing(this);
 
     this.setOrigin(0.5, 0.5)
     this.setImmovable(true)
+
+    this.remains = [
+      this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
+      this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
+      this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
+    ]
+
+    this.remains.forEach(r => r.setVisible(false).setActive(false))
   }
 
   fixedUpdate(time: number, delta: number) {
@@ -28,20 +35,16 @@ export default class Rock extends Stuff {
     animations.wobbleSprite(this.scene, this, -5, 5, 50, false, false)
   }
 
+  remains!: Phaser.GameObjects.Sprite[]
   onBeforeDie(): void {
     super.onBeforeDie()
     this.setRotation(Math.random())
 
-    const remains = [
-      this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
-      this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
-      this.scene.add.sprite(this.x + Math.random() * this.width - this.width/2, this.y + Math.random() * this.height - this.height/2, 'tribullet'),
-    ]
-
     const minDepth = Math.min(...this.scene.enemies.map(e => e.depth))
 
-    remains.forEach(r => {
-      r.setRotation(Math.random() * 2 * Math.PI)
+    this.remains.forEach(r => {
+      r.setActive(true).setVisible(true)
+      .setRotation(Math.random() * 2 * Math.PI)
       .setDepth(minDepth)
     })
 

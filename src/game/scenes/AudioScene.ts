@@ -1,6 +1,5 @@
 import EventEmitter from "../EventEmitter";
 import audioFiles from "../constants/audioFiles";
-import { GameScene } from "./GameScene";
 
 export class AudioScene extends Phaser.Scene {
   songNames: string[] = Object.keys(audioFiles)
@@ -12,8 +11,6 @@ export class AudioScene extends Phaser.Scene {
   musicVolume = 0.5
   sfxVolume = 0.5
 
-  gameScene!: GameScene
-
   grunt!: Phaser.Sound.HTML5AudioSound
   squeal!: Phaser.Sound.HTML5AudioSound
   belch!: Phaser.Sound.HTML5AudioSound
@@ -21,15 +18,16 @@ export class AudioScene extends Phaser.Scene {
   impsqueak!: Phaser.Sound.HTML5AudioSound
   soulgrunt!: Phaser.Sound.HTML5AudioSound
   soulgrumble!: Phaser.Sound.HTML5AudioSound
+  goosquelch!: Phaser.Sound.HTML5AudioSound
+  goosquish!: Phaser.Sound.HTML5AudioSound
   bat!: Phaser.Sound.HTML5AudioSound
   magic!: Phaser.Sound.HTML5AudioSound
 
   constructor() {
     super({ key: 'AudioScene' });
   }
-  
+
   create() {
-    this.gameScene = this.scene.get('GameScene') as GameScene
     const prefix = '__demonfeller-'
     const DEFAULT_VOLUME = 0.5
 
@@ -57,9 +55,12 @@ export class AudioScene extends Phaser.Scene {
     this.impsqueak = this.sound.add('impsqueak') as Phaser.Sound.HTML5AudioSound
     this.soulgrunt = this.sound.add('soulgrunt') as Phaser.Sound.HTML5AudioSound
     this.soulgrumble = this.sound.add('soulgrumble') as Phaser.Sound.HTML5AudioSound
+    this.goosquelch = this.sound.add('goosquelch') as Phaser.Sound.HTML5AudioSound
+    this.goosquish = this.sound.add('goosquish') as Phaser.Sound.HTML5AudioSound
 
     EventEmitter.on('gameStarted', () => {
       this.playRandomMusic()
+      this.load.start()
     })
 
     EventEmitter.on('unpause', () => {
@@ -90,19 +91,19 @@ export class AudioScene extends Phaser.Scene {
 
     EventEmitter.on('playSound', (key: string, config: Phaser.Types.Sound.SoundConfig) => {
       if (!this.songIsLoaded(key)) return
-      console.log('playsound', key, config)
       this.sound.play(key, { volume: this.sfxVolume, ...config })
-    })
-
-    Object.entries(audioFiles).forEach(([key, file]) => {
-      if (!this.songIsLoaded(key))
-        this.load.audio(key, file)
     })
 
     this.load.on('complete', () => {
       Object.entries(audioFiles).forEach(([key, file]) => {
         this.sound.add(key)
       })
+    })
+
+    Phaser.Utils.Array.Shuffle(Object.entries(audioFiles)).forEach(([key, file]) => {
+      if (!this.songIsLoaded(key)) {
+        this.load.audio(key, file)
+      }
     })
   }
 

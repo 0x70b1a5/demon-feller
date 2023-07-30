@@ -72,7 +72,7 @@ export class UIScene extends Phaser.Scene {
   createMinimapMarkers() {
     if (!this.fellerMarker) {
       this.fellerMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-feller');
-      this.fellerMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
+      this.fellerMarker.setSize(this.minimapTileSize*2, this.minimapTileSize*2);
     }
     
     if (this.enemyMarkers) {
@@ -81,7 +81,7 @@ export class UIScene extends Phaser.Scene {
     
     this.enemyMarkers = this.gameScene.enemies.map(enemy => {
       const enemyMarker = this.physics.add.sprite(this.minimapX, this.minimapY, 'mm-demon');
-      enemyMarker.setDisplaySize(this.minimapTileSize*2, this.minimapTileSize*2);
+      enemyMarker.setSize(this.minimapTileSize*2, this.minimapTileSize*2);
       return enemyMarker;
     });
   }

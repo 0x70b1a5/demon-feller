@@ -231,33 +231,33 @@ export const GameComponent: React.FC = () => {
   };
 
   const stats = <div className='stats'>
-    <div className='health bar'>
+    <div className={classNames('health bar', { rainbowShake: hpUp })}>
       HP:
-      <div className={classNames('stat', { rainbowShake: hpUp })}> {currentHp}/{maxHp}</div>
+      <div className={classNames('stat')}> {currentHp}/{maxHp}</div>
     </div>
-    <div className='speed bar'>
+    <div className={classNames('speed bar', { rainbowShake: speedUp })}>
       SPEED:
-      <div className={classNames('stat', { rainbowShake: speedUp })}> {Math.round(speed / 24)}MPH</div>
+      <div className={classNames('stat')}> {Math.round(speed / 24)}MPH</div>
     </div>
-    <div className='damage bar'>
+    <div className={classNames('damage bar', { rainbowShake: damageUp })}>
       DMG:
-      <div className={classNames('stat', { rainbowShake: damageUp })}>{damage || 1}</div>
+      <div className={classNames('stat')}>{damage || 1}</div>
     </div>
-    <div className='reloadSpeed bar'>
+    <div className={classNames('reloadSpeed bar', { rainbowShake: reloadSpeedUp })}>
       R.O.F.:
-      <div className={classNames('stat', { rainbowShake: reloadSpeedUp })}>{Number(40 / (reloadSpeed || 40)).toPrecision(3)}x</div>
+      <div className={classNames('stat')}>{Number(40 / (reloadSpeed || 40)).toPrecision(3)}x</div>
     </div>
-    <div className='stun bar'>
+    <div className={classNames('stun bar', { rainbowShake: stunUp })}>
       STUN:
-      <div className={classNames('stat', { rainbowShake: stunUp })}>{Number(stun / 100).toPrecision(3)}x</div>
+      <div className={classNames('stat')}>{Number(stun / 100).toPrecision(3)}x</div>
     </div>
-    <div className='demonsFelled bar'>
-      FELLED (LV):
+    <div className={classNames('demonsFelled bar', { rainbowShake: fallenFelled })}>
+      LV {level}:
       <div className='stat'>{demonsFelledLevel}/{demonsToFell}</div>
     </div>
-    <div className='demonsFelled bar'>
+    <div className={classNames('demonsFelled bar', { rainbowShake: fallenFelled })}>
       FELLED:
-      <div className={classNames('stat', { rainbowShake: fallenFelled })}>{demonsFelled}</div>
+      <div className={classNames('stat')}>{demonsFelled}</div>
     </div>
   </div>
   const restartButton = <button className='btn restart' onClick={() => {
