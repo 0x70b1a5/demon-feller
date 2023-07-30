@@ -8,6 +8,7 @@ import EventEmitter from '../game/EventEmitter';
 import classNames from 'classnames';
 import { UIScene } from '../game/scenes/UIScene';
 import AudioControl from './AudioControls';
+import { AudioScene } from '../game/scenes/AudioScene';
 
 export const GameComponent: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -44,7 +45,7 @@ export const GameComponent: React.FC = () => {
       parent: 'game-container',
       width: windowSize.width,
       height: windowSize.height,
-      scene: [BootScene, MainMenuScene, GameScene, UIScene],
+      scene: [BootScene, MainMenuScene, GameScene, UIScene, AudioScene],
       physics: {
         default: 'arcade',
       },

@@ -13,6 +13,9 @@ export default class Pig extends Enemy {
   bullets: Bullet[] = []
   knockback = 200
 
+  grunt!: Phaser.Sound.HTML5AudioSound
+  squeal!: Phaser.Sound.HTML5AudioSound
+
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
     this.setScale(0.9, 0.9)
@@ -28,6 +31,8 @@ export default class Pig extends Enemy {
     }
 
     this.anims.play('pig-walk')
+    this.grunt = scene.sound.add('piggrunt') as Phaser.Sound.HTML5AudioSound
+    this.squeal = scene.sound.add('pigsqueal') as Phaser.Sound.HTML5AudioSound
   
     EventEmitter.on('gameOver', () => {
       this.bullets.forEach(bullet => bullet.destroy())
@@ -69,7 +74,16 @@ export default class Pig extends Enemy {
         this.spit()
       }
     }
+  }
 
+  hit(by: Phaser.Types.Math.Vector2Like & { damage: number, knockback: number }) {
+    this.grunt.play()
+    super.hit(by)
+  }
+
+  die() {
+    this.squeal.play()
+    super.die()
   }
 
   destroy() {

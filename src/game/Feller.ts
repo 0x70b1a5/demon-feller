@@ -242,6 +242,9 @@ export default class Feller {
       return
     }
 
+
+    this.scene.cameras.main.flash(10, 255, 0, 0, true)
+
     console.log('feller hit by enemy', by, this.hp)
 
     this.hp = Math.max(0, this.hp - by.damage)

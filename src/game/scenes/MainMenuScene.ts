@@ -104,6 +104,7 @@ export class MainMenuScene extends Phaser.Scene {
       // Transition to game scene
       this.scene.start('GameScene');
       this.scene.launch('UIScene');
+      this.scene.launch('AudioScene');
       EventEmitter.emit('gameStarted')
     }, this);
 
