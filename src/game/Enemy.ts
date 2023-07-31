@@ -48,6 +48,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   stun = 0
   stunImmunity = 0
   guid = uuid()
+  minimapMarker!: Phaser.GameObjects.Sprite
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, 0, 0, config.texture);
@@ -63,28 +64,31 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.collider(this, scene.groundLayer)
     scene.physics.add.collider(this, scene.stuffLayer)
     scene.physics.add.collider(this, scene.stuffs)
-    
-    if (!(x && y)) {
-      let [spawnX, spawnY] = scene.findUnoccupiedRoomTile(config.room, 3)
-      
-      x = spawnX
-      y = spawnY
-
-    }
-
-    this.debug && console.log('actually spawning enemy at', { x, y })
-
-    this
-    .ensureIsInRoom(x, y)
-    .setX(scene.map.tileToWorldX(this.room.x + x)! + scene.map.tileWidth / 2)
-    .setY(scene.map.tileToWorldY(this.room.y + y)! + scene.map.tileHeight / 2)
 
     this
       .setOrigin(0.5, 0.5)
       .setBounce(1, 1)
+    
+    if (!(x && y)) {
+      [x, y] = scene.findUnoccupiedRoomTile(config.room, 3)
+    }
+
+    this.debug && console.log('actually spawning enemy at', { x, y })
+
+    const [spawnX, spawnY] = [
+      scene.map.tileToWorldX(this.room.x + x)! + scene.map.tileWidth / 2, 
+      scene.map.tileToWorldY(this.room.y + y)! + scene.map.tileHeight / 2
+    ]
+
+    this
+      .setX(spawnX)
+      .setY(spawnY)
 
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
-    // this.gfx.strokeCircle(this.x, this.y, this.width)
+
+    this.minimapMarker = scene.add.sprite(spawnX, spawnY, 'mm-demon');
+    this.minimapMarker.setScale(10)
+    scene.cameras.main.ignore(this.minimapMarker)
 
     if (this.debug) {
       this.gfx
@@ -173,6 +177,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       } else {
         this.stun--
       }
+      this.minimapMarker.setX(this.x).setY(this.y)
     } else {
       this.showIfInRoom()
     }
@@ -180,7 +185,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   showIfInRoom() {
     if (this.room.guid === this.scene.fellerRoom.guid) {
-      !this.visible && this.setVisible(true)
+      !this.visible && this.setVisible(true) && this.minimapMarker.setVisible(true)
       console.log('seen feller', this)
       this.seenFeller = true
       this.target = this.scene.feller.sprite
@@ -191,6 +196,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     } else {
       // if we are not in same room as player, hide sprite
       this.setVisible(false)
+      this.minimapMarker.setVisible(false)
       this.seenFeller = false
     }
   }
@@ -260,6 +266,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.scene.checkLevelComplete() // dont call after destroy()
     this.setVisible(false)
     this.setActive(false)
+    this.minimapMarker.setVisible(false)
     this.body!.destroy()
   }
 }

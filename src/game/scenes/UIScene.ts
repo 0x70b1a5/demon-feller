@@ -15,50 +15,27 @@ export class UIScene extends Phaser.Scene {
   create() {
     this.gameScene = this.scene.get('GameScene') as GameScene;
     this.minimap = this.gameScene.cameras.add(0, 0, 200, 200, false, 'mini').setZoom(this.minimapZoom)
-    this.minimap.setBackgroundColor(colors.TEXT_COLOR).startFollow(this.gameScene.feller.sprite)
-    .ignore(this.gameScene.shadowLayer);
+    this.minimap.setBackgroundColor(colors.TEXT_COLOR)
 
+    this.refollowAndignoreSprites()
+    
     EventEmitter.on('unpause', () => {
       this.scene.resume('GameScene')
     })
-
-    this.createMinimapMarkers()
-    EventEmitter.on('drawMinimap', () => this.createMinimapMarkers())
-
-    EventEmitter.on('gameRestarted', () => {
+    .on('drawMinimap', () => this.refollowAndignoreSprites())
+    .on('gameRestarted', () => {
       this.scene.bringToTop(this)
     })
   }
 
-  fellerMarker!: Phaser.GameObjects.Sprite;
-  enemyMarkers!: Phaser.GameObjects.Sprite[];
-  createMinimapMarkers() {
-    if (this.fellerMarker) {
-      this.fellerMarker.destroy()
-    }
-
-    this.fellerMarker = this.add.sprite(
-      this.gameScene.feller.sprite.x*this.minimapZoom, 
-      this.gameScene.feller.sprite.y*this.minimapZoom,
-      'mm-feller');
-    
-    if (this.enemyMarkers) {
-      this.enemyMarkers.forEach(em => em.destroy())
-    }
-
-    this.enemyMarkers = this.gameScene.enemies.filter(e => e.seenFeller).map(enemy => {
-      return this.add.sprite(
-        enemy.x*this.minimapZoom, 
-        enemy.y*this.minimapZoom, 
-      'mm-demon');
-    });
-
-
-    this.minimap.ignore([this.gameScene.feller.sprite, ...this.gameScene.enemies]);
-    // this.gameScene.cameras.main.ignore([this.fellerMarker, ...this.enemyMarkers]);
-  }
-
-  update() {
-    console.log(this.minimap.scrollX, this.minimap.scrollY)
+  refollowAndignoreSprites() {
+    this.minimap
+    .startFollow(this.gameScene.feller.sprite)
+    .ignore([
+      this.gameScene.shadowLayer, 
+      this.gameScene.feller.sprite,
+      this.gameScene.feller.gunSprite, 
+      ...this.gameScene.enemies
+    ]);
   }
 }

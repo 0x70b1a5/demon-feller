@@ -31,9 +31,24 @@ body {
     display: flex;
     flex-direction: column;
 
+    &.critical {
+      animation: 1s flashRed ease-out infinite;
+    }
+
     .stat {
       align-self: flex-end; 
     }
+  }
+}
+
+@keyframes flashRed {
+  0% {
+    background-color: red;
+    color: white;
+  }
+
+  100% {
+    
   }
 }
 

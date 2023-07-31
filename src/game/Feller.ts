@@ -37,6 +37,7 @@ export default class Feller {
   bulletSpeed = 300
   damage = 1
   container!: Phaser.GameObjects.Container;
+  minimapMarker!: Phaser.GameObjects.Sprite;
 
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
@@ -93,6 +94,10 @@ export default class Feller {
       this.container.destroy()
     }
 
+    if (this.minimapMarker) {
+      this.minimapMarker.destroy()
+    }
+
     this.gunSprite = this.scene.physics.add
       .sprite(x, y, 'gun')
       .setScale(0.35)
@@ -114,6 +119,8 @@ export default class Feller {
 
     this.scene.physics.add.collider(this.sprite, this.scene.stuffs)
 
+    this.minimapMarker = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'mm-feller').setScale(20);
+    this.scene.cameras.main.ignore([this.minimapMarker])
     // this.container = this.scene.add.container(x, y);
     // this.container.add(this.sprite)
     // this.container.add(this.gunSprite)
@@ -233,6 +240,7 @@ export default class Feller {
     this.sprite.setDepth(depth+2)
     this.gunSprite.setDepth(depth+1)
     this.bullets.forEach(b => b.fixedUpdate(time, delta))
+    this.minimapMarker?.setX(this.sprite.x).setY(this.sprite.y)
   }
 
   hit(by: Phaser.Physics.Arcade.Sprite & { damage: number, knockback: number }) {
@@ -244,7 +252,7 @@ export default class Feller {
 
     console.log('feller hit by enemy', by, this.hp)
 
-    this.hp = Math.max(0, this.hp - by.damage)
+    this.hp = Math.max(0, this.hp - Math.round(by.damage))
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     

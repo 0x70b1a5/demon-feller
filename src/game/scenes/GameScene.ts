@@ -442,7 +442,7 @@ export class GameScene extends Phaser.Scene {
     this.creatingNewLevel = true
 
     this.level++
-    console.log('level', this.level)
+    console.log('levelChanged', this.level)
     this.createDungeon()
     this.createTilemap()
     this.drawMinimap()
@@ -521,7 +521,7 @@ export class GameScene extends Phaser.Scene {
     if (roomsWithEnemies.length > 0) {
       return false
     }
-    EventEmitter.emit('levelUp', this.level + 1) // don't increment it yet
+    EventEmitter.emit('levelCompleted', this.level)
     this.levellingUp = true
     this.feller.sprite.setVelocity(0)
     this.physics.world.colliders.getActive().forEach(c => c.destroy());

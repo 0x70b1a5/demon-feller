@@ -18,11 +18,10 @@ export const GameComponent: React.FC = () => {
   const [speed, setSpeed] = useState(300)
   const [reloadSpeed, setReloadSpeed] = useState(40)
   const [gameOver, setGameOver] = useState(false)
-  const [levelUp, setLevelUp] = useState(false)
+  const [levelCompleted, setLevelCompleted] = useState(false)
   const [demonsFelled, setDemonsFelled] = useState(0)
   const [demonsFelledLevel, setDemonsFelledLevel] = useState(0)
   const [demonsToFell, setDemonsToFell] = useState(0)
-  const [minimap, setMinimap] = useState<number[][]>([])
   const [level, setLevel] = useState(1)
   const [damage, setDamage] = useState(1)
   const [gameStarted, setGameStarted] = useState(false)
@@ -105,7 +104,6 @@ export const GameComponent: React.FC = () => {
 
   useEffect(() => {
     const healthListener = ([hp, max]: [number, number]) => {
-      console.log('health event', hp, max)
       setCurrentHp(hp)
       setMaxHp(max)
 
@@ -115,21 +113,18 @@ export const GameComponent: React.FC = () => {
     };
 
     const speedListener = (speed: number) => {
-      console.log('speed event', speed)
       setSpeed(speed)
 
       toggle1s(setSpeedUp)
     }
 
     const reloadSpeedListener = (rSpeed: number) => {
-      console.log('rspeed event', rSpeed)
       setReloadSpeed(rSpeed)
 
       toggle1s(setReloadSpeedUp)
     }
 
     const demonsFelledListener = (felled: number) => {
-      console.log('felled event', felled)
       setDemonsFelled(felled)
 
       if (felled > 0) {
@@ -161,9 +156,12 @@ export const GameComponent: React.FC = () => {
       setGameOver(true)
     }
 
-    const levelUpListener = (newLevel: number) => {
+    const levelCompletedListener = () => {
+      setLevelCompleted(true)
+    }
+
+    const levelChangedListener = (newLevel: number) => {
       setLevel(newLevel)
-      setLevelUp(true)
     }
 
     const gameStartedListener = () => {
@@ -191,7 +189,8 @@ export const GameComponent: React.FC = () => {
     EventEmitter.on('demonsFelled', demonsFelledListener);
     EventEmitter.on('demonsToFell', demonsToFellListener);
     EventEmitter.on('stun', stunListener);
-    EventEmitter.on('levelUp', levelUpListener);
+    EventEmitter.on('levelCompleted', levelCompletedListener);
+    EventEmitter.on('levelChanged', levelChangedListener);
     EventEmitter.on('damage', damageListener);
     EventEmitter.on('pause', pausedListener);
     EventEmitter.on('nowPlaying', nowPlayingListener)
@@ -207,7 +206,8 @@ export const GameComponent: React.FC = () => {
       EventEmitter.off('demonsFelled', demonsFelledListener);
       EventEmitter.off('demonsToFell', demonsToFellListener);
       EventEmitter.off('stun', stunListener);
-      EventEmitter.off('levelUp', levelUpListener);
+      EventEmitter.off('levelCompleted', levelCompletedListener);
+      EventEmitter.off('levelChanged', levelChangedListener);
       EventEmitter.off('pause', pausedListener);
       EventEmitter.off('nowPlaying', nowPlayingListener)
     };
@@ -231,7 +231,7 @@ export const GameComponent: React.FC = () => {
   };
 
   const stats = <div className='stats'>
-    <div className={classNames('health bar', { rainbowShake: hpUp })}>
+    <div className={classNames('health bar', { rainbowShake: hpUp, critical: currentHp <= (maxHp||3)/3 })}>
       HP:
       <div className={classNames('stat')}> {currentHp}/{maxHp}</div>
     </div>
@@ -275,7 +275,7 @@ export const GameComponent: React.FC = () => {
         🔊 {temporaryNowPlaying.replace(/_/g, ' ').replace(/-/g, ' - ').toUpperCase()} 🎵
       </div>
     </div>}
-    {levelUp && <div className='level-up overlay'>
+    {levelCompleted && <div className='level-up overlay'>
       <div className='notice'>
         <h1>LEVEL {level} COMPLETE!</h1>
         {stats}
@@ -283,7 +283,7 @@ export const GameComponent: React.FC = () => {
           BUT HELL IS NOT YET EMPTY
         </p>
         <button className='big-btn continue' onClick={() => {
-          setLevelUp(false)
+          setLevelCompleted(false)
           EventEmitter.emit('goToNextLevel')
         }}>GO DEEPER</button>
       </div>
