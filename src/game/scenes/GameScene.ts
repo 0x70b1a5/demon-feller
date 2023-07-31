@@ -105,10 +105,6 @@ export class GameScene extends Phaser.Scene {
       this.scene.pause()
     })
 
-    EventEmitter.on('recreateWalkableGrid', () => {
-      this.createAndEmitMinimap()
-    })
-
     EventEmitter.on('revealRoom', (guid: string) => {
       const room = this.rooms.find(rm => rm.guid === guid) || this.fellerRoom
       if (this.revealedRooms.includes(guid)) {
@@ -116,7 +112,6 @@ export class GameScene extends Phaser.Scene {
       }
       this.revealedRooms.push(room.guid)
       console.log('room revealed', guid, room, this.rooms)
-      this.createAndEmitMinimap()
     })
 
     this.scene.launch('UIScene')
@@ -318,21 +313,6 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
-  createAndEmitMinimap() {
-    this.createWalkableGrid()
-    const minimap = this.walkableTilesAs01.map((rowOfWalkables, y) => rowOfWalkables.map((walkableInt, x) => {
-      const room = this.rooms.find(room => room.guid === (this.dungeon.getRoomAt(x, y) as RoomWithEnemies)?.guid)
-      if (!room?.guid) return walkableInt
-      if (!this.revealedRooms.includes(room.guid)) {
-        // console.log({ room })
-        return 1
-      }
-      return walkableInt
-    }))
-
-    EventEmitter.emit('drawMinimap', minimap)
-  }
-
   putPlayerInStartRoom() {
     const rooms = this.rooms
     const startRoom = this.startRoom = rooms.shift()!;
@@ -465,7 +445,7 @@ export class GameScene extends Phaser.Scene {
     console.log('level', this.level)
     this.createDungeon()
     this.createTilemap()
-    this.createAndEmitMinimap()
+    this.drawMinimap()
     this.addStuffToRooms()
     this.putPlayerInStartRoom()
     this.spawnEnemiesInRooms()
@@ -474,6 +454,11 @@ export class GameScene extends Phaser.Scene {
     this.createWalkableGrid()
 
     this.creatingNewLevel = false
+  }
+
+  drawMinimap() {
+    this.createWalkableGrid()
+    EventEmitter.emit('drawMinimap')
   }
 
   

@@ -72,7 +72,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     }
 
-    console.log('actually spawning enemy at', { x, y })
+    this.debug && console.log('actually spawning enemy at', { x, y })
 
     this
     .ensureIsInRoom(x, y)
