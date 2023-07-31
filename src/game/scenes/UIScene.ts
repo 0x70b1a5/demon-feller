@@ -59,7 +59,6 @@ export class UIScene extends Phaser.Scene {
   }
 
   update() {
-    this.add.graphics({ lineStyle: { color: 0x0 }}).lineBetween(this.minimap.x, this.minimap.y, this.fellerMarker.x, this.fellerMarker.y)
     console.log(this.minimap.scrollX, this.minimap.scrollY)
   }
 }
