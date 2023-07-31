@@ -114,6 +114,10 @@ export class GameScene extends Phaser.Scene {
       console.log('room revealed', guid, room, this.rooms)
     })
 
+    EventEmitter.on('recreateWalkableGrid', () => {
+      this.createWalkableGrid()
+    })
+
     this.scene.launch('UIScene')
     this.scene.bringToTop('UIScene')
   }
@@ -460,8 +464,6 @@ export class GameScene extends Phaser.Scene {
     this.createWalkableGrid()
     EventEmitter.emit('drawMinimap')
   }
-
-  
 
   spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType, x?: number, y?: number) {
     x ||= this.map.tileToWorldX(room.centerX)!;

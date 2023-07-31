@@ -252,7 +252,7 @@ export default class Feller {
 
     console.log('feller hit by enemy', by, this.hp)
 
-    this.hp = Math.max(0, this.hp - Math.round(by.damage))
+    this.hp = Math.max(0, this.hp - Math.floor(by.damage))
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     

@@ -1,5 +1,6 @@
 const animations = {
   wobbleSprite: (me: Phaser.Scene, sprite: Phaser.GameObjects.Sprite, minRotation: number = -10, maxRotation: number = 10, duration = 2000, randomDuration = true, repeat = true) => {
+    if (!me) return
     me.tweens.add({
       targets: sprite,
       rotation: {
