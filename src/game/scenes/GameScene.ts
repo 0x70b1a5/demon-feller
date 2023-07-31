@@ -436,7 +436,7 @@ export class GameScene extends Phaser.Scene {
     if (tries < 20) {
       let object;
       if (roll < 0.25) {
-        object = new Barrel(this, { room, damage: 3, health: 3 * this.level, texture: 'barrel' }, x, y)
+        object = new Barrel(this, { room, damage: 3 * this.level, health: 3 * this.level, texture: 'barrel' }, x, y)
       } else if (roll < 0.75) {
         object = new Rock(this, { room, damage: 0, health: 10 * this.level, texture: 'rock' }, x, y)          
       }
