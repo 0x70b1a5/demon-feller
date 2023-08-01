@@ -94,7 +94,7 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
       }
     })
 
-    EventEmitter.on('openDoors', (guid: string) => {
+    EventEmitter.on('roomComplete', (guid: string) => {
       if (guid === this.room.guid) {
         this.destroy()
       }

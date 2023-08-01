@@ -44,8 +44,6 @@ export class AudioScene extends Phaser.Scene {
       .filter(songName => this.songIsLoaded(songName))
       .map(songName => this.sound.add(songName) as Phaser.Sound.HTML5AudioSound)
 
-    console.log('loaded songs:', this.songs)
-
     this.bat = this.sound.add('bat') as Phaser.Sound.HTML5AudioSound
     this.magic = this.sound.add('magic') as Phaser.Sound.HTML5AudioSound
     this.grunt = this.sound.add('piggrunt') as Phaser.Sound.HTML5AudioSound
@@ -60,52 +58,51 @@ export class AudioScene extends Phaser.Scene {
 
     EventEmitter.on('gameStarted', () => {
       this.playRandomMusic()
-      this.load.start()
-    })
-
-    EventEmitter.on('unpause', () => {
+    }).on('unpause', () => {
       this.scene.resume('GameScene')
-    })
-
-    EventEmitter.on('muteChanged', (isMuted: boolean) => {
+    }).on('muteChanged', (isMuted: boolean) => {
       this.sound.setMute(isMuted)
-    });
-
-    EventEmitter.on('musicVolumeChanged', (volume: number) => {
+    }).on('musicVolumeChanged', (volume: number) => {
       this.musicVolume = volume
       this.currentSong?.setVolume(volume)
-    });
-
-    EventEmitter.on('sfxVolumeChanged', (volume: number) => {
+    }).on('sfxVolumeChanged', (volume: number) => {
       this.sfxVolume = volume 
       this.grunt.play({ volume: this.sfxVolume })
-    });
-
-    EventEmitter.on('musicRewind', (volume: number) => {
+    }).on('musicRewind', (volume: number) => {
       // ?
-    });
-
-    EventEmitter.on('musicForward', (volume: number) => {
+    }).on('musicForward', (volume: number) => {
       this.playRandomMusic()
-    });
-
-    EventEmitter.on('playSound', (key: string, config: Phaser.Types.Sound.SoundConfig) => {
+    }).on('playSound', (key: string, config: Phaser.Types.Sound.SoundConfig) => {
       if (!this.songIsLoaded(key)) return
       this.sound.play(key, { volume: this.sfxVolume, ...config })
     })
 
-    this.load.on('complete', () => {
-      Object.entries(audioFiles).forEach(([key, file]) => {
-        this.sound.add(key)
-      })
-    })
-
-    Phaser.Utils.Array.Shuffle(Object.entries(audioFiles)).forEach(([key, file]) => {
-      if (!this.songIsLoaded(key)) {
-        this.load.audio(key, file)
-      }
-    })
+    this.loadUnloadedSongs()
   }
+
+  async loadUnloadedSongs() {
+    let fus = Phaser.Utils.Array.Shuffle(Object.keys(audioFiles))
+      .find(key => !this.songIsLoaded(key));
+      
+    while (fus) {
+      console.log('loading song:', fus)
+      await this.loadSong(fus, (audioFiles as any)[fus]);
+      console.log('song', fus, 'loaded')
+      fus = Object.keys(audioFiles).find(key => !this.songIsLoaded(key));
+    }
+  }
+
+  loadSong(key: string, file: any): Promise<void> {
+    return new Promise((resolve) => {
+      this.load.audio(key, file);
+      this.load.once('complete', () => {
+        this.sound.add(key);
+        resolve();
+      });
+      this.load.start();
+    });
+  }
+
 
   songIsLoaded(key: string) {
     return this.cache.audio.has(key)

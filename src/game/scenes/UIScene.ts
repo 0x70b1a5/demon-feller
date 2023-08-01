@@ -12,6 +12,7 @@ export class UIScene extends Phaser.Scene {
     super({ key: 'UIScene' });
   }
   
+  checkmarks!: Phaser.GameObjects.Sprite[]
   create() {
     this.gameScene = this.scene.get('GameScene') as GameScene;
     this.minimap = this.gameScene.cameras.add(0, 0, 200, 200, false, 'mini').setZoom(this.minimapZoom)
@@ -25,6 +26,18 @@ export class UIScene extends Phaser.Scene {
     .on('drawMinimap', () => this.refollowAndignoreSprites())
     .on('gameRestarted', () => {
       this.scene.bringToTop(this)
+    }).on('roomComplete', (guid: string) => {
+      const room = this.gameScene.rooms.find(r => r.guid === guid)
+      if (!room) return
+
+      const check = this.gameScene.add.sprite(
+        this.gameScene.map.tileToWorldX(room.centerX)!, 
+        this.gameScene.map.tileToWorldY(room.centerY)!,
+        'mm-check')
+      check.setScale(20)
+      this.gameScene.cameras.main.ignore(check)
+      this.checkmarks ||= []
+      this.checkmarks.push(check)
     })
   }
 

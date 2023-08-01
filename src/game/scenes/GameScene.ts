@@ -92,29 +92,21 @@ export class GameScene extends Phaser.Scene {
       this.demonsFelledLevel++
       EventEmitter.emit('demonsFelled', this.demonsFelled)
       EventEmitter.emit('demonsFelledLevel', this.demonsFelledLevel)
-    })
-
-    EventEmitter.on('goToNextLevel', () => {
+    }).on('goToNextLevel', () => {
       this.scene.resume()
       this.createNewLevel()
       this.levellingUp = false // don't resume updating until the new level is done
-    })
-
-    EventEmitter.on('gameOver', () => {
+    }).on('gameOver', () => {
       this.gameOver = true
       this.scene.pause()
-    })
-
-    EventEmitter.on('revealRoom', (guid: string) => {
+    }).on('revealRoom', (guid: string) => {
       const room = this.rooms.find(rm => rm.guid === guid) || this.fellerRoom
       if (this.revealedRooms.includes(guid)) {
         return
       }
       this.revealedRooms.push(room.guid)
       console.log('room revealed', guid, room, this.rooms)
-    })
-
-    EventEmitter.on('recreateWalkableGrid', () => {
+    }).on('recreateWalkableGrid', () => {
       this.createWalkableGrid()
     })
 
@@ -513,7 +505,7 @@ export class GameScene extends Phaser.Scene {
       room.hasSpawnedPowerup = true
       this.spawnPowerUp(room)
       console.log('room complete', room.guid)
-      EventEmitter.emit('openDoors', room.guid)
+      EventEmitter.emit('roomComplete', room.guid)
     }
   }
   
