@@ -4,6 +4,7 @@ import EventEmitter from "./EventEmitter";
 import PowerUp, { PowerUpType } from "./Powerup";
 import Stuff from "./Stuff";
 import powerUps from "./constants/powerups";
+import TILE_MAPPING from "./constants/tiles";
 import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
 import assert from "./util/assert";
@@ -73,7 +74,10 @@ export default class Feller {
       space: Phaser.Input.Keyboard.KeyCodes.SPACE,
     }) as Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
    
-    this.debugGraphics = this.scene.add.graphics({ lineStyle: { color: 0x0 }})
+    this.debugGraphics = this.scene.add.graphics({ 
+      lineStyle: { color: 0x0 }, 
+      fillStyle: { color: 0x0000ff },
+    })
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     EventEmitter.emit('speed', this.speed)
@@ -179,8 +183,69 @@ export default class Feller {
       this.sprite.anims.play('feller-hurt')
     }
 
+    // Calculate the desired end position based on speed and direction
+    const direction = new Phaser.Math.Vector2(body.velocity.x, body.velocity.y).normalize();
+    const end = new Phaser.Math.Vector2(sprite.x + direction.x * this.speed, sprite.y + direction.y * this.speed);
+
+    // Check for collision using raycast
+    const collision = this.checkRayCollision(new Phaser.Math.Vector2(sprite.x, sprite.y), end);
+
+    if (collision) {
+      // Respond to the collision, e.g., stop movement or adjust the position
+      body.setVelocity(0);
+    } else {
+      // Normalize and scale the velocity so that sprite can't move faster along a diagonal
+      body.velocity.normalize().scale(this.speed);
+    }
   }
 
+  checkRayCollision(start: Phaser.Math.Vector2, end: Phaser.Math.Vector2) {
+    this.debugGraphics.clear()
+
+    // Convert the end point to tile coordinates
+    const tileXEnd = Math.floor(end.x / 200); // Your tile width
+    const tileYEnd = Math.floor(end.y / 200); // Your tile height
+
+    // Get the tile at the end position
+    const endTile = this.scene.groundLayer.getTileAt(tileXEnd, tileYEnd);
+
+    // If the end tile is not a wall (or any other collidable tile), return null
+    if (!endTile || !endTile.collides) {
+      return null;
+    }
+
+    // Calculate the difference between the start and end points
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+
+    // Determine the number of steps to check, based on the distance
+    const steps = Math.ceil(Math.sqrt(dx * dx + dy * dy) / 4); // You can adjust the division factor
+
+    // Calculate the incremental changes in x and y
+    const incX = dx / steps;
+    const incY = dy / steps;
+
+    // Check each step along the ray for a collision
+    for (let i = 0; i < steps; i++) {
+      const x = start.x + i * incX;
+      const y = start.y + i * incY;
+
+      const tileX = Math.floor(x / this.scene.map.tileWidth);
+      const tileY = Math.floor(y / this.scene.map.tileHeight);
+      const tile = this.scene.groundLayer.getTileAt(tileX, tileY);
+
+      // Check if the tile is a wall
+      if (tile?.index && TILE_MAPPING.WALLS.includes(tile.index)) {
+        // Return the collision position
+        const [newx, newy] = [tileX * this.scene.map.tileWidth, tileY * this.scene.map.tileHeight]
+        this.debugGraphics.fillPoint(newx, newy, 20)
+        return { x: newx, y: newy }; 
+      }
+    }
+
+    return null; // No collision detected
+  }
+  
   makeGunFollowPointer() {
     const sprite = this.sprite;
     // Calculate the angle between the gun and the mouse cursor
@@ -311,7 +376,7 @@ export default class Feller {
         EventEmitter.emit('damage', this.damage)
         break
       case PowerUpType.Knockback:
-        this.knockback += 33
+        this.knockback += 22
         EventEmitter.emit('stun', this.knockback)
         break
       default:
