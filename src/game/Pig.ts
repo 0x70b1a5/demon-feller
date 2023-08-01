@@ -18,6 +18,8 @@ export default class Pig extends Enemy {
     super(scene, config, x, y)
     this.setScale(0.9, 0.9)
     this.setSize(180, 180)
+    
+    this.health *= config.level || 1
 
     if ((!scene.anims.exists('pig-walk'))) {   
       scene.anims.create({

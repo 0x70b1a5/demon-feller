@@ -152,6 +152,7 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('goosquelch', 'assets/sounds/goosquelch.ogg')
     this.load.audio('goosquish', 'assets/sounds/goosquish.ogg')
     this.load.audio('impsqueak', 'assets/sounds/impsqueak.ogg')
+    this.load.audio('impdie', 'assets/sounds/impdie.ogg')
     this.load.audio('soulgrunt', 'assets/sounds/soulgrunt.ogg')
     this.load.audio('soulgrumble', 'assets/sounds/soulgrumble.ogg')
     this.load.audio('fellerhurt', 'assets/sounds/fellerhurt.ogg')

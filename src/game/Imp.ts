@@ -9,6 +9,8 @@ export default class Imp extends Enemy {
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
+    this.health *= config.level || 1
+    this.speed *= config.level || 1
   }
 
   update(time: any, delta: any) {
@@ -17,8 +19,13 @@ export default class Imp extends Enemy {
     }
   }
 
-  die() {
+  hit(by: any) {
     EventEmitter.emit('playSound', 'impsqueak')
+    super.hit(by)
+  }
+
+  die() {
+    EventEmitter.emit('playSound', 'impdie')
     super.die()
   }
 }

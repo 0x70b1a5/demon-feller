@@ -11,6 +11,7 @@ export enum PowerUpType {
 export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
   powerupType: PowerUpType;
   bg!: Phaser.Physics.Arcade.Sprite
+  iframes = 20
 
   constructor(scene: Phaser.Scene, x: number, y: number, powerupType: PowerUpType) {
     console.log({ powerupType })
@@ -29,5 +30,10 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
   destroy(fromScene?: boolean | undefined): void {
     this.bg.destroy()
     super.destroy()
+  }
+
+  protected preUpdate(time: number, delta: number): void {
+    super.preUpdate(time, delta)
+    this.iframes > 0 && this.iframes--
   }
 }

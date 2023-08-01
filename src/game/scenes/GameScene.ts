@@ -494,6 +494,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.physics.add.overlap(this.feller.sprite, powerup, () => {
+      if (powerup.iframes) return 
+      
       this.feller.pickupPowerUp(powerup);
       powerup.destroy();
       gfx.clear();

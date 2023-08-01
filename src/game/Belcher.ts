@@ -16,6 +16,8 @@ export default class Belcher extends Enemy {
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
 
+    this.health *= config.level || 1
+
     if ((!scene.anims.exists('belcher-belch'))) {
       scene.anims.create({
         key: 'belcher-belch',
