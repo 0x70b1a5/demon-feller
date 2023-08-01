@@ -22,6 +22,9 @@ export class AudioScene extends Phaser.Scene {
   goosquish!: Phaser.Sound.HTML5AudioSound
   bat!: Phaser.Sound.HTML5AudioSound
   magic!: Phaser.Sound.HTML5AudioSound
+  hurt!: Phaser.Sound.HTML5AudioSound;
+  stun!: Phaser.Sound.HTML5AudioSound;
+  explosion!: Phaser.Sound.HTML5AudioSound;
 
   constructor() {
     super({ key: 'AudioScene' });
@@ -55,6 +58,9 @@ export class AudioScene extends Phaser.Scene {
     this.soulgrumble = this.sound.add('soulgrumble') as Phaser.Sound.HTML5AudioSound
     this.goosquelch = this.sound.add('goosquelch') as Phaser.Sound.HTML5AudioSound
     this.goosquish = this.sound.add('goosquish') as Phaser.Sound.HTML5AudioSound
+    this.hurt = this.sound.add('fellerhurt') as Phaser.Sound.HTML5AudioSound
+    this.stun = this.sound.add('stun') as Phaser.Sound.HTML5AudioSound
+    this.explosion = this.sound.add('explosion') as Phaser.Sound.HTML5AudioSound
 
     EventEmitter.on('gameStarted', () => {
       this.playRandomMusic()
@@ -83,7 +89,7 @@ export class AudioScene extends Phaser.Scene {
   async loadUnloadedSongs() {
     let fus = Phaser.Utils.Array.Shuffle(Object.keys(audioFiles))
       .find(key => !this.songIsLoaded(key));
-      
+
     while (fus) {
       console.log('loading song:', fus)
       await this.loadSong(fus, (audioFiles as any)[fus]);

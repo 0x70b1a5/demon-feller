@@ -79,6 +79,7 @@ export default class Feller {
     EventEmitter.emit('speed', this.speed)
     EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
     EventEmitter.emit('demonsFelled', 0)
+
   }
 
   createNewSprite(x: number, y: number) {
@@ -247,6 +248,8 @@ export default class Feller {
     if (this.iframes > 0) {
       return
     }
+
+    EventEmitter.emit('playSound', 'fellerhurt')
 
     this.scene.cameras.main.flash(10, 255, 100, 100, true)
 

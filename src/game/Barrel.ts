@@ -4,6 +4,7 @@ import Enemy, { EnemyConfig } from './Enemy';
 import Feller from './Feller';
 import animations from './util/animate';
 import Stuff, { StuffConfig } from './Stuff';
+import EventEmitter from './EventEmitter';
 
 export default class Barrel extends Stuff {
   knockback = 120 
@@ -43,6 +44,7 @@ export default class Barrel extends Stuff {
   boom!: Phaser.GameObjects.Sprite
   smoke!: Phaser.GameObjects.Sprite
   explode() {
+    EventEmitter.emit('playSound', 'explosion')
     this.boom.setActive(true).setVisible(true)
     this.scene.cameras.main.shake()
     this.scene?.tweens.add({

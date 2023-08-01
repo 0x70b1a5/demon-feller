@@ -52,7 +52,7 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
     if (this.dying) return
     super.preUpdate(time, delta);
 
-    if (this.room.guid !== this.scene.fellerRoom.guid) {
+    if (!this.room.hasSpawnedPowerup && this.room.guid !== this.scene.fellerRoom.guid) {
       this.setVisible(false)
     } else {
       this.setVisible(true)

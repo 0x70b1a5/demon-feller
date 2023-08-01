@@ -312,6 +312,7 @@ export class GameScene extends Phaser.Scene {
   putPlayerInStartRoom() {
     const rooms = this.rooms
     const startRoom = this.startRoom = rooms.shift()!;
+    startRoom.hasSpawnedPowerup = true
     const otherRooms = this.otherRooms = Phaser.Utils.Array.Shuffle(rooms);
 
     // Place the player in the first room
@@ -438,7 +439,6 @@ export class GameScene extends Phaser.Scene {
     this.creatingNewLevel = true
 
     this.level++
-    console.log('levelChanged', this.level)
     this.createDungeon()
     this.createTilemap()
     this.drawMinimap()
@@ -448,6 +448,8 @@ export class GameScene extends Phaser.Scene {
     this.setupCamera()
     this.addDoorSpritesToRooms()
     this.createWalkableGrid()
+
+    EventEmitter.emit('levelChanged', this.level)
 
     this.creatingNewLevel = false
   }
@@ -524,8 +526,12 @@ export class GameScene extends Phaser.Scene {
   
   deactivateSprites() {
     this.scene.pause();
+    this.enemies
+      .filter((e: any) => e?.bullets)
+      .map((e: any) => e?.bullets?.forEach((b: Bullet) => b?.destroy()));
+
     [...this.enemies, ...this.stuffs, ...this.feller.bullets].forEach(thing => {
-      thing.setActive(false)
+      thing.destroy()
     })
   }
 

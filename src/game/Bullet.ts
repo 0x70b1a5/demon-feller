@@ -9,6 +9,7 @@ export interface BulletConfig {
 }
 export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   bulletSpeed = 600
+  lifetimeSeconds = 20
   
   constructor(scene: Phaser.Scene, x: number, y: number, config: BulletConfig) {
     const { texture, angle, scale, speed } = config
@@ -26,6 +27,8 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
     this.setScale(scale || 1)
     .setOrigin(0.5, 0.5)
     .setCircle(this.width/2, 0, 0)
+
+    setTimeout(() => this.destroy(), this.lifetimeSeconds * 1000)
   }
 
   bulletHitSomething(scene: GameScene, damage = 0, bulletAngle = 0) {

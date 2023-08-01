@@ -154,6 +154,9 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('impsqueak', 'assets/sounds/impsqueak.ogg')
     this.load.audio('soulgrunt', 'assets/sounds/soulgrunt.ogg')
     this.load.audio('soulgrumble', 'assets/sounds/soulgrumble.ogg')
+    this.load.audio('fellerhurt', 'assets/sounds/fellerhurt.ogg')
+    this.load.audio('stun', 'assets/sounds/fryingpan.ogg')
+    this.load.audio('explosion', 'assets/sounds/explosion.ogg')
 
     // Tilemap
     // this.load.image('tiles', 'assets/tilemaps/tiles.png');

@@ -24,6 +24,7 @@ export class UIScene extends Phaser.Scene {
       this.scene.resume('GameScene')
     })
     .on('drawMinimap', () => this.refollowAndignoreSprites())
+    .on('levelChanged', () => this.refollowAndignoreSprites())
     .on('gameRestarted', () => {
       this.scene.bringToTop(this)
     }).on('roomComplete', (guid: string) => {

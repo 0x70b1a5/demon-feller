@@ -127,6 +127,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (by.knockback && this.stunImmunity < 1) {
+      EventEmitter.emit('playSound', 'stun')
+
       this.stun = by.knockback
       this.stunImmunity = by.knockback * 2
       // radians 
@@ -267,6 +269,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setVisible(false)
     this.setActive(false)
     this.minimapMarker.setVisible(false)
-    this.body!.destroy()
+    this.body?.destroy()
   }
 }
