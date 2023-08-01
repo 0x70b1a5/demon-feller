@@ -231,7 +231,11 @@ export const GameComponent: React.FC = () => {
   };
 
   const stats = <div className='stats'>
-    <div className={classNames('health bar', { rainbowShake: hpUp, critical: currentHp <= (maxHp||3)/3 })}>
+    <div className={classNames('health bar', { 
+      rainbowShake: hpUp, 
+      damaged: currentHp < maxHp && currentHp > (maxHp||3)/3, 
+      critical: currentHp <= (maxHp||3)/3 
+    })}>
       HP:
       <div className={classNames('stat')}> {currentHp}/{maxHp}</div>
     </div>

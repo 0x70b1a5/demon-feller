@@ -124,6 +124,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.health -= by.damage;
     if (this.health <= 0) {
       this.die();
+      return
     }
 
     if (by.knockback && this.stunImmunity < 1) {
@@ -156,7 +157,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   fixedUpdate(time: any, delta: any) {    
-    if (this.dead) return
+    if (this.dead || !this.body) return
     
     super.preUpdate(time, delta);
 
