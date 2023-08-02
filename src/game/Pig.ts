@@ -85,7 +85,7 @@ export default class Pig extends Enemy {
   }
 
   destroy() {
-    super.destroy()
     this.bullets.forEach(b => b.destroy())
+    super.destroy()
   }
 }

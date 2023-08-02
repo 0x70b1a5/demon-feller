@@ -46,8 +46,10 @@ export default class Barrel extends Stuff {
   explode() {
     EventEmitter.emit('playSound', 'explosion')
     this.boom.setActive(true).setVisible(true)
-    this.scene?.cameras.main.shake()
-    this.scene?.tweens.add({
+    if (!this.scene) return
+
+    this.scene.cameras.main.shake()
+    this.scene.tweens.add({
       targets: this.boom,
       ease: 'Elastic',
       duration: 250,
@@ -55,7 +57,7 @@ export default class Barrel extends Stuff {
       onComplete: () => {
         this.boom?.destroy()
 
-        this.smoke.setActive(true).setVisible(true)
+        this.smoke?.setActive(true).setVisible(true)
         animations.wobbleSprite(this.scene, this.smoke)
         setTimeout(() => {
           this.smoke?.destroy()
@@ -63,16 +65,16 @@ export default class Barrel extends Stuff {
       }
     })
 
-    this.scene?.enemies
+    this.scene.enemies
       .filter(enemy => !enemy.dead && Phaser.Math.Distance.BetweenPoints(enemy, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)  
       .forEach(enemy => enemy.hit(this))
 
-    this.scene?.stuffs
+    this.scene.stuffs
       .filter(stuff => Phaser.Math.Distance.BetweenPoints(stuff, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)
       .forEach(stuff => !stuff.dying && !stuff.dead && stuff.guid !== this.guid && stuff.hit(this.damage))
 
     if (Phaser.Math.Distance.BetweenPoints(this.scene.feller.sprite, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles) {
-      this.scene?.feller.hit(this)
+      this.scene.feller.hit(this)
     }
   }
 
@@ -86,7 +88,6 @@ export default class Barrel extends Stuff {
 
   onBeforeDie(): void {
     super.onBeforeDie()
-    this.setRotation(Phaser.Math.DegToRad(10))
     this.explode()
   }
 }
