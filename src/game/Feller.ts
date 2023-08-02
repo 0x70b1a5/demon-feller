@@ -182,8 +182,11 @@ export default class Feller {
       this.sprite.anims.play('feller-hurt')
     }
 
-    // Check for collision using fast voxel http://www.cs.yorku.ca/~amana/research/grid.pdf
-    const collision = this.testVoxelCollide(delta);
+    let collision = null
+    if (body.velocity.x !== 0 || body.velocity.y !== 0) {
+      // Check for collision using fast voxel http://www.cs.yorku.ca/~amana/research/grid.pdf
+      collision = this.testVoxelCollide();
+    }
 
     if (collision) {
       // Respond to the collision, e.g., stop movement or adjust the position
@@ -195,18 +198,17 @@ export default class Feller {
     }
   }
 
-  testVoxelCollide(delta: number) {
-    this.debugGraphics.clear().setDepth(this.sprite.depth + 1)
+  testVoxelCollide() {
+    // this.debugGraphics.clear().setDepth(this.sprite.depth + 1)
 
     // The traversal algorithm consists of two phases: initialization and incremental traversal. 
     
     // The initialization phase begins by identifying the voxel in which the ray origin, →u, is found. 
     //   The integer variables X and Y are initialized to the starting voxel coordinates.
-    const [X, Y] = [this.tileX, this.tileY]
+    let [X, Y] = [this.tileX, this.tileY]
     const v = this.sprite.body?.velocity
     if (!v) return null
     const theta = Math.atan2(v.y, v.x)
-    const hypo = v.distance({ x: 0, y: 0 })
 
     // If the ray origin is outside the grid, we find the point
     //   in which the ray enters the grid and take the adjacent voxel. 
@@ -222,18 +224,40 @@ export default class Feller {
     //   store it in variable tMaxX. We perform a similar computation in y and store the result in tMaxY. The
     //   minimum of these two values will indicate how much we can travel along the ray and still remain in the
     //   current voxel.
-    const [tMaxX, tMaxY] = [
-      Math.abs(this.sprite.x % this.scene.map.tileWidth),
-      Math.abs(this.sprite.y % this.scene.map.tileHeight)
+    let [tMaxX, tMaxY] = [
+      Math.abs(this.sprite.x % this.scene.map.tileWidth) / this.scene.map.tileWidth,
+      Math.abs(this.sprite.y % this.scene.map.tileHeight) / this.scene.map.tileHeight 
     ]
 
     // Finally, we compute tDeltaX and tDeltaY. TDeltaX indicates how far along the ray we must move
     //   (in units of t) for the horizontal component of such a movement to equal the width of a voxel. Similarly,
     //   we store in tDeltaY the amount of movement along the ray which has a vertical component equal to the
     //   height of a voxel.
-    const [tDeltaX, tDeltaY] = [
-      Math.cos()
+    let [sin, cos] = [Math.sin(theta), Math.cos(theta)]
+    if (sin < 0.00001) sin = 0
+    if (cos < 0.00001) cos = 0
+    let [tDeltaX, tDeltaY] = [
+      this.scene.map.tileHeight * 1/(sin || 2), // cosecant(theta) = hyp/opp. if would div by 0 then use height
+      this.scene.map.tileWidth * 1/(cos || 2),  // secant (theta) = hyp/adj. if would div by 0 then use width
     ]
+
+    console.log({tMaxX, tMaxY, tDeltaX, tDeltaY, sin, cos, theta })
+
+    let foundWallTile = 0
+    let steps = 0
+    while (Math.abs(this.tileX - X) < 2 && Math.abs(this.tileY - Y) < 2) {
+      if (tMaxX < tMaxY) {
+        tMaxX += tDeltaX
+        X += stepX
+      } else {
+        tMaxY += tDeltaY
+        Y += stepY
+      }
+      this.debugGraphics.fillPoint(this.scene.map.tileToWorldX(X)!, this.scene.map.tileToWorldY(Y)!, 5)
+      foundWallTile = this.scene.walkableTilesAs01?.[Y]?.[X]
+      console.log({ X, Y, foundWallTile, tDeltaX, tDeltaY, tMaxX, tMaxY, stepX, stepY })
+      if (foundWallTile) return { x: X, y: Y }
+    }
 
     return null; // No collision detected
   }
