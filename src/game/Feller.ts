@@ -34,7 +34,8 @@ export default class Feller {
   MAX_HEALTH = 3
   iframes = 0
   stun = 0
-  speed = 800
+  speed = 300
+  SPEED_LIMIT = 900
   damage = 1
   container!: Phaser.GameObjects.Container;
   minimapMarker!: Phaser.GameObjects.Sprite;
@@ -182,6 +183,9 @@ export default class Feller {
       this.sprite.anims.play('feller-hurt')
     }
 
+    body.velocity.normalize().scale(this.speed);
+
+    /* 
     let collision = null
     if (body.velocity.x !== 0 || body.velocity.y !== 0) {
       // Check for collision using fast voxel http://www.cs.yorku.ca/~amana/research/grid.pdf
@@ -196,6 +200,7 @@ export default class Feller {
       // Normalize and scale the velocity so that sprite can't move faster along a diagonal
       body.velocity.normalize().scale(this.speed);
     }
+    */
   }
 
   testVoxelCollide() {
@@ -224,9 +229,24 @@ export default class Feller {
     //   store it in variable tMaxX. We perform a similar computation in y and store the result in tMaxY. The
     //   minimum of these two values will indicate how much we can travel along the ray and still remain in the
     //   current voxel.
+    /** 
+     *         ^|
+     *        / |
+     *       /  |
+     *      /   |
+     * ____/____+____ 200
+     *    /     | } xDistToNextTileX
+     *  x,y    200
+     * 
+     *    '--.--'
+     * yDistToNextTileY
+    */
+
+    const xDistToNextTileX = this.sprite.x % this.scene.map.tileWidth 
+    const yDistToNextTileY = this.sprite.y % this.scene.map.tileHeight 
     let [tMaxX, tMaxY] = [
-      Math.abs(this.sprite.x % this.scene.map.tileWidth) / this.scene.map.tileWidth,
-      Math.abs(this.sprite.y % this.scene.map.tileHeight) / this.scene.map.tileHeight 
+      1/Math.sin(theta) * yDistToNextTileY,
+      1/Math.cos(theta) * xDistToNextTileX,
     ]
 
     // Finally, we compute tDeltaX and tDeltaY. TDeltaX indicates how far along the ray we must move
@@ -237,15 +257,16 @@ export default class Feller {
     if (sin < 0.00001) sin = 0
     if (cos < 0.00001) cos = 0
     let [tDeltaX, tDeltaY] = [
-      this.scene.map.tileHeight * 1/(sin || 2), // cosecant(theta) = hyp/opp. if would div by 0 then use height
-      this.scene.map.tileWidth * 1/(cos || 2),  // secant (theta) = hyp/adj. if would div by 0 then use width
+      this.scene.map.tileHeight * 1/(sin || 1), // cosecant(theta) = hyp/opp. if would div by 0 then use height
+      this.scene.map.tileWidth * 1/(cos || 1),  // secant (theta) = hyp/adj. if would div by 0 then use width
     ]
 
     console.log({tMaxX, tMaxY, tDeltaX, tDeltaY, sin, cos, theta })
 
-    let foundWallTile = 0
-    let steps = 0
-    while (Math.abs(this.tileX - X) < 2 && Math.abs(this.tileY - Y) < 2) {
+    let occupiedTile = 0
+    let tries = 0
+    while (tries < 100) { 
+      tries++
       if (tMaxX < tMaxY) {
         tMaxX += tDeltaX
         X += stepX
@@ -254,9 +275,9 @@ export default class Feller {
         Y += stepY
       }
       this.debugGraphics.fillPoint(this.scene.map.tileToWorldX(X)!, this.scene.map.tileToWorldY(Y)!, 5)
-      foundWallTile = this.scene.walkableTilesAs01?.[Y]?.[X]
-      console.log({ X, Y, foundWallTile, tDeltaX, tDeltaY, tMaxX, tMaxY, stepX, stepY })
-      if (foundWallTile) return { x: X, y: Y }
+      occupiedTile = this.scene.walkableTilesAs01?.[Y]?.[X]
+      console.log({ X, Y, occupiedTile, tDeltaX, tDeltaY, tMaxX, tMaxY, stepX, stepY })
+      if (occupiedTile) return { x: X, y: Y }
     }
 
     return null; // No collision detected
@@ -372,21 +393,22 @@ export default class Feller {
       case PowerUpType.Speed:
         const speedUp = 50
         const speedRatio = this.speed / (this.speed + speedUp)
-        this.speed += speedUp
-        // TODO tween camera out
-        this.scene.tweens.add({
-          targets: this.scene.cameras.main,
-          zoom: {
-            from: this.scene.cameras.main.zoom,
-            to: this.scene.cameras.main.zoom * speedRatio,
-            duration: 500,
-            ease: 'Sine.easeOut'
-          }
-        })
-        const rate = this.scene.anims.get('feller-walk').frameRate 
-        this.scene.anims.get('feller-walk').frameRate = Math.min(rate + 1, 60)
-        this.sprite.anims.stop() // animation won't update until we restart
-        EventEmitter.emit('speed', this.speed)
+        this.speed = Math.min(this.speed + speedUp, this.SPEED_LIMIT)
+        if (this.speed < 900) {
+          this.scene.tweens.add({
+            targets: this.scene.cameras.main,
+            zoom: {
+              from: this.scene.cameras.main.zoom,
+              to: this.scene.cameras.main.zoom * speedRatio,
+              duration: 500,
+              ease: 'Sine.easeOut'
+            }
+          })
+          const rate = this.scene.anims.get('feller-walk').frameRate 
+          this.scene.anims.get('feller-walk').frameRate = Math.min(rate + 1, 60)
+          this.sprite.anims.stop() // animation won't update until we restart
+          EventEmitter.emit('speed', this.speed)
+        }
         break
       case PowerUpType.RateOfFire:
         this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.85, 1)

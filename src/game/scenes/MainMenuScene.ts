@@ -90,6 +90,28 @@ export class MainMenuScene extends Phaser.Scene {
       EventEmitter.emit('gameStarted')
     }, this);
 
+    const dedicated = this.rexUI.add.label({
+      width: 40,
+      height: 40,
+  
+      text: this.add.text(0, 0, 'DEDICATED TO\nTHE SACRED HEART OF JESUS\n& THE IMMACULATE HEART OF MARY', {
+        fontFamily: 'pkmn', color: 'white', fontSize: 24, align: 'center', lineSpacing: 16
+      }),
+  
+      space: {
+        top: 20, left: 20, right: 20, bottom: 10
+      },
+  
+      align: 'center',
+
+      anchor: {
+        centerX: 'center',
+        centerY: 'center+300%'
+      }
+    })
+    .layout()
+    .setVisible(false)
+
     const presented = this.rexUI.add.label({
       width: 40,
       height: 40,
@@ -158,6 +180,7 @@ export class MainMenuScene extends Phaser.Scene {
               EventEmitter.emit('playSound', 'magic')
               playButton.setVisible(true)
               presented.setVisible(true)
+              dedicated.setVisible(true)
               this.cameras.main.flash(1000)
             }
           });

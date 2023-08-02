@@ -1,5 +1,5 @@
 
-const roll = (a: { type: any, weight: number }[]) => {
+const roll: any = (a: { type: any, weight: number }[], exclude?: any[]) => {
   let totalWeight = a.reduce((sum, el) => sum + el.weight, 0);
   
   let randomNum = Math.random() * totalWeight;
@@ -9,6 +9,9 @@ const roll = (a: { type: any, weight: number }[]) => {
     weightSum += el.weight;
     
     if (randomNum <= weightSum) {
+      if (exclude?.includes(el.type)) {
+        return roll(a, exclude)
+      }
       return el.type
     }
   }

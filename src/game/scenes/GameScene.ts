@@ -486,7 +486,12 @@ export class GameScene extends Phaser.Scene {
       ease: 'Sine.easeInOut'
     })
 
-    const powerup = new PowerUp(this, x, y, (type || roll(powerUps)) as PowerUpType);
+    const powerupExclusions = []
+    if (this.feller.speed >= this.feller.SPEED_LIMIT) {
+      powerupExclusions.push(PowerUpType.Speed)
+    }
+    
+    const powerup = new PowerUp(this, x, y, (type || roll(powerUps, powerupExclusions)) as PowerUpType);
     
     const gfx = this.add.graphics({ lineStyle: { color: 0xff0000, width: 3 }});
     if (this.debug) {
