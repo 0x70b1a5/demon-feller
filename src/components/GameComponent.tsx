@@ -12,6 +12,7 @@ import { AudioScene } from '../game/scenes/AudioScene';
 
 export const GameComponent: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
+  const gameElementRef = useRef<HTMLDivElement | null>(null);
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [currentHp, setCurrentHp] = useState(3)
   const [maxHp, setMaxHp] = useState(3)
@@ -35,8 +36,6 @@ export const GameComponent: React.FC = () => {
   const [stunUp, setStunUp] = useState(false)
   const [temporaryNowPlaying, setNowPlaying] = useState('')
   const [persistentNowPlaying, setPersistentNowPlaying] = useState('')
-
-  const minimapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -195,6 +194,13 @@ export const GameComponent: React.FC = () => {
     EventEmitter.on('pause', pausedListener);
     EventEmitter.on('nowPlaying', nowPlayingListener)
 
+    if (gameElementRef?.current) {
+      gameElementRef.current.addEventListener('contextmenu', (e) => {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+      })
+    }
+
     return () => {
       EventEmitter.off('gameStarted', gameStartedListener);
       EventEmitter.off('health', healthListener);
@@ -272,7 +278,7 @@ export const GameComponent: React.FC = () => {
   }}>RESTART GAME</button>
   return <>
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
-    <div id="game-container" style={{ width: '100%', height: '100%' }} />
+    <div id="game-container" ref={gameElementRef} style={{ width: '100%', height: '100%' }} />
     {gameStarted && stats}
     {temporaryNowPlaying && <div className='now-playing-container'>
       <div className='now-playing'>

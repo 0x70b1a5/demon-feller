@@ -9,14 +9,16 @@ export default class Imp extends Enemy {
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
-    this.health *= config.level
+    this.health = Math.pow(this.health, config.level)
     this.speed = scene.feller.speed
   }
 
-  update(time: any, delta: any) {
-    if (time % 1000 === delta) {
+  fixedUpdate(time: any, delta: any) {
+    if (this.seenFeller && !this.dead && delta % 10 === 0) {
+      console.log('IMPIN')
       this.movementAngle *= Math.random()
     }
+    super.fixedUpdate(time, delta)
   }
 
   hit(by: any) {

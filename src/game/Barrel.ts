@@ -69,6 +69,8 @@ export default class Barrel extends Stuff {
       .filter(enemy => !enemy.dead && Phaser.Math.Distance.BetweenPoints(enemy, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)  
       .forEach(enemy => enemy.hit(this))
 
+    if (!this.scene) return  // beat the level with a barrel pop!
+
     this.scene.stuffs
       .filter(stuff => Phaser.Math.Distance.BetweenPoints(stuff, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)
       .forEach(stuff => !stuff.dying && !stuff.dead && stuff.guid !== this.guid && stuff.hit(this.damage))

@@ -218,10 +218,15 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   path!: number[][]
+  pathingCooldown = 0
+  PATHING_COOLDOWN_DURATION = 20
   findPathToTarget() {
-    if (!(this.x && this.y && this.target?.x && this.target?.y)) {
+    if (this.pathingCooldown > 0 || !(this.x && this.y && this.target?.x && this.target?.y)) {
+      this.pathingCooldown--
       return
     }
+
+    this.pathingCooldown = this.PATHING_COOLDOWN_DURATION
     
     this.path = this.scene.pathfinder.findPath(
       this.scene.map.worldToTileX(this.x)!, 

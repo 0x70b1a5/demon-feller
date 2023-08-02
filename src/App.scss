@@ -9,6 +9,10 @@ body {
   color: colors.$ink;
 }
 
+canvas {
+  
+}
+
 .stats {
   position: fixed;
   bottom: 0;
@@ -31,6 +35,10 @@ body {
     display: flex;
     flex-direction: column;
 
+    &.damaged:not(.critical) {
+      animation: 2s flashOrange ease-out infinite;
+    }
+
     &.critical {
       animation: 1s flashRed ease-out infinite;
     }
@@ -45,6 +53,17 @@ body {
   0% {
     background-color: red;
     color: white;
+  }
+
+  100% {
+    
+  }
+}
+
+@keyframes flashOrange {
+  0% {
+    background-color: orange;
+    color: black;
   }
 
   100% {
@@ -231,8 +250,8 @@ body {
 .rainbowShake {
   transform-origin: center;
   animation: 
-    0.5s linear rainbow,
-    0.25s ease-out shake;
+    1s linear rainbow,
+    0.5s ease-out shake;
 }
 
 .audio-controls {

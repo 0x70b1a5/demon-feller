@@ -13,13 +13,12 @@ export default class Pig extends Enemy {
   bullets: Bullet[] = []
   knockback = 200
 
-
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
     this.setScale(0.9, 0.9)
     this.setSize(180, 180)
 
-    this.health *= config.level
+    this.health *= (config.level)
 
     if ((!scene.anims.exists('pig-walk'))) {   
       scene.anims.create({
