@@ -653,11 +653,7 @@ export class GameScene extends Phaser.Scene {
     this.feller.update(time, delta);
     [...this.enemies, ...this.stuffs].forEach(x => x.fixedUpdate(time, delta))
 
-    // Find the player's room using another helper method from the dungeon that converts from
-    // dungeon XY (in grid units) to the corresponding room instance
-    const playerTileX = this.groundLayer.worldToTileX(this.feller.sprite.x);
-    const playerTileY = this.groundLayer.worldToTileY(this.feller.sprite.y);
-    this.fellerRoom = this.dungeon.getRoomAt(playerTileX, playerTileY)! as RoomWithEnemies;
+    this.fellerRoom = this.dungeon.getRoomAt(this.feller.tileX, this.feller.tileY)! as RoomWithEnemies;
     if (this.revealedRooms.includes(this.fellerRoom.guid)) {
       this.revealedRooms.push(this.fellerRoom.guid)
     }

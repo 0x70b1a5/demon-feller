@@ -34,8 +34,7 @@ export default class Feller {
   MAX_HEALTH = 3
   iframes = 0
   stun = 0
-  speed = 300
-  bulletSpeed = 300
+  speed = 800
   damage = 1
   container!: Phaser.GameObjects.Container;
   minimapMarker!: Phaser.GameObjects.Sprite;
@@ -141,7 +140,7 @@ export default class Feller {
     return (sprite.body as Phaser.Physics.Arcade.Body)
   }
 
-  move() {
+  move(delta: number) {
     const keys = this.keys;
     const sprite = this.sprite;
     const body = this.bodify(sprite)
@@ -183,65 +182,58 @@ export default class Feller {
       this.sprite.anims.play('feller-hurt')
     }
 
-    // Calculate the desired end position based on speed and direction
-    const direction = new Phaser.Math.Vector2(body.velocity.x, body.velocity.y).normalize();
-    const end = new Phaser.Math.Vector2(sprite.x + direction.x * this.speed, sprite.y + direction.y * this.speed);
-
-    // Check for collision using raycast
-    const collision = this.checkRayCollision(new Phaser.Math.Vector2(sprite.x, sprite.y), end);
+    // Check for collision using fast voxel http://www.cs.yorku.ca/~amana/research/grid.pdf
+    const collision = this.testVoxelCollide(delta);
 
     if (collision) {
       // Respond to the collision, e.g., stop movement or adjust the position
-      body.setVelocity(0);
+      body.setVelocity(0)
+      console.log({collision})
     } else {
       // Normalize and scale the velocity so that sprite can't move faster along a diagonal
       body.velocity.normalize().scale(this.speed);
     }
   }
 
-  checkRayCollision(start: Phaser.Math.Vector2, end: Phaser.Math.Vector2) {
-    this.debugGraphics.clear()
+  testVoxelCollide(delta: number) {
+    this.debugGraphics.clear().setDepth(this.sprite.depth + 1)
 
-    // Convert the end point to tile coordinates
-    const tileXEnd = Math.floor(end.x / 200); // Your tile width
-    const tileYEnd = Math.floor(end.y / 200); // Your tile height
+    // The traversal algorithm consists of two phases: initialization and incremental traversal. 
+    
+    // The initialization phase begins by identifying the voxel in which the ray origin, →u, is found. 
+    //   The integer variables X and Y are initialized to the starting voxel coordinates.
+    const [X, Y] = [this.tileX, this.tileY]
+    const v = this.sprite.body?.velocity
+    if (!v) return null
+    const theta = Math.atan2(v.y, v.x)
+    const hypo = v.distance({ x: 0, y: 0 })
 
-    // Get the tile at the end position
-    const endTile = this.scene.groundLayer.getTileAt(tileXEnd, tileYEnd);
+    // If the ray origin is outside the grid, we find the point
+    //   in which the ray enters the grid and take the adjacent voxel. 
+    // TODO
 
-    // If the end tile is not a wall (or any other collidable tile), return null
-    if (!endTile || !endTile.collides) {
-      return null;
-    }
+    // In addition, the variables stepX and stepY are initialized to either 1 or -1 
+    //   indicating whether X and Y are incremented or decremented 
+    //   as the ray crosses voxel boundaries 
+    //   (this is determined by the sign of the x and y components of →v).
+    const [stepX, stepY] = [Math.sign(v.x || 0), Math.sign(v.y || 0)]
+    
+    // Next, we determine the value of t at which the ray crosses the first vertical voxel boundary and
+    //   store it in variable tMaxX. We perform a similar computation in y and store the result in tMaxY. The
+    //   minimum of these two values will indicate how much we can travel along the ray and still remain in the
+    //   current voxel.
+    const [tMaxX, tMaxY] = [
+      Math.abs(this.sprite.x % this.scene.map.tileWidth),
+      Math.abs(this.sprite.y % this.scene.map.tileHeight)
+    ]
 
-    // Calculate the difference between the start and end points
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-
-    // Determine the number of steps to check, based on the distance
-    const steps = Math.ceil(Math.sqrt(dx * dx + dy * dy) / 4); // You can adjust the division factor
-
-    // Calculate the incremental changes in x and y
-    const incX = dx / steps;
-    const incY = dy / steps;
-
-    // Check each step along the ray for a collision
-    for (let i = 0; i < steps; i++) {
-      const x = start.x + i * incX;
-      const y = start.y + i * incY;
-
-      const tileX = Math.floor(x / this.scene.map.tileWidth);
-      const tileY = Math.floor(y / this.scene.map.tileHeight);
-      const tile = this.scene.groundLayer.getTileAt(tileX, tileY);
-
-      // Check if the tile is a wall
-      if (tile?.index && TILE_MAPPING.WALLS.includes(tile.index)) {
-        // Return the collision position
-        const [newx, newy] = [tileX * this.scene.map.tileWidth, tileY * this.scene.map.tileHeight]
-        this.debugGraphics.fillPoint(newx, newy, 20)
-        return { x: newx, y: newy }; 
-      }
-    }
+    // Finally, we compute tDeltaX and tDeltaY. TDeltaX indicates how far along the ray we must move
+    //   (in units of t) for the horizontal component of such a movement to equal the width of a voxel. Similarly,
+    //   we store in tDeltaY the amount of movement along the ray which has a vertical component equal to the
+    //   height of a voxel.
+    const [tDeltaX, tDeltaY] = [
+      Math.cos()
+    ]
 
     return null; // No collision detected
   }
@@ -280,8 +272,13 @@ export default class Feller {
     return angleToPointer
   }
 
+  tileX!: number
+  tileY!: number
   update(time: any, delta: any) {
-    this.move()  
+    this.move(delta)  
+    this.tileX = this.scene.groundLayer.worldToTileX(this.sprite.x);
+    this.tileY = this.scene.groundLayer.worldToTileY(this.sprite.y);
+
     const angleToPointer = this.makeGunFollowPointer()
 
     if (this.shootCooldown > 0) {
@@ -305,7 +302,7 @@ export default class Feller {
     this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
     this.sprite.setDepth(depth+2)
     this.gunSprite.setDepth(depth+1)
-    this.bullets.forEach(b => b.fixedUpdate(time, delta))
+    // this.bullets.forEach(b => b.fixedUpdate(time, delta))
     this.minimapMarker?.setX(this.sprite.x).setY(this.sprite.y)
   }
 
@@ -349,8 +346,9 @@ export default class Feller {
         this.heal(this.MAX_HEALTH)
         break
       case PowerUpType.Speed:
-        const speedRatio = this.speed / (this.speed + 50)
-        this.speed += 50
+        const speedUp = 50
+        const speedRatio = this.speed / (this.speed + speedUp)
+        this.speed += speedUp
         // TODO tween camera out
         this.scene.tweens.add({
           targets: this.scene.cameras.main,
@@ -368,7 +366,6 @@ export default class Feller {
         break
       case PowerUpType.RateOfFire:
         this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.85, 1)
-        this.bulletSpeed *= 1.05
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
         break
       case PowerUpType.Bullet:
@@ -400,7 +397,7 @@ export default class Feller {
     const barrelY = this.gunSprite.y + barrelDistance * Math.sin(bulletAngle + offset);
 
     // Create new bullet at the barrel's position and set its velocity.
-    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle: bulletAngle, scale: this.damage/2, speed: this.bulletSpeed + this.speed * 0.5 }); 
+    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle: bulletAngle, scale: Math.sqrt(this.damage), speed: this.speed * 1.5 }); 
     
     this.bullets.push(bullet)
     

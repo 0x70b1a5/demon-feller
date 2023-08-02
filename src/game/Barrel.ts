@@ -46,7 +46,7 @@ export default class Barrel extends Stuff {
   explode() {
     EventEmitter.emit('playSound', 'explosion')
     this.boom.setActive(true).setVisible(true)
-    this.scene.cameras.main.shake()
+    this.scene?.cameras.main.shake()
     this.scene?.tweens.add({
       targets: this.boom,
       ease: 'Elastic',
@@ -63,16 +63,16 @@ export default class Barrel extends Stuff {
       }
     })
 
-    this.scene.enemies
+    this.scene?.enemies
       .filter(enemy => !enemy.dead && Phaser.Math.Distance.BetweenPoints(enemy, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)  
       .forEach(enemy => enemy.hit(this))
 
-    this.scene.stuffs
+    this.scene?.stuffs
       .filter(stuff => Phaser.Math.Distance.BetweenPoints(stuff, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)
       .forEach(stuff => !stuff.dying && !stuff.dead && stuff.guid !== this.guid && stuff.hit(this.damage))
 
     if (Phaser.Math.Distance.BetweenPoints(this.scene.feller.sprite, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles) {
-      this.scene.feller.hit(this)
+      this.scene?.feller.hit(this)
     }
   }
 
