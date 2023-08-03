@@ -177,12 +177,13 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     if (this.seenFeller) {
       if (this.stun < 1) {
-        if (this.stunImmunity > 0) this.stunImmunity -= delta
         this.move(time, delta)
       } else {
         this.stun -= delta
-        this.stunImmunity -= delta
       }
+
+      if (this.stunImmunity > 0) this.stunImmunity -= delta
+
       this.minimapMarker.setX(this.x).setY(this.y)
     } else {
       this.showIfInRoom()
