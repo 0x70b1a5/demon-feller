@@ -53,7 +53,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, 0, 0, config.texture);
     this.health = (config.health || 3) * (config.level > 1 ? config.level * 2 : 1);
-    this.damage = (config.damage || 1) * (config.level > 1 ? config.level * 2 : 1);
+    this.damage = (config.damage || 1) * (config.level > 1 ? config.level : 1);
     this.room = config.room
     this.scene = scene
     this.speed = config.velocity || this.speed
