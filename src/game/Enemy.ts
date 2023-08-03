@@ -180,7 +180,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.stunImmunity > 0 && this.stunImmunity--
         this.move(time, delta)
       } else {
-        this.stun--
+        this.stun -= delta
       }
       this.minimapMarker.setX(this.x).setY(this.y)
     } else {
@@ -207,26 +207,25 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   move(time: any, delta: any) {
-    this.chaseTarget()
-    this.wobble()
+    this.chaseTarget(delta)
     this.setVelocity(Math.cos(this.movementAngle) * this.speed, Math.sin(this.movementAngle) * this.speed)
   }
 
-  chaseTarget() {
-    this.findPathToTarget()
+  chaseTarget(delta: number) {
+    this.findPathToTarget(delta)
     this.takePathToTarget()
   }
 
   path!: number[][]
   pathingCooldown = 0
-  PATHING_COOLDOWN_DURATION = 20
-  findPathToTarget() {
+  PATHING_COOLDOWN_MS = 500
+  findPathToTarget(delta: number) {
     if (this.pathingCooldown > 0 || !(this.x && this.y && this.target?.x && this.target?.y)) {
-      this.pathingCooldown--
+      this.pathingCooldown -= delta
       return
     }
 
-    this.pathingCooldown = this.PATHING_COOLDOWN_DURATION
+    this.pathingCooldown = this.PATHING_COOLDOWN_MS
     
     this.path = this.scene.pathfinder.findPath(
       this.scene.map.worldToTileX(this.x)!, 

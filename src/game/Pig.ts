@@ -8,7 +8,7 @@ import assert from "./util/assert";
 export default class Pig extends Enemy {
   speed = 125
   health = 6
-  SPIT_COOLDOWN_DURATION = 120
+  SPIT_COOLDOWN_MS = 2000
   spitCooldown = 0
   bullets: Bullet[] = []
   knockback = 200
@@ -58,7 +58,7 @@ export default class Pig extends Enemy {
       (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
     })
     
-    this.spitCooldown = this.SPIT_COOLDOWN_DURATION;
+    this.spitCooldown = this.SPIT_COOLDOWN_MS;
   }
 
   fixedUpdate(time: any, delta: any): void {
@@ -66,7 +66,7 @@ export default class Pig extends Enemy {
 
     if (!this.dead && this.seenFeller) {
       if (this.spitCooldown > 0) {
-        this.spitCooldown--
+        this.spitCooldown -= delta
       } else {
         this.spit()
       }

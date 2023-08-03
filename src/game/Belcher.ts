@@ -9,7 +9,7 @@ export default class Belcher extends Enemy {
   speed = 0
   health = 8
   knockback = 200
-  BELCH_TIMER = 150
+  BELCH_TIMER_MS = 3000
   belching = 0
   bullets: Bullet[] = []
 
@@ -28,11 +28,11 @@ export default class Belcher extends Enemy {
     }
   }
 
-  belch() {
+  belch(delta: number) {
     if (this.belching > 0) {
-      this.belching--
+      this.belching -= delta
 
-      if (this.belching < this.BELCH_TIMER/2) {
+      if (this.belching < this.BELCH_TIMER_MS/2) {
         if (this.anims.isPlaying) {
           this.anims.stop()
           EventEmitter.emit('playSound', 'belcherbreathe')
@@ -45,7 +45,7 @@ export default class Belcher extends Enemy {
     this.anims.play('belcher-belch')
     EventEmitter.emit('playSound', 'belcherbelch')
 
-    this.belching = this.BELCH_TIMER
+    this.belching = this.BELCH_TIMER_MS
     const burps = Math.random() * 8
     for (let i = 0; i < burps; i++) {
       const angle = Math.random() * 2 * Math.PI
@@ -76,7 +76,7 @@ export default class Belcher extends Enemy {
   fixedUpdate(time: any, delta: any) {
     super.fixedUpdate(time, delta)
     if (!this.dead && this.seenFeller) {
-      this.belch()
+      this.belch(delta)
     }
   }
 

@@ -81,8 +81,8 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
     })
 
     scene.physics.add.collider(this, scene.enemies)
-    scene.physics.add.collider(this, scene.feller.bullets, (me, bullet) => {
-      (bullet as Bullet).bulletHitSomething(this.scene)
+    scene.physics.add.overlap(this, scene.feller.bullets, (me, bullet) => {
+      (bullet as Bullet).bulletHitSomething(this.scene, this.x, this.y)
     })
 
     EventEmitter.on('spawnDoors', (guid: string) => {

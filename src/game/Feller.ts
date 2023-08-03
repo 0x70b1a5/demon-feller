@@ -18,6 +18,10 @@ import roll from "./util/roll";
 export default class Feller {
   debug = false
 
+  RELOAD_COOLDOWN_MS = 1500
+  IFRAMES_DURATION_MS = 2000
+  STUN_DURATION_MS = 500
+  SPEED_LIMIT = 900
   
   scene!: GameScene
   sprite!: Phaser.Physics.Arcade.Sprite
@@ -25,9 +29,6 @@ export default class Feller {
   gunSprite!: Phaser.Physics.Arcade.Sprite;
   debugGraphics!: Phaser.GameObjects.Graphics;
   shootCooldown = 0
-  RELOAD_COOLDOWN = 40
-  IFRAMES_DURATION = 100
-  STUN_DURATION = 25
   knockback = 0
   bullets: Bullet[] = []
   hp = 3
@@ -35,7 +36,6 @@ export default class Feller {
   iframes = 0
   stun = 0
   speed = 300
-  SPEED_LIMIT = 900
   damage = 1
   container!: Phaser.GameObjects.Container;
   minimapMarker!: Phaser.GameObjects.Sprite;
@@ -81,7 +81,7 @@ export default class Feller {
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     EventEmitter.emit('speed', this.speed)
-    EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
+    EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN_MS)
     EventEmitter.emit('demonsFelled', 0)
 
   }
@@ -175,7 +175,7 @@ export default class Feller {
         sprite.setTexture('feller-sheet', 0);
       }
     } else {
-      this.stun--
+      this.stun -= delta
       this.sprite.anims.play('feller-hurt')
     }
 
@@ -328,13 +328,13 @@ export default class Feller {
     const angleToPointer = this.makeGunFollowPointer()
 
     if (this.shootCooldown > 0) {
-      this.shootCooldown--
+      this.shootCooldown -= delta
     } else if (this.scene.input.mousePointer.primaryDown || this.keys.space.isDown) {
       this.shoot(angleToPointer);
     }
 
     if (this.iframes > 0) {
-      this.iframes--
+      this.iframes -= delta
       if (time % 2 === 0) {
         this.sprite.setVisible(false)
       } else {
@@ -348,7 +348,7 @@ export default class Feller {
     this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
     this.sprite.setDepth(depth+2)
     this.gunSprite.setDepth(depth+1)
-    // this.bullets.forEach(b => b.fixedUpdate(time, delta))
+    this.bullets.forEach(b => b.fixedUpdate(time, delta))
     this.minimapMarker?.setX(this.sprite.x).setY(this.sprite.y)
   }
 
@@ -373,8 +373,8 @@ export default class Feller {
       // TODO implement game over or respawn logic here
     } 
     
-    this.iframes = this.IFRAMES_DURATION
-    this.stun = this.STUN_DURATION
+    this.iframes = this.IFRAMES_DURATION_MS
+    this.stun = this.STUN_DURATION_MS
 
     // radians 
     const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this.sprite)
@@ -412,8 +412,8 @@ export default class Feller {
         }
         break
       case PowerUpType.RateOfFire:
-        this.RELOAD_COOLDOWN = Math.max(this.RELOAD_COOLDOWN * 0.85, 1)
-        EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN)
+        this.RELOAD_COOLDOWN_MS = Math.max(this.RELOAD_COOLDOWN_MS * 0.85, 1)
+        EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN_MS)
         break
       case PowerUpType.Bullet:
         this.damage++;
@@ -465,11 +465,12 @@ export default class Feller {
     this.scene.physics.add.overlap(bullet, [
       this.scene.groundLayer, 
     ], (bullet, tile) => {
-      if ((tile as Phaser.Tilemaps.Tile).collides) {
+      const t = (tile as Phaser.Tilemaps.Tile)
+      if (this.scene.walkableTilesAs01[t.y]?.[t.x] === 1) {
         (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
       }
     })
-    this.shootCooldown = this.RELOAD_COOLDOWN;
+    this.shootCooldown = this.RELOAD_COOLDOWN_MS;
   }
   
   destroy() {
