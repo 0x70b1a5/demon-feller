@@ -16,8 +16,6 @@ const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
   startMusicVolume = isNaN(startMusicVolume) ? DEFAULT_VOLUME : startMusicVolume
   startSfxVolume = isNaN(startSfxVolume) ? DEFAULT_VOLUME : startSfxVolume
 
-  console.log({ startMusicVolume, startSfxVolume, localStorage })
-
   const [isMuted, setMuted] = useState(startMuted);
   const [musicVolume, setMusicVolume] = useState(startMusicVolume);
   const [sfxVolume, setSfxVolume] = useState(startSfxVolume);

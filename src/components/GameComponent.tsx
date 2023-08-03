@@ -36,6 +36,7 @@ export const GameComponent: React.FC = () => {
   const [stunUp, setStunUp] = useState(false)
   const [temporaryNowPlaying, setNowPlaying] = useState('')
   const [persistentNowPlaying, setPersistentNowPlaying] = useState('')
+  const [startButtonClicked, setStartButtonClicked] = useState(false)
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -178,6 +179,10 @@ export const GameComponent: React.FC = () => {
         setNowPlaying(old => '')
       }, 5000)
     }
+
+    const startButtonClickedListener = () => {
+      setStartButtonClicked(true)
+    }
     
     EventEmitter.on('gameStarted', gameStartedListener);
     EventEmitter.on('health', healthListener);
@@ -193,6 +198,7 @@ export const GameComponent: React.FC = () => {
     EventEmitter.on('damage', damageListener);
     EventEmitter.on('pause', pausedListener);
     EventEmitter.on('nowPlaying', nowPlayingListener)
+    EventEmitter.on('startButtonClicked', startButtonClickedListener)
 
     if (gameElementRef?.current) {
       gameElementRef.current.addEventListener('contextmenu', (e) => {
@@ -216,6 +222,7 @@ export const GameComponent: React.FC = () => {
       EventEmitter.off('levelChanged', levelChangedListener);
       EventEmitter.off('pause', pausedListener);
       EventEmitter.off('nowPlaying', nowPlayingListener)
+      EventEmitter.off('startButtonClicked', startButtonClickedListener)
     };
   }, [])
 
@@ -255,11 +262,11 @@ export const GameComponent: React.FC = () => {
     </div>
     <div className={classNames('reloadSpeed bar', { rainbowShake: reloadSpeedUp })}>
       R.O.F.:
-      <div className={classNames('stat')}>{Number(40 / (reloadSpeed || 40)).toPrecision(3)}x</div>
+      <div className={classNames('stat')}>{Number(reloadSpeed / 1000).toPrecision(3)}x</div>
     </div>
     <div className={classNames('stun bar', { rainbowShake: stunUp })}>
       STUN:
-      <div className={classNames('stat')}>{Number(stun / 100).toPrecision(3)}x</div>
+      <div className={classNames('stat')}>{Number(stun / 1000).toPrecision(2)}s</div>
     </div>
     <div className={classNames('demonsFelled bar', { rainbowShake: fallenFelled })}>
       LV {level}:
@@ -279,6 +286,9 @@ export const GameComponent: React.FC = () => {
   return <>
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" ref={gameElementRef} style={{ width: '100%', height: '100%' }} />
+    {!startButtonClicked && <div className='pregame-audio'>
+      <AudioControls nowPlaying='' />
+    </div>}
     {gameStarted && stats}
     {temporaryNowPlaying && <div className='now-playing-container'>
       <div className='now-playing'>

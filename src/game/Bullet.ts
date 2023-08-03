@@ -9,7 +9,7 @@ export interface BulletConfig {
 }
 export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   bulletSpeed = 600
-  lifetimeMs = 20000
+  lifetimeMs = 2000
   smoke!: Phaser.GameObjects.Sprite
   scene!: GameScene
   
@@ -44,7 +44,8 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
       .setActive(true).setVisible(true)
       .setScale(Math.sqrt(damage)/4)
       .setRotation(bulletAngle)
-    scene.tweens.add({
+
+    scene?.tweens.add({
       targets: smoke,
       rotation: {
         value: { from: Phaser.Math.DegToRad(-5) + bulletAngle, to: Phaser.Math.DegToRad(5) + bulletAngle },
@@ -53,14 +54,16 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
       },
       onComplete: () => smoke.destroy()
     })
-    this.destroy()
+
+    this.setActive(false).setVisible(false).destroy()
   }
 
   fixedUpdate(time: number, delta: number) {
     if (this.lifetimeMs > 0) {
       this.lifetimeMs -= delta
     } else {
-      this.bulletHitSomething(this.scene, 0, this.angle)
+      if (this.scene)
+        this.bulletHitSomething(this.scene, 0, this.angle)
     }
   }
 }

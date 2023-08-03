@@ -34,17 +34,16 @@ export class AudioScene extends Phaser.Scene {
     const prefix = '__demonfeller-'
     const DEFAULT_VOLUME = 0.5
 
-    // let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
-    // if (startMuted) startMuted = (startMuted === true || startMuted === 'true') 
-    // let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
-    // let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
+    let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
+    if (startMuted) startMuted = (startMuted === true || startMuted === 'true') 
+    let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
+    let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
     
-    // this.musicVolume = isNaN(startMusicVolume) ? DEFAULT_VOLUME : startMusicVolume
-    // this.sfxVolume = isNaN(startSfxVolume) ? DEFAULT_VOLUME : startSfxVolume
-    // this.sound.setMute(startMuted)
+    this.musicVolume = isNaN(startMusicVolume) ? DEFAULT_VOLUME : startMusicVolume
+    this.sfxVolume = isNaN(startSfxVolume) ? DEFAULT_VOLUME : startSfxVolume
+    this.sound.setMute(startMuted)
 
-    this.musicVolume = this.sfxVolume = DEFAULT_VOLUME
-    this.sound.setMute(false)
+    console.log({ startMusicVolume, startSfxVolume, startMuted })
 
     this.songs = this.songNames
       .filter(songName => this.songIsLoaded(songName))
@@ -117,17 +116,27 @@ export class AudioScene extends Phaser.Scene {
     return this.cache.audio.has(key)
   }
 
+  pickNewSong() {
+    // Filter out songs that haven't been loaded yet
+    const eligibleSongs = this.songNames.filter(songName => this.songIsLoaded(songName))
+
+    // Shuffling the tracks
+    let nextSong = Phaser.Utils.Array.Shuffle(eligibleSongs.slice()).pop()!
+    let tries = 5;
+    while (tries > 0 && nextSong === this.currentSong?.key) {
+      nextSong = Phaser.Utils.Array.Shuffle(eligibleSongs.slice()).pop()!
+      tries--;
+    }
+
+    return nextSong
+  }
+
   playRandomMusic() {
     if (this.currentSong) {
       this.currentSong.stop();
     }
 
-    // Filter out songs that haven't been loaded yet
-    const eligibleSongs = this.songNames.filter(songName => this.songIsLoaded(songName))
-
-    console.log({eligibleSongs})
-    // Shuffling the tracks
-    const nextSong = Phaser.Utils.Array.Shuffle(eligibleSongs.slice()).pop()!
+    const nextSong = this.pickNewSong()
 
     // Play the selected track
     this.currentSong = this.sound.add(nextSong) as Phaser.Sound.HTML5AudioSound

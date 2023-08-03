@@ -32,8 +32,9 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
     super.destroy()
   }
 
-  protected preUpdate(time: number, delta: number): void {
-    super.preUpdate(time, delta)
-    if (this.iframes > 0) this.iframes -= delta
+  fixedUpdate(delta: number) {
+    if (this.iframes > 0) {
+      this.iframes -= delta
+    }
   }
 }

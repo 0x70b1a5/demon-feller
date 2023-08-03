@@ -293,6 +293,18 @@ canvas {
   }
 }
 
+.pregame-audio {
+  position: fixed;
+  bottom: 1em;
+  left: 2em;
+  right: 2em;
+  background: colors.$parchment;
+  border-radius: 1em;
+
+  .audio-controls {
+  }
+}
+
 @keyframes pop-in-from-below {
   0% {
     top: -10em;

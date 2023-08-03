@@ -7,7 +7,7 @@ import Stuff, { StuffConfig } from './Stuff';
 import EventEmitter from './EventEmitter';
 
 export default class Barrel extends Stuff {
-  knockback = 120 
+  knockback = 1000
   damage = 3
   dangerRadiusInTiles = 1.5
   MAX_HEALTH = 1

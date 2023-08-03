@@ -7,7 +7,7 @@ import { GameScene } from "./GameScene";
 export class UIScene extends Phaser.Scene {
   gameScene!: GameScene
   minimap!: Phaser.Cameras.Scene2D.Camera
-  minimapZoom = 0.04
+  minimapZoom = 0.06
   constructor() {
     super({ key: 'UIScene' });
   }

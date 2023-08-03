@@ -65,6 +65,7 @@ export class GameScene extends Phaser.Scene {
   creatingNewLevel = true
   keys!: any
   stuffs: Stuff[] = []
+  powerups: PowerUp[] = []
   get rooms() {
     return this.dungeon.rooms as RoomWithEnemies[]
   }
@@ -136,14 +137,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   createDungeon() {
-    const roomSize = 7 + this.level
     const dungeon = this.dungeon = new Dungeon({
-      width: 36 + this.level,
-      height: 28 + this.level,
+      width: 35 + 2*this.level,
+      height: 28 + 2*this.level,
       doorPadding: 2,
       rooms: {
-        width: { min: 7, max: roomSize },
-        height: { min: 7, max: roomSize },
+        width: { min: 7, max: 7 + 2*this.level },
+        height: { min: 7, max: 7 + 2*this.level },
       }
       // // DEBUG: SMALL DONJON
       // width: 14,
@@ -496,6 +496,7 @@ export class GameScene extends Phaser.Scene {
     }
     
     const powerup = new PowerUp(this, x, y, (type || roll(powerUps, powerupExclusions)) as PowerUpType);
+    this.powerups.push(powerup)
     
     const gfx = this.add.graphics({ lineStyle: { color: 0xff0000, width: 3 }});
     if (this.debug) {
@@ -503,8 +504,6 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.physics.add.overlap(this.feller.sprite, powerup, () => {
-      if (powerup.iframes) return 
-      
       this.feller.pickupPowerUp(powerup);
       powerup.destroy();
       gfx.clear();
@@ -659,8 +658,8 @@ export class GameScene extends Phaser.Scene {
     }
     
 
-    this.feller.update(time, delta);
-    [...this.enemies, ...this.stuffs].forEach(x => x.fixedUpdate(time, delta))
+    this.feller.fixedUpdate(time, delta);
+    [...this.enemies, ...this.stuffs, ...this.powerups].forEach(x => x.fixedUpdate(time, delta))
 
     this.fellerRoom = this.dungeon.getRoomAt(this.feller.tileX, this.feller.tileY)! as RoomWithEnemies;
     if (this.revealedRooms.includes(this.fellerRoom.guid)) {
@@ -673,13 +672,15 @@ export class GameScene extends Phaser.Scene {
 
   fixedDeltaTime = 1/60
   lastUpdateTime = performance.now()
+  lastDeltaTime = 0
   update(time: any, delta: any) {
     let currentTime = performance.now()
     const deltaTime = currentTime - this.lastUpdateTime
+    this.lastDeltaTime = deltaTime
     if (deltaTime > this.fixedDeltaTime) {
       this.fixedUpdate(currentTime, deltaTime)
       this.lastUpdateTime = currentTime - (deltaTime % this.fixedDeltaTime);
     }
-    this.feller.makeGunFollowPointer()
+    this.feller.makeGunFollowFellerAndPointAtPointer()
   }
 }

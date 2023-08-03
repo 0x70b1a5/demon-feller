@@ -11,7 +11,7 @@ export default class Pig extends Enemy {
   SPIT_COOLDOWN_MS = 2000
   spitCooldown = 0
   bullets: Bullet[] = []
-  knockback = 200
+  knockback = 500
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)

@@ -65,7 +65,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.collider(this, scene.stuffLayer)
     scene.physics.add.collider(this, scene.stuffs)
 
-    console.log('enemy', config, this.damage, this.health)
+    // console.log('enemy', config, this.damage, this.health)
 
     this
       .setOrigin(0.5, 0.5)
@@ -136,8 +136,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.stunImmunity = by.knockback * 2
       // radians 
       const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this)
-      let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback);
-      let knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback);
+      let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback/10);
+      let knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback/10);
       
       this.setVelocityX(knockbackVelocityX);
       this.setVelocityY(knockbackVelocityY);
@@ -147,7 +147,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         targets: this,
         rotation: {
           value: { from: Phaser.Math.DegToRad(-45), to: origRotation },
-          duration: this.stun * 10,
+          duration: this.stun,
           repeat: false,  
           ease: 'Elastic',
         },
@@ -177,10 +177,11 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     if (this.seenFeller) {
       if (this.stun < 1) {
-        this.stunImmunity > 0 && this.stunImmunity--
+        if (this.stunImmunity > 0) this.stunImmunity -= delta
         this.move(time, delta)
       } else {
         this.stun -= delta
+        this.stunImmunity -= delta
       }
       this.minimapMarker.setX(this.x).setY(this.y)
     } else {
@@ -191,7 +192,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   showIfInRoom() {
     if (this.room.guid === this.scene.fellerRoom.guid) {
       !this.visible && this.setVisible(true) && this.minimapMarker.setVisible(true)
-      console.log('seen feller', this)
+      // console.log('seen feller', this)
       this.seenFeller = true
       this.target = this.scene.feller.sprite
       
@@ -209,6 +210,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   move(time: any, delta: any) {
     this.chaseTarget(delta)
     this.setVelocity(Math.cos(this.movementAngle) * this.speed, Math.sin(this.movementAngle) * this.speed)
+    if (delta % 10 === 0) this.wobble()
   }
 
   chaseTarget(delta: number) {
@@ -262,7 +264,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   }
 
   wobble() {
-    this.movementAngle += Phaser.Math.FloatBetween(-1, 1) * Phaser.Math.DegToRad(20)
+    this.movementAngle += Phaser.Math.FloatBetween(-1, 1) * Phaser.Math.DegToRad(100)
   }
 
   die() {

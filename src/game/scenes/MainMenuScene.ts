@@ -164,6 +164,7 @@ export class MainMenuScene extends Phaser.Scene {
     beginButton.on('pointerup', () => {
       beginButton.destroy()
 
+      EventEmitter.emit('startButtonClicked')
       EventEmitter.emit('playSound', 'bat')
       this.tweens.add({
         targets: demon,

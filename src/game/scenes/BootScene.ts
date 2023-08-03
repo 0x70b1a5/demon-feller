@@ -16,6 +16,7 @@ export class BootScene extends Phaser.Scene {
     'Offering up suffering...',
     'Anointing the sick...',
     'Consecrating ammunition...',
+    'Edifying brethren...',
     'Imploring \n St. Gabriel Possenti, \n patron of marksmen...'
   ]
   constructor() {

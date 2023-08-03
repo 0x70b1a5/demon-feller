@@ -130,7 +130,6 @@ export default class Feller {
     // this.container.add(this.sprite)
     // this.container.add(this.gunSprite)
     // this.scene.physics.world.enable(this.container)
-    // this.container.add(this.gunSprite)
   }
 
   bodify(sprite: Phaser.Physics.Arcade.Sprite) {
@@ -283,9 +282,8 @@ export default class Feller {
 
     return null; // No collision detected
   }
-  
-  makeGunFollowPointer() {
-    const sprite = this.sprite;
+
+  getGunAngleToPointer() {
     // Calculate the angle between the gun and the mouse cursor
     const pointer = this.scene.input.mousePointer;
     // const [px, py] = [
@@ -296,61 +294,36 @@ export default class Feller {
     const worldPoint = this.scene.cameras.main.getWorldPoint(pointer.x, pointer.y);
 
     const [px, py] = [worldPoint.x, worldPoint.y];
-    
-    const angleToPointer = Phaser.Math.Angle.Between(sprite.x, sprite.y, px, py);
 
     if (this.debug) {
       this.debugGraphics.clear()
-      this.debugGraphics.lineBetween(sprite.x, sprite.y, px, py)
+      this.debugGraphics.lineBetween(this.sprite.x, this.sprite.y, px, py)
       // console.log(angleToPointer)
     }
+
+    return Phaser.Math.Angle.Between(this.sprite.x, this.sprite.y, px, py);
+  }
+  
+  makeGunFollowFellerAndPointAtPointer() {
+    const angleToPointer = this.getGunAngleToPointer()
 
     // Rotate the gun to face the cursor
     this.gunSprite.setRotation(angleToPointer);
 
-    // Position the gun 20px from the feller's center towards the cursor
+    // Position the gun away from the feller's center towards the cursor
     const distanceFromCenter = this.sprite.width/4;
-    this.gunSprite.x = sprite.x + distanceFromCenter * Math.cos(angleToPointer);
-    this.gunSprite.y = sprite.y + distanceFromCenter * Math.sin(angleToPointer);
+    this.gunSprite.x = this.sprite.x + distanceFromCenter * Math.cos(angleToPointer);
+    this.gunSprite.y = this.sprite.y + distanceFromCenter * Math.sin(angleToPointer);
 
-    this.gunSprite.flipY = this.gunSprite.x < sprite.x
+    this.gunSprite.flipY = this.gunSprite.x < this.sprite.x
+
+    this.gunSprite.setVelocity(this.sprite.body!.velocity.x, this.sprite.body?.velocity.y)
 
     return angleToPointer
   }
 
   tileX!: number
   tileY!: number
-  update(time: any, delta: any) {
-    this.move(delta)  
-    this.tileX = this.scene.groundLayer.worldToTileX(this.sprite.x);
-    this.tileY = this.scene.groundLayer.worldToTileY(this.sprite.y);
-
-    const angleToPointer = this.makeGunFollowPointer()
-
-    if (this.shootCooldown > 0) {
-      this.shootCooldown -= delta
-    } else if (this.scene.input.mousePointer.primaryDown || this.keys.space.isDown) {
-      this.shoot(angleToPointer);
-    }
-
-    if (this.iframes > 0) {
-      this.iframes -= delta
-      if (time % 2 === 0) {
-        this.sprite.setVisible(false)
-      } else {
-        this.sprite.setVisible(true)
-      }
-    } else {
-      !this.sprite.visible && this.sprite.setVisible(true)
-    }
-
-    let depth = this.sprite.depth
-    this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
-    this.sprite.setDepth(depth+2)
-    this.gunSprite.setDepth(depth+1)
-    this.bullets.forEach(b => b.fixedUpdate(time, delta))
-    this.minimapMarker?.setX(this.sprite.x).setY(this.sprite.y)
-  }
 
   hit(by: Phaser.Physics.Arcade.Sprite & { damage: number, knockback: number }) {
     if (this.iframes > 0) {
@@ -378,14 +351,18 @@ export default class Feller {
 
     // radians 
     const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this.sprite)
-    let knockbackVelocityX = (by.x < this.sprite.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback)
-    let knockbackVelocityY = (by.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback)
+    let knockbackVelocityX = (by.x < this.sprite.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback/100)
+    let knockbackVelocityY = (by.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback/100)
 
     this.sprite.setVelocityX(knockbackVelocityX)
     this.sprite.setVelocityY(knockbackVelocityY)
   }
 
   pickupPowerUp(powerup: PowerUp) {
+    if (powerup.iframes > 0) {
+      return
+    }
+
     switch (powerup.powerupType) {
       case PowerUpType.Health: 
         this.MAX_HEALTH++;
@@ -420,7 +397,7 @@ export default class Feller {
         EventEmitter.emit('damage', this.damage)
         break
       case PowerUpType.Knockback:
-        this.knockback += 22
+        this.knockback += 500
         EventEmitter.emit('stun', this.knockback)
         break
       default:
@@ -466,13 +443,45 @@ export default class Feller {
       this.scene.groundLayer, 
     ], (bullet, tile) => {
       const t = (tile as Phaser.Tilemaps.Tile)
-      if (this.scene.walkableTilesAs01[t.y]?.[t.x] === 1) {
+      if (t?.collides) {
         (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
       }
     })
     this.shootCooldown = this.RELOAD_COOLDOWN_MS;
   }
-  
+
+  fixedUpdate(time: any, delta: any) {
+    this.move(delta)  
+    this.tileX = this.scene.groundLayer.worldToTileX(this.sprite.x);
+    this.tileY = this.scene.groundLayer.worldToTileY(this.sprite.y);
+
+    const angleToPointer = this.makeGunFollowFellerAndPointAtPointer()
+
+    if (this.shootCooldown > 0) {
+      this.shootCooldown -= delta
+    } else if (this.scene.input.mousePointer.primaryDown || this.keys.space.isDown) {
+      this.shoot(angleToPointer);
+    }
+
+    if (this.iframes > 0) {
+      this.iframes -= delta
+      if (time % 2 === 0) {
+        this.sprite.setVisible(false)
+      } else {
+        this.sprite.setVisible(true)
+      }
+    } else {
+      !this.sprite.visible && this.sprite.setVisible(true)
+    }
+
+    let depth = this.sprite.depth
+    this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
+    this.sprite.setDepth(depth+2)
+    this.gunSprite.setDepth(depth+1)
+    this.bullets.forEach(b => b.fixedUpdate(time, delta))
+    this.minimapMarker?.setX(this.sprite.x).setY(this.sprite.y)
+  }
+
   destroy() {
     this.sprite.destroy();
     this.gunSprite.destroy();
