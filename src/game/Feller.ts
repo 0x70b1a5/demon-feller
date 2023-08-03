@@ -133,10 +133,6 @@ export default class Feller {
     // this.container.add(this.gunSprite)
   }
 
-  freeze() {
-    this.bodify(this.sprite).moves = false;
-  }
-
   bodify(sprite: Phaser.Physics.Arcade.Sprite) {
     return (sprite.body as Phaser.Physics.Arcade.Body)
   }
@@ -229,12 +225,17 @@ export default class Feller {
     //   store it in variable tMaxX. We perform a similar computation in y and store the result in tMaxY. The
     //   minimum of these two values will indicate how much we can travel along the ray and still remain in the
     //   current voxel.
+
     /** 
-     *         ^|
+     *          |
+     *          | . x+vx, y+vy
+     *          |/
+     *          |
+     *         /|
      *        / |
      *       /  |
      *      /   |
-     * ____/____+____ 200
+     * ____/____|____ 200
      *    /     | } xDistToNextTileX
      *  x,y    200
      * 

@@ -103,13 +103,7 @@ export class MainMenuScene extends Phaser.Scene {
       },
   
       align: 'center',
-
-      anchor: {
-        centerX: 'center',
-        centerY: 'center+300%'
-      }
     })
-    .layout()
     .setVisible(false)
 
     const presented = this.rexUI.add.label({
@@ -125,14 +119,22 @@ export class MainMenuScene extends Phaser.Scene {
       },
   
       align: 'center',
+    })
+    .setVisible(false)
 
+    const sizer = this.rexUI.add.sizer({
+      orientation: 'y',
       anchor: {
         centerX: 'center',
-        centerY: 'bottom-72'
+        centerY: 'bottom-150%'
+      },
+      space: {
+        item: 10
       }
     })
+    .add(dedicated)
+    .add(presented)
     .layout()
-    .setVisible(false)
 
     const beginButton = this.rexUI.add.label({
       width: 40,

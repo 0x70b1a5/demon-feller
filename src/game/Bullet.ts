@@ -10,6 +10,7 @@ export interface BulletConfig {
 export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   bulletSpeed = 600
   lifetimeSeconds = 20
+  smoke!: Phaser.GameObjects.Sprite
   
   constructor(scene: Phaser.Scene, x: number, y: number, config: BulletConfig) {
     const { texture, angle, scale, speed } = config
@@ -28,14 +29,19 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
     .setOrigin(0.5, 0.5)
     .setCircle(this.width/2, 0, 0)
 
+    this.smoke = scene.add.sprite(this.x, this.y, 'smoke')
+    .setActive(false)
+    .setVisible(false)
+
     setTimeout(() => this.destroy(), this.lifetimeSeconds * 1000)
   }
 
   bulletHitSomething(scene: GameScene, damage = 0, bulletAngle = 0) {
     EventEmitter.emit('playSound', 'bullethit')
 
-    const smoke = scene.add.sprite(this.x, this.y, 'smoke')
-      .setScale(0.25 * damage)
+    const smoke = this.smoke
+      .setActive(true).setVisible(true)
+      .setScale(Math.sqrt(damage)/4)
       .setRotation(bulletAngle)
     scene.tweens.add({
       targets: smoke,

@@ -120,6 +120,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('mm-feller', 'assets/mm-feller.png')
     this.load.image('mm-demon', 'assets/mm-demon.png')
     this.load.image('mm-check', 'assets/mm-check.png')
+    this.load.image('mm-star', 'assets/mm-star.png')
     this.load.spritesheet(
       'feller-sheet',
       '../assets/spritesheets/feller.png',

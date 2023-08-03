@@ -15,7 +15,7 @@ export class UIScene extends Phaser.Scene {
   checkmarks!: Phaser.GameObjects.Sprite[]
   create() {
     this.gameScene = this.scene.get('GameScene') as GameScene;
-    this.minimap = this.gameScene.cameras.add(0, 0, 200, 200, false, 'mini').setZoom(this.minimapZoom)
+    this.minimap = this.gameScene.cameras.add(0, 0, this.game.config.width as number/4, this.game.config.height as number/4, false, 'mini').setZoom(this.minimapZoom)
     this.minimap.setBackgroundColor(colors.TEXT_COLOR)
 
     this.refollowAndignoreSprites()

@@ -146,7 +146,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.scene.tweens.add({
         targets: this,
         rotation: {
-          value: { from: Phaser.Math.DegToRad(-20), to: origRotation },
+          value: { from: Phaser.Math.DegToRad(-45), to: origRotation },
           duration: this.stun * 10,
           repeat: false,  
           ease: 'Elastic',
