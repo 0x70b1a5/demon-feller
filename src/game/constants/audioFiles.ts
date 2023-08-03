@@ -13,6 +13,7 @@ const audioFiles = {
   captains: 'assets/music/system_ready-captains_of_industry.ogg',
   miseria: 'assets/music/dj-meeting_miseria.ogg',
   revolver: 'assets/music/portals-sunshine_revolver_(with_ACTG).ogg',
+  resurrection: 'assets/music/albireo_achernar-death_and_resurrection.ogg',
 }
 
 export default audioFiles
