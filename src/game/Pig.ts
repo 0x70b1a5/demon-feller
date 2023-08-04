@@ -1,9 +1,9 @@
-import Bullet from "./Bullet";
-import Enemy, { EnemyConfig } from "./Enemy";
-import EventEmitter from "./EventEmitter";
-import Stuff from "./Stuff";
-import { GameScene } from "./scenes/GameScene";
-import assert from "./util/assert";
+import Bullet from './Bullet';
+import Enemy, { EnemyConfig } from './Enemy';
+import EventEmitter from './EventEmitter';
+import Stuff from './Stuff';
+import { GameScene } from './scenes/GameScene';
+import assert from './util/assert';
 
 export default class Pig extends Enemy {
   speed = 125
@@ -40,9 +40,12 @@ export default class Pig extends Enemy {
     if (this.stun) return 
     
     const angle = Phaser.Math.Angle.BetweenPoints(this, this.scene.feller.sprite)
-    const bullet = new Bullet(this.scene, this.x, this.y, { angle, texture: 'bigbullet', speed: 300 }); 
+    const bullet = new Bullet(this.scene, this.x, this.y, 'bigbullet'); 
+    bullet.configure(300, 1, angle)
+
     assert(bullet.body && this.body)
 
+    bullet.fire(this.x, this.y)
     this.bullets.push(bullet)
 
     this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {

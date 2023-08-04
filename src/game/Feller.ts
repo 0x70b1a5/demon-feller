@@ -1,4 +1,4 @@
-import Bullet from "./Bullet";
+import Bullet, { BulletConfig } from "./Bullet";
 import Enemy from "./Enemy";
 import EventEmitter from "./EventEmitter";
 import PowerUp, { PowerUpType } from "./Powerup";
@@ -30,7 +30,7 @@ export default class Feller {
   debugGraphics!: Phaser.GameObjects.Graphics;
   shootCooldown = 0
   knockback = 0
-  bullets: Bullet[] = []
+  bullets!: Phaser.GameObjects.Group
   hp = 3
   MAX_HEALTH = 3
   iframes = 0
@@ -124,13 +124,31 @@ export default class Feller {
 
     this.scene.physics.add.collider(this.sprite, this.scene.stuffs)
 
-    this.minimapMarker = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'mm-feller')
+    this.minimapMarker = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'mm-feller').setScale(10)
     this.scene.cameras.main.ignore([this.minimapMarker])
     // this.container = this.scene.add.container(x, y);
     // this.container.add(this.sprite)
     // this.container.add(this.gunSprite)
     // this.scene.physics.world.enable(this.container)
+
+    this.createBulletPool()
   }
+
+  createBulletPool() {
+    this.bullets = this.scene.physics.add.group({
+      classType: Bullet,
+      maxSize: 30, // 30 bullets in total
+      runChildUpdate: true // If you need to run update on each bullet
+    });
+  
+    // Create the initial pool of bullets
+    for (let i = 0; i < 50; i++) {
+      const bullet = new Bullet(this.scene, 0, 0, 'bullet');
+      bullet.deactivate()
+      this.bullets.add(bullet);
+    }
+  }
+  
 
   bodify(sprite: Phaser.Physics.Arcade.Sprite) {
     return (sprite.body as Phaser.Physics.Arcade.Body)
@@ -414,17 +432,25 @@ export default class Feller {
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
   }
 
+  spawnBullet(x: number, y: number, config: BulletConfig) {
+    const bullet = this.bullets?.get() as Bullet; // Get bullet from pool
+    
+    if (bullet) {
+      bullet.configure(config.speed || bullet.bulletSpeed, config.scale || 1, config.angle)
+      bullet.fire(x, y);
+      return bullet
+    }
+  }
+  
   shoot(bulletAngle: number) {
     const barrelDistance = 80
     const offset = (Math.abs(bulletAngle) > Math.PI/2 ? 1 : -1) * Math.PI/12
     const barrelX = this.gunSprite.x + barrelDistance * Math.cos(bulletAngle + offset);
     const barrelY = this.gunSprite.y + barrelDistance * Math.sin(bulletAngle + offset);
 
-    // Create new bullet at the barrel's position and set its velocity.
-    const bullet = new Bullet(this.scene, barrelX, barrelY, { angle: bulletAngle, scale: Math.sqrt(this.damage), speed: this.speed * 1.5 }); 
-    
-    this.bullets.push(bullet)
-    
+    const bullet = this.spawnBullet(barrelX, barrelY, { angle: bulletAngle, scale: Math.sqrt(this.damage), speed: this.speed * 1.5 })
+    if (!bullet) return
+
     EventEmitter.emit('playSound', 'shoot')
 
     this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
@@ -478,13 +504,13 @@ export default class Feller {
     this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
     this.sprite.setDepth(depth+2)
     this.gunSprite.setDepth(depth+1)
-    this.bullets.forEach(b => b.fixedUpdate(time, delta))
+    this.bullets?.getChildren().forEach((b: any) => (b as Bullet).fixedUpdate(time, delta))
     this.minimapMarker?.setX(this.sprite.x).setY(this.sprite.y)
   }
 
   destroy() {
     this.sprite.destroy();
     this.gunSprite.destroy();
-    this.bullets.forEach(b => b.destroy())
+    this.bullets.destroy()
   }
 }

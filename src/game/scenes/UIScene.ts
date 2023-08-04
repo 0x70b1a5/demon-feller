@@ -40,7 +40,7 @@ export class UIScene extends Phaser.Scene {
         this.gameScene.map.tileToWorldX(room.centerX)!, 
         this.gameScene.map.tileToWorldY(room.centerY)!,
         'mm-check')
-      check.setScale(20)
+      check.setScale(10)
       this.gameScene.cameras.main.ignore(check)
       this.checkmarks ||= []
       this.checkmarks.push(check)

@@ -37,6 +37,7 @@ export const GameComponent: React.FC = () => {
   const [temporaryNowPlaying, setNowPlaying] = useState('')
   const [persistentNowPlaying, setPersistentNowPlaying] = useState('')
   const [minimapTransparent, setMinimapTransparent] = useState(true)
+  const [minimapSize, setMinimapSize] = useState('medium')
   const [startButtonClicked, setStartButtonClicked] = useState(false)
 
   useEffect(() => {
@@ -246,8 +247,9 @@ export const GameComponent: React.FC = () => {
 
   const formatReloadSpeed = (rspd: number) => Number((rspd/1000).toPrecision(2))+'s'
 
-  const onMinimapSizeChange = (xy: string, transparent?: boolean) => {
-    EventEmitter.emit('resizeMinimap', xy, transparent)
+  const onMinimapSizeChange = (size: string, transparent?: boolean) => {
+    setMinimapSize(size)
+    EventEmitter.emit('resizeMinimap', size, transparent)
   }
 
   const stats = <div className='stats'>
@@ -350,10 +352,10 @@ export const GameComponent: React.FC = () => {
               <span>SEE-THRU</span>
             </div>
             <div className='x'>
-              <select className='shado' style={{ padding: '8px 16px' }} onChange={(e) => onMinimapSizeChange(e.currentTarget.value, minimapTransparent)}>
-                <option value='small'>SMALL (1/6)</option>
-                <option value='medium'>MEDIUM (1/4)</option>
-                <option value='large'>LARGE (1/3)</option>
+              <select className='shado' value={minimapSize} style={{ padding: '8px 16px' }}>
+                <option onClick={() => onMinimapSizeChange('small', minimapTransparent)} value='small'>SMALL (1/6)</option>
+                <option onClick={() => onMinimapSizeChange('medium', minimapTransparent)} value='medium'>MEDIUM (1/4)</option>
+                <option onClick={() => onMinimapSizeChange('large', minimapTransparent)} value='large'>LARGE (1/3)</option>
               </select>
             </div>
           </div>
@@ -363,8 +365,6 @@ export const GameComponent: React.FC = () => {
           </div>
           <div className='sxn row'>
             <div className='btn shado resume' onClick={onUnpause}>RESUME</div>
-          </div>
-          <div className='sxn row'>
             {restartButton}
           </div>
         </div>

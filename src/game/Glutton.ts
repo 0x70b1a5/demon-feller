@@ -49,12 +49,12 @@ export default class Glutton extends Enemy {
     const burps = Math.random() * 8
     for (let i = 0; i < burps; i++) {
       const angle = Math.random() * 2 * Math.PI
-      const bullet = new Bullet(this.scene, this.x, this.y, { angle, speed: 150, texture: 'bigbullet', scale: 1.25 })
+      const bullet = new Bullet(this.scene, this.x, this.y, 'bigbullet')
+      bullet.configure(150, 1.25, angle)
+
       assert(bullet.body && this.body)
     
-      bullet.body.velocity.x += this.body.velocity.x
-      bullet.body.velocity.y += this.body.velocity.y
-
+      bullet.fire(this.x, this.y)
       this.bullets.push(bullet)
 
       this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {
