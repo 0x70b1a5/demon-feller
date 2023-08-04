@@ -323,7 +323,6 @@ export class GameScene extends Phaser.Scene {
     const y = this.map.tileToWorldY(spawnY)! + this.map.tileHeight/2;
 
     const startStar = this.add.sprite(this.map.tileToWorldX(startRoom.centerX)!, this.map.tileToWorldY(startRoom.centerY)!, 'mm-star')
-    .setScale(40)
     this.cameras.main.ignore(startStar)
 
     if (this.feller) {

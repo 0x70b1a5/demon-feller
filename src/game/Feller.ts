@@ -124,7 +124,7 @@ export default class Feller {
 
     this.scene.physics.add.collider(this.sprite, this.scene.stuffs)
 
-    this.minimapMarker = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'mm-feller').setScale(20);
+    this.minimapMarker = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'mm-feller')
     this.scene.cameras.main.ignore([this.minimapMarker])
     // this.container = this.scene.add.container(x, y);
     // this.container.add(this.sprite)

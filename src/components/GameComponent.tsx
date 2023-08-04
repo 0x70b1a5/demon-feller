@@ -352,7 +352,7 @@ export const GameComponent: React.FC = () => {
             <div className='x'>
               <select className='shado' style={{ padding: '8px 16px' }} onChange={(e) => onMinimapSizeChange(e.currentTarget.value, minimapTransparent)}>
                 <option value='small'>SMALL (1/6)</option>
-                <option value='medium' defaultChecked>MEDIUM (1/4)</option>
+                <option value='medium'>MEDIUM (1/4)</option>
                 <option value='large'>LARGE (1/3)</option>
               </select>
             </div>

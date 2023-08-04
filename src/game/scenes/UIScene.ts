@@ -15,7 +15,12 @@ export class UIScene extends Phaser.Scene {
   checkmarks!: Phaser.GameObjects.Sprite[]
   create() {
     this.gameScene = this.scene.get('GameScene') as GameScene;
-    this.minimap = this.gameScene.cameras.add(0, 0, this.game.config.width as number/6, this.game.config.height as number/6, false, 'mini').setZoom(this.minimapZoom)
+    const existingMini = this.gameScene.cameras.getCamera('mini')
+    if (!existingMini) {
+      this.minimap = this.gameScene.cameras.add(0, 0, this.game.config.width as number/6, this.game.config.height as number/6, false, 'mini').setZoom(this.minimapZoom)
+    } else {
+      this.minimap = existingMini
+    }
     this.minimap.setAlpha(0.5)
 
     this.refollowAndignoreSprites()
@@ -55,7 +60,7 @@ export class UIScene extends Phaser.Scene {
 
   resizeMinimap(size: string, transparent: boolean) {
     console.log({ size, transparent })
-    
+
     switch (size) {
       case 'small':
         this.minimap.setSize(window.innerWidth/6, window.innerHeight/6)

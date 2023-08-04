@@ -136,13 +136,12 @@ export class BootScene extends Phaser.Scene {
     // this.load.image('playerSpriteIdle', 'assets/images/player_idle.png');
 
     // Audio
-    this.load.audio('bat', 'assets/sounds/bat.mp3');
-    this.load.audio('magic', 'assets/sounds/magic.mp3');
+    this.load.audio('bat', 'assets/sounds/bat.ogg');
+    this.load.audio('magic', 'assets/sounds/magic.ogg');
 
     // Music
     const [firstSongKey, firstSongFile] = Phaser.Utils.Array.Shuffle(Object.entries(audioFiles)).pop()!
     this.load.audio(firstSongKey, firstSongFile)
-    // this.load.audio('song3', 'assets/audio/song3.mp3');
 
     // SFX
     this.load.audio('belcherbelch', 'assets/sounds/belcherbelch.ogg')
