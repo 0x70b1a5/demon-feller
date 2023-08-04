@@ -1,8 +1,8 @@
-import EventEmitter from "../EventEmitter";
-import audioFiles from "../constants/audioFiles";
-import colors from "../constants/colors";
-import TILE_MAPPING from "../constants/tiles";
-import { GameScene } from "./GameScene";
+import EventEmitter from '../EventEmitter';
+import audioFiles from '../constants/audioFiles';
+import colors from '../constants/colors';
+import TILE_MAPPING from '../constants/tiles';
+import { GameScene } from './GameScene';
 
 export class UIScene extends Phaser.Scene {
   gameScene!: GameScene
@@ -15,8 +15,8 @@ export class UIScene extends Phaser.Scene {
   checkmarks!: Phaser.GameObjects.Sprite[]
   create() {
     this.gameScene = this.scene.get('GameScene') as GameScene;
-    this.minimap = this.gameScene.cameras.add(0, 0, this.game.config.width as number/4, this.game.config.height as number/4, false, 'mini').setZoom(this.minimapZoom)
-    this.minimap.setBackgroundColor(colors.TEXT_COLOR)
+    this.minimap = this.gameScene.cameras.add(0, 0, this.game.config.width as number/6, this.game.config.height as number/6, false, 'mini').setZoom(this.minimapZoom)
+    this.minimap.setAlpha(0.5)
 
     this.refollowAndignoreSprites()
     
@@ -39,7 +39,7 @@ export class UIScene extends Phaser.Scene {
       this.gameScene.cameras.main.ignore(check)
       this.checkmarks ||= []
       this.checkmarks.push(check)
-    })
+    }).on('resizeMinimap', (size: string, transparent: boolean) => this.resizeMinimap(size, transparent))
   }
 
   refollowAndignoreSprites() {
@@ -51,5 +51,29 @@ export class UIScene extends Phaser.Scene {
       this.gameScene.feller.gunSprite, 
       ...this.gameScene.enemies
     ]);
+  }
+
+  resizeMinimap(size: string, transparent: boolean) {
+    console.log({ size, transparent })
+    
+    switch (size) {
+      case 'small':
+        this.minimap.setSize(window.innerWidth/6, window.innerHeight/6)
+        break
+      case 'medium':
+        this.minimap.setSize(window.innerWidth/4, window.innerHeight/4)
+        break
+      case 'large':
+        this.minimap.setSize(window.innerWidth/3, window.innerHeight/3)
+        break
+      default:
+        break
+    }
+
+    if (transparent) {
+      this.minimap.setAlpha(0.5)
+    } else {
+      this.minimap.setAlpha(1)
+    }
   }
 }

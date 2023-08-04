@@ -26,7 +26,7 @@ import TILE_MAPPING from '../constants/tiles';
 import Rock from '../Rock';
 import Stuff from '../Stuff';
 import assert from '../util/assert';
-import Belcher from '../Belcher';
+import Glutton from '../Glutton';
 import Imp from '../Imp';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
@@ -455,6 +455,10 @@ export class GameScene extends Phaser.Scene {
 
     EventEmitter.emit('levelChanged', this.level)
 
+    if (this.level > 1) {
+      this.spawnPowerUp(this.startRoom, PowerUpType.Health)
+    }
+
     this.creatingNewLevel = false
   }
 
@@ -590,8 +594,8 @@ export class GameScene extends Phaser.Scene {
           case EnemyType.Pig:
             enemy = new Pig(this, { level: this.level, room, enemyType, texture: 'pig' }, x, y)
             break
-          case EnemyType.Belcher:
-            enemy = new Belcher(this, { level: this.level, room, enemyType, texture: 'belcher' }, x, y)
+          case EnemyType.Glutton:
+            enemy = new Glutton(this, { level: this.level, room, enemyType, texture: 'belcher' }, x, y)
             break
           case EnemyType.Soul:
             enemy = new Soul(this, { level: this.level, room, enemyType, texture: 'soul' }, x, y)

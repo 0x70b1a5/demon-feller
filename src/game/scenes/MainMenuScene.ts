@@ -4,6 +4,7 @@ import EventEmitter from '../EventEmitter';
 
 export class MainMenuScene extends Phaser.Scene {
   private rexUI!: RexUIPlugin
+  smallSize = window.innerHeight <= 800
 
   constructor() {
     super({ key: 'MainMenuScene' });
@@ -16,7 +17,7 @@ export class MainMenuScene extends Phaser.Scene {
       height: 40,
   
       text: this.add.text(0, 0, 'DEMON', {
-        fontFamily: 'pkmn', color: 'white', fontSize: 128
+        fontFamily: 'pkmn', color: 'white', fontSize: this.smallSize ? 72 : 128
       }),
   
       space: {
@@ -26,7 +27,7 @@ export class MainMenuScene extends Phaser.Scene {
       align: 'center',
 
       anchor: {
-        centerY: 'center-300'
+        centerY: this.smallSize ? 'center-150' : 'center-300'
       },
       x: 2*+this.game.config.width
     })
@@ -48,7 +49,7 @@ export class MainMenuScene extends Phaser.Scene {
       align: 'center',
 
       anchor: {
-        centerY: 'center-150'
+        centerY: this.smallSize ? 'center-75' : 'center-150'
       },
 
       x: 2*-this.game.config.width

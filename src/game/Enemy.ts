@@ -24,7 +24,7 @@ export enum EnemyType {
   Goo,
   Pig,
   Soul,
-  Belcher,
+  Glutton,
   Imp,
 }
 

@@ -36,6 +36,7 @@ export const GameComponent: React.FC = () => {
   const [stunUp, setStunUp] = useState(false)
   const [temporaryNowPlaying, setNowPlaying] = useState('')
   const [persistentNowPlaying, setPersistentNowPlaying] = useState('')
+  const [minimapTransparent, setMinimapTransparent] = useState(true)
   const [startButtonClicked, setStartButtonClicked] = useState(false)
 
   useEffect(() => {
@@ -228,13 +229,13 @@ export const GameComponent: React.FC = () => {
 
   // Define the function to generate the tweet URL
   const tweetStats = () => {
-    const message = `Check out my stats! \n
-      Health: ${currentHp}/${maxHp} \n
+    const message = `My last DEMON FELLER run:\n
+      Highest Level: ${level} \n
+      HP: ${currentHp}/${maxHp} \n
       Speed: ${Math.round(speed / 24)}MPH \n
       Damage: ${damage || 1} \n
-      Rate of Fire: ${Number(40 / (reloadSpeed || 40)).toPrecision(3)}x \n
-      Stun: ${Number(stun / 100).toPrecision(3)}x \n
-      Demons Felled (Level): ${demonsFelledLevel}/${demonsToFell} \n
+      Rate of Fire: ${formatReloadSpeed(reloadSpeed)} \n
+      Stun: ${formatReloadSpeed(stun)} \n
       Demons Felled: ${demonsFelled}`;
 
     const encodedMessage = encodeURIComponent(message);
@@ -243,8 +244,14 @@ export const GameComponent: React.FC = () => {
     return tweetUrl;
   };
 
+  const formatReloadSpeed = (rspd: number) => Number((rspd/1000).toPrecision(2))+'s'
+
+  const onMinimapSizeChange = (xy: string, transparent?: boolean) => {
+    EventEmitter.emit('resizeMinimap', xy, transparent)
+  }
+
   const stats = <div className='stats'>
-    <div className={classNames('health bar', { 
+    <div className={classNames('health shado bar', { 
       rainbowShake: hpUp, 
       damaged: currentHp < maxHp && currentHp > (maxHp||3)/3, 
       critical: currentHp <= (maxHp||3)/3 
@@ -252,33 +259,34 @@ export const GameComponent: React.FC = () => {
       HP:
       <div className={classNames('stat')}> {currentHp}/{maxHp}</div>
     </div>
-    <div className={classNames('speed bar', { rainbowShake: speedUp })}>
+    <div className={classNames('speed shado bar', { rainbowShake: speedUp })}>
       SPEED:
       <div className={classNames('stat')}> {Math.round(speed / 24)}MPH</div>
     </div>
-    <div className={classNames('damage bar', { rainbowShake: damageUp })}>
+    <div className={classNames('damage shado bar', { rainbowShake: damageUp })}>
       DMG:
       <div className={classNames('stat')}>{damage || 1}</div>
     </div>
-    <div className={classNames('reloadSpeed bar', { rainbowShake: reloadSpeedUp })}>
+    <div className={classNames('reloadSpeed shado bar', { rainbowShake: reloadSpeedUp })}>
       R.O.F.:
-      <div className={classNames('stat')}>{Number(reloadSpeed / 1000).toPrecision(3)}x</div>
+      <div className={classNames('stat')}>{formatReloadSpeed(reloadSpeed)}</div>
     </div>
-    <div className={classNames('stun bar', { rainbowShake: stunUp })}>
+    <div className={classNames('stun shado bar', { rainbowShake: stunUp })}>
       STUN:
-      <div className={classNames('stat')}>{Number(stun / 1000).toPrecision(2)}s</div>
+      <div className={classNames('stat')}>{formatReloadSpeed(stun)}</div>
     </div>
-    <div className={classNames('demonsFelled bar', { rainbowShake: fallenFelled })}>
+    <div className={classNames('demonsFelled shado bar', { rainbowShake: fallenFelled })}>
       LV {level}:
       <div className='stat'>{demonsFelledLevel}/{demonsToFell}</div>
     </div>
-    <div className={classNames('demonsFelled bar', { rainbowShake: fallenFelled })}>
+    <div className={classNames('demonsFelled shado bar', { rainbowShake: fallenFelled })}>
       FELLED:
       <div className={classNames('stat')}>{demonsFelled}</div>
     </div>
   </div>
-  const restartButton = <button className='btn restart' onClick={() => {
+  const restartButton = <button className='btn shado restart' onClick={() => {
     // (gameRef?.current?.scene.getScene('GameScene') as GameScene).restart()
+    if (!window.confirm('Are you sure you want to restart?')) return
     setGameOver(false)
     setPaused(false)
     window.location.reload()
@@ -286,12 +294,12 @@ export const GameComponent: React.FC = () => {
   return <>
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" ref={gameElementRef} style={{ width: '100%', height: '100%' }} />
-    {!startButtonClicked && <div className='pregame-audio'>
+    {!startButtonClicked && <div className='pregame-audio shado'>
       <AudioControls nowPlaying='' />
     </div>}
     {gameStarted && stats}
     {temporaryNowPlaying && <div className='now-playing-container'>
-      <div className='now-playing'>
+      <div className='now-playing shado'>
         🔊 {temporaryNowPlaying.replace(/_/g, ' ').replace(/-/g, ' - ').toUpperCase()} 🎵
       </div>
     </div>}
@@ -302,13 +310,13 @@ export const GameComponent: React.FC = () => {
         <p className='ty'>
           BUT HELL IS NOT YET EMPTY
         </p>
-        <button className='big-btn continue' onClick={() => {
+        <button className='big-btn shado continue' onClick={() => {
           setLevelCompleted(false)
           EventEmitter.emit('goToNextLevel')
         }}>GO DEEPER</button>
       </div>
     </div>}
-    {gameOver && <div className='game-over overlay'>
+    {gameOver && <div className='game-over shado overlay'>
       <div className='notice'>
         <h1>GAME OVER</h1>
         <p className='ty'>
@@ -317,22 +325,49 @@ export const GameComponent: React.FC = () => {
         {restartButton}
         <div className='after-action-report'>
           {stats}
-          <button className='btn tweet-em' onClick={() => window.open(tweetStats(), '_blank')}>TWEET 'EM</button>
+          <button className='btn shado tweet-em' onClick={() => window.open(tweetStats(), '_blank')}>TWEET 'EM</button>
         </div>
       </div>
     </div>}
-    {paused && <div className='pause-menu overlay'>
+    {paused && <div className='pause-menu shado overlay'>
       <div className='notice'>
         <h1>GAME PAUSED</h1>
         <AudioControls nowPlaying={persistentNowPlaying} />
-        <h2>CONTROLS:</h2>
-        <p>WASD or arrow keys: move</p>
-        <p>Click: shoot</p>
-        <br/>
-        <h2>STATS:</h2>
-        {stats}
-        <div className='btn resume' onClick={onUnpause}>RESUME</div>
-        {restartButton}
+        <div className='wrapperupper'>
+          <div className='sxn shado'>
+            <h2>CONTROLS:</h2>
+            <p>WASD or arrow keys: move</p>
+            <p>Click: shoot</p>
+          </div>
+          <div className='sxn shado'>
+            <h2>MINIMAP:</h2>
+            <div className='x'>
+              <input type="checkbox" style={{ transform: 'scale(1.75)', marginRight: 16 }} checked={minimapTransparent} 
+                onChange={(e) => {
+                  setMinimapTransparent(old => !minimapTransparent)
+                  onMinimapSizeChange('', !minimapTransparent)
+                }} />
+              <span>SEE-THRU</span>
+            </div>
+            <div className='x'>
+              <select className='shado' style={{ padding: '8px 16px' }} onChange={(e) => onMinimapSizeChange(e.currentTarget.value, minimapTransparent)}>
+                <option value='small'>SMALL (1/6)</option>
+                <option value='medium' defaultChecked>MEDIUM (1/4)</option>
+                <option value='large'>LARGE (1/3)</option>
+              </select>
+            </div>
+          </div>
+          <div className='sxn shado'>
+            <h2>STATS:</h2>
+            {stats}
+          </div>
+          <div className='sxn row'>
+            <div className='btn shado resume' onClick={onUnpause}>RESUME</div>
+          </div>
+          <div className='sxn row'>
+            {restartButton}
+          </div>
+        </div>
       </div>
     </div>}
   </>;

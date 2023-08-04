@@ -1,11 +1,11 @@
-import Bullet from "./Bullet";
-import Enemy, { EnemyConfig } from "./Enemy";
-import EventEmitter from "./EventEmitter";
-import Stuff from "./Stuff";
-import { GameScene } from "./scenes/GameScene";
-import assert from "./util/assert";
+import Bullet from './Bullet';
+import Enemy, { EnemyConfig } from './Enemy';
+import EventEmitter from './EventEmitter';
+import Stuff from './Stuff';
+import { GameScene } from './scenes/GameScene';
+import assert from './util/assert';
 
-export default class Belcher extends Enemy {
+export default class Glutton extends Enemy {
   speed = 0
   health = 8
   knockback = 200
@@ -75,7 +75,7 @@ export default class Belcher extends Enemy {
 
   fixedUpdate(time: any, delta: any) {
     super.fixedUpdate(time, delta)
-    if (!this.dead && this.seenFeller) {
+    if (!this.dead && this.seenFeller && this.stun < 1) {
       this.belch(delta)
     }
   }

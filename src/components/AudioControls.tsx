@@ -61,7 +61,7 @@ const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
       </h2>
 
       <div className='controls'>
-        <div>
+        <div className='shado slider'>
           <label>Music:</label>
           <input
             type='range'
@@ -73,7 +73,7 @@ const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
           />
         </div>
 
-        <div>
+        <div className='shado slider'>
           <label>SFX:</label>
           <input
             type='range'
@@ -85,7 +85,7 @@ const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
           />
         </div>
         
-        <button className={classNames('btn mute', { isMuted })} onClick={handleMute}>
+        <button className={classNames('btn mute shado', { isMuted })} onClick={handleMute}>
           {isMuted ? 'Unmute' : 'Mute'} All
         </button>
       </div>
@@ -97,7 +97,7 @@ const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
           ⏪
         </button> */}
 
-        <button className="btn fwd" disabled={rwdFwdDisabled} onClick={handleForward}>
+        <button className="btn fwd shado" disabled={rwdFwdDisabled} onClick={handleForward}>
           Skip ⏩
         </button>
       </div>}

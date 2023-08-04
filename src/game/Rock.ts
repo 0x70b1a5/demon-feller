@@ -52,4 +52,9 @@ export default class Rock extends Stuff {
       this.scene.spawnPowerUp(this.room, undefined, this.x, this.y)
     }
   }
+
+  destroy() {
+    this.remains.forEach(r => r.destroy())
+    super.destroy()
+  }
 }

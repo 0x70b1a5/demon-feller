@@ -74,7 +74,6 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
         duration: 1000,
         ease: 'Power2'
       })
-      scene.feller.stun += 500
       scene.feller.iframes += 1000
 
       EventEmitter.emit('spawnDoors', this.room.guid)
