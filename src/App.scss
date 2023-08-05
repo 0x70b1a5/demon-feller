@@ -111,6 +111,16 @@ canvas {
   }
 }
 
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.col {
+  display: flex;
+  flex-direction: col;
+}
+
 .wrapperupper {
   display: flex;
   flex-wrap: wrap;
@@ -127,10 +137,6 @@ canvas {
 
     .x {
       margin-bottom: 8px;
-    }
-
-    &.row {
-      flex-direction: row;
     }
   }
 }
@@ -366,5 +372,39 @@ canvas {
     background-color: colors.$parchment-tr;
     padding: 1em 2em;
     animation: 1s ease-out pop-in-from-below;
+  }
+}
+
+.prologue {
+  .saga {
+    width: min(75vw, 700px);
+    align-self: stretch;
+    flex-grow: 1;
+    place-content: center;
+    place-items: center;
+    overflow-y: auto;
+    padding: 1em 2em;
+    margin: 1em 2em;
+    p {
+      margin-bottom: 1em;
+      white-space: pre-wrap;
+    }
+  }
+
+
+  .pages {
+    place-content: center;
+    place-items: center;
+    justify-content: space-between;
+    align-self: stretch;
+
+    .pageNumber {
+      padding: 0.5em 1em;
+      margin-right: 1em;
+    }
+
+    .btn {
+      margin-bottom: 0;
+    }
   }
 }

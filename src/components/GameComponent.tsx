@@ -9,6 +9,7 @@ import classNames from 'classnames';
 import { UIScene } from '../game/scenes/UIScene';
 import AudioControls from './AudioControls';
 import { AudioScene } from '../game/scenes/AudioScene';
+import Prologue from './Prologue';
 
 export const GameComponent: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -39,6 +40,7 @@ export const GameComponent: React.FC = () => {
   const [minimapTransparent, setMinimapTransparent] = useState(false)
   const [minimapSize, setMinimapSize] = useState('medium')
   const [startButtonClicked, setStartButtonClicked] = useState(false)
+  const [showPrologue, setShowPrologue] = useState(true)
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -297,7 +299,8 @@ export const GameComponent: React.FC = () => {
   return <>
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" ref={gameElementRef} style={{ width: '100%', height: '100%' }} />
-    {!startButtonClicked && <div className='pregame-audio shado'>
+    {showPrologue && <Prologue hide={() => setShowPrologue(false)} />}
+    {!startButtonClicked && !showPrologue && <div className='pregame-audio shado'>
       <AudioControls nowPlaying='' />
     </div>}
     {gameStarted && stats}
