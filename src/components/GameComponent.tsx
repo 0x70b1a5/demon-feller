@@ -36,7 +36,7 @@ export const GameComponent: React.FC = () => {
   const [stunUp, setStunUp] = useState(false)
   const [temporaryNowPlaying, setNowPlaying] = useState('')
   const [persistentNowPlaying, setPersistentNowPlaying] = useState('')
-  const [minimapTransparent, setMinimapTransparent] = useState(true)
+  const [minimapTransparent, setMinimapTransparent] = useState(false)
   const [minimapSize, setMinimapSize] = useState('medium')
   const [startButtonClicked, setStartButtonClicked] = useState(false)
 
@@ -235,7 +235,7 @@ export const GameComponent: React.FC = () => {
       HP: ${currentHp}/${maxHp} \n
       Speed: ${Math.round(speed / 24)}MPH \n
       Damage: ${damage || 1} \n
-      Rate of Fire: ${formatReloadSpeed(reloadSpeed)} \n
+      Reload: ${formatReloadSpeed(reloadSpeed)} \n
       Stun: ${formatReloadSpeed(stun)} \n
       Demons Felled: ${demonsFelled}`;
 
@@ -249,6 +249,7 @@ export const GameComponent: React.FC = () => {
 
   const onMinimapSizeChange = (size: string, transparent?: boolean) => {
     setMinimapSize(size)
+    console.log(size)
     EventEmitter.emit('resizeMinimap', size, transparent)
   }
 
@@ -270,7 +271,7 @@ export const GameComponent: React.FC = () => {
       <div className={classNames('stat')}>{damage || 1}</div>
     </div>
     <div className={classNames('reloadSpeed shado bar', { rainbowShake: reloadSpeedUp })}>
-      R.O.F.:
+      RELOAD:
       <div className={classNames('stat')}>{formatReloadSpeed(reloadSpeed)}</div>
     </div>
     <div className={classNames('stun shado bar', { rainbowShake: stunUp })}>
@@ -343,19 +344,19 @@ export const GameComponent: React.FC = () => {
           </div>
           <div className='sxn shado'>
             <h2>MINIMAP:</h2>
-            <div className='x'>
+            {/* <div className='x'>
               <input type="checkbox" style={{ transform: 'scale(1.75)', marginRight: 16 }} checked={minimapTransparent} 
                 onChange={(e) => {
                   setMinimapTransparent(old => !minimapTransparent)
                   onMinimapSizeChange('', !minimapTransparent)
                 }} />
               <span>SEE-THRU</span>
-            </div>
+            </div> */}
             <div className='x'>
-              <select className='shado' value={minimapSize} style={{ padding: '8px 16px' }}>
-                <option onClick={() => onMinimapSizeChange('small', minimapTransparent)} value='small'>SMALL (1/6)</option>
-                <option onClick={() => onMinimapSizeChange('medium', minimapTransparent)} value='medium'>MEDIUM (1/4)</option>
-                <option onClick={() => onMinimapSizeChange('large', minimapTransparent)} value='large'>LARGE (1/3)</option>
+              <select className='shado' value={minimapSize} style={{ padding: '8px 16px' }} onChange={(e) => onMinimapSizeChange(e.currentTarget.value)}>
+                <option value='small'>SMALL (1/6)</option>
+                <option value='medium'>MEDIUM (1/4)</option>
+                <option value='large'>LARGE (1/3)</option>
               </select>
             </div>
           </div>

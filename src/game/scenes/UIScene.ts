@@ -17,11 +17,11 @@ export class UIScene extends Phaser.Scene {
     this.gameScene = this.scene.get('GameScene') as GameScene;
     const existingMini = this.gameScene.cameras.getCamera('mini')
     if (!existingMini) {
-      this.minimap = this.gameScene.cameras.add(0, 0, this.game.config.width as number/6, this.game.config.height as number/6, false, 'mini').setZoom(this.minimapZoom)
+      this.minimap = this.gameScene.cameras.add(0, 0, this.game.config.width as number/4, this.game.config.height as number/4, false, 'mini').setZoom(this.minimapZoom)
     } else {
       this.minimap = existingMini
     }
-    this.minimap.setAlpha(0.5)
+    // this.minimap.setAlpha(0.5)
 
     this.refollowAndignoreSprites()
     

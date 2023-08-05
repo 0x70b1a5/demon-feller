@@ -134,22 +134,6 @@ export default class Feller {
     this.createBulletPool()
   }
 
-  createBulletPool() {
-    this.bullets = this.scene.physics.add.group({
-      classType: Bullet,
-      maxSize: 30, // 30 bullets in total
-      runChildUpdate: true // If you need to run update on each bullet
-    });
-  
-    // Create the initial pool of bullets
-    for (let i = 0; i < 50; i++) {
-      const bullet = new Bullet(this.scene, 0, 0, 'bullet');
-      bullet.deactivate()
-      this.bullets.add(bullet);
-    }
-  }
-  
-
   bodify(sprite: Phaser.Physics.Arcade.Sprite) {
     return (sprite.body as Phaser.Physics.Arcade.Body)
   }
@@ -432,8 +416,50 @@ export default class Feller {
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
   }
 
+  createBulletPool() {
+    this.bullets = this.scene.physics.add.group({
+      classType: Bullet,
+      maxSize: 50, // 30 bullets in total
+      visible: false,
+      active: false
+    });
+  
+    // Create the initial pool of bullets
+    for (let i = 0; i < 50; i++) {
+      const bullet = new Bullet(this.scene, 0, 0, 'bullet');
+      console.log(bullet.guid)
+      this.bullets.add(bullet);
+      this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
+        const enemy = _enemy as Enemy
+        if (!(bullet as any).active) return
+        console.log('bullet hit enemy', enemy);
+        enemy.hit( { ...this.sprite, damage: this.damage, knockback: this.knockback } );
+        (bullet as Bullet).bulletHitSomething(this.scene, this.damage, (bullet as Bullet).angle);
+        (bullet as Bullet).deactivate()
+      })
+      this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
+        const stuff = _stuff as Stuff
+        if (!(bullet as any).active) return
+        console.log('bullet hit stuff');
+        stuff.hit(this.damage);
+        (bullet as Bullet).bulletHitSomething(this.scene, this.damage, (bullet as Bullet).angle);
+        (bullet as Bullet).deactivate()
+      })
+      this.scene.physics.add.overlap(bullet, [
+        this.scene.groundLayer, 
+      ], (bullet, tile) => {
+        const t = (tile as Phaser.Tilemaps.Tile)
+        if (t?.collides) {
+          if (!(bullet as any).active) return
+          (bullet as Bullet).bulletHitSomething(this.scene, this.damage, (bullet as Bullet).angle);
+          (bullet as Bullet).deactivate()
+        }
+      })
+    }
+  }
+
   spawnBullet(x: number, y: number, config: BulletConfig) {
-    const bullet = this.bullets?.get() as Bullet; // Get bullet from pool
+    const bullet = this.bullets?.getFirstDead(false, x, y) as Bullet
     
     if (bullet) {
       bullet.configure(config.speed || bullet.bulletSpeed, config.scale || 1, config.angle)
@@ -452,27 +478,6 @@ export default class Feller {
     if (!bullet) return
 
     EventEmitter.emit('playSound', 'shoot')
-
-    this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
-      const enemy = _enemy as Enemy
-      console.log('bullet hit enemy', enemy);
-      enemy.hit( { ...this.sprite, damage: this.damage, knockback: this.knockback } );
-      (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
-    })
-    this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
-      const stuff = _stuff as Stuff
-      console.log('bullet hit stuff');
-      stuff.hit(this.damage);
-      (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
-    })
-    this.scene.physics.add.overlap(bullet, [
-      this.scene.groundLayer, 
-    ], (bullet, tile) => {
-      const t = (tile as Phaser.Tilemaps.Tile)
-      if (t?.collides) {
-        (bullet as Bullet).bulletHitSomething(this.scene, this.damage, bulletAngle)
-      }
-    })
     this.shootCooldown = this.RELOAD_COOLDOWN_MS;
   }
 

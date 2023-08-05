@@ -138,12 +138,12 @@ export class GameScene extends Phaser.Scene {
 
   createDungeon() {
     const dungeon = this.dungeon = new Dungeon({
-      width: 35 + 2*this.level,
-      height: 28 + 2*this.level,
+      width: 35,
+      height: 35,
       doorPadding: 2,
       rooms: {
-        width: { min: 7, max: 7 + 2*this.level },
-        height: { min: 7, max: 7 + 2*this.level },
+        width: { min: 7, max: 11 },
+        height: { min: 7, max: 11 },
       }
       // // DEBUG: SMALL DONJON
       // width: 14,
@@ -447,10 +447,10 @@ export class GameScene extends Phaser.Scene {
     this.drawMinimap()
     this.addStuffToRooms()
     this.putPlayerInStartRoom()
-    this.spawnEnemiesInRooms()
     this.setupCamera()
     this.addDoorSpritesToRooms()
     this.createWalkableGrid()
+    this.spawnEnemiesInRooms()
 
     EventEmitter.emit('levelChanged', this.level)
 
@@ -554,6 +554,7 @@ export class GameScene extends Phaser.Scene {
 
       room.forEachTile(({ x, y }, tile) => {
         if (tile !== TILES.DUNGEON_TILES.FLOOR) return
+        if (this.walkableTilesAs01?.[y]?.[x]) return
         // within this many tiles of door: RAUS!
         let notWithinThisManyTiles = 2
         for (let y1 = -notWithinThisManyTiles; y1 < notWithinThisManyTiles; y1++) {
@@ -582,6 +583,7 @@ export class GameScene extends Phaser.Scene {
       this.debug && console.log({ room, acceptableTiles, numToSpawn })
 
       for (let i = 0; i < numToSpawn; i++) {
+        if (!acceptableTiles[i]) break
         const enemyType = roll(enemyWeights)
         let enemy: Enemy | null = null;
         let {x, y} = acceptableTiles[i]

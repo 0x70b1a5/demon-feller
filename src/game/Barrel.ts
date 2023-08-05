@@ -28,19 +28,6 @@ export default class Barrel extends Stuff {
     .setActive(false).setVisible(false)
   }
 
-  fixedUpdate(time: number, delta: number) {
-    super.fixedUpdate(time, delta);
-    this.gfx.clear()
-
-    if (0 < this.health && this.health < 3) {
-      if(this.debug) {
-        this.gfx.setDefaultStyles({ fillStyle: { color: 0xa93939, alpha: 0.2 }, lineStyle: { width: 2, color: 0xff0000 }})
-        this.gfx.strokeCircle(this.x, this.y, this.scene.map.tileWidth * this.dangerRadiusInTiles / this.health)
-        this.gfx.fillCircle(this.x, this.y, this.scene.map.tileWidth * this.dangerRadiusInTiles / this.health)
-      }
-    }
-  }
-
   boom!: Phaser.GameObjects.Sprite
   smoke!: Phaser.GameObjects.Sprite
   explode() {
@@ -85,7 +72,16 @@ export default class Barrel extends Stuff {
     if (this.health === 1) { 
       this.setScale(1.25)
     }
-    animations.wobbleSprite(this.scene, this, -2, 2, 30/(this.health||1), false)
+
+    this.gfx.clear()
+
+    if (0 < this.health && this.MAX_HEALTH) {
+      this.gfx.setDefaultStyles({ fillStyle: { color: 0xa93939, alpha: 0.1 }, lineStyle: { width: 2, color: 0xa93939, alpha: 0.4 }})
+      this.gfx.strokeCircle(this.x, this.y, this.scene.map.tileWidth * this.dangerRadiusInTiles)
+      this.gfx.fillCircle(this.x, this.y, this.scene.map.tileWidth * this.dangerRadiusInTiles)
+    }
+
+    animations.wobbleSprite(this.scene, this, -1, 1, 30/(this.health||1), false)
   }
 
   onBeforeDie(): void {

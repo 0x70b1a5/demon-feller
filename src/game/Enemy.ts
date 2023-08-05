@@ -135,8 +135,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.stunImmunity = by.knockback * 2
       // radians 
       const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this)
-      let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback/10);
-      let knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback/10);
+      let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + 100);
+      let knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + 100);
       
       this.setVelocityX(knockbackVelocityX);
       this.setVelocityY(knockbackVelocityY);

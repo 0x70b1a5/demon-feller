@@ -11,7 +11,7 @@ export default class Glutton extends Enemy {
   knockback = 200
   BELCH_TIMER_MS = 3000
   belching = 0
-  bullets: Bullet[] = []
+  bullets!: Phaser.GameObjects.Group
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
@@ -28,6 +28,21 @@ export default class Glutton extends Enemy {
     }
   }
 
+  createBulletPool() {
+    this.bullets = this.scene.physics.add.group({
+      classType: Bullet,
+      maxSize: 24, // 30 bullets in total
+      runChildUpdate: true // If you need to run update on each bullet
+    });
+  
+    // Create the initial pool of bullets
+    for (let i = 0; i < 24; i++) {
+      const bullet = new Bullet(this.scene, 0, 0, 'bigbullet');
+      bullet.deactivate()
+      this.bullets.add(bullet);
+    }
+  }
+
   belch(delta: number) {
     if (this.belching > 0) {
       this.belching -= delta
@@ -35,7 +50,6 @@ export default class Glutton extends Enemy {
       if (this.belching < this.BELCH_TIMER_MS/2) {
         if (this.anims.isPlaying) {
           this.anims.stop()
-          EventEmitter.emit('playSound', 'belcherbreathe')
         }
       }
 
@@ -55,7 +69,6 @@ export default class Glutton extends Enemy {
       assert(bullet.body && this.body)
     
       bullet.fire(this.x, this.y)
-      this.bullets.push(bullet)
 
       this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {
         this.scene.feller.hit(this);
@@ -80,8 +93,13 @@ export default class Glutton extends Enemy {
     }
   }
 
+  hit(by: any) {
+    EventEmitter.emit('playSound', 'belcherbreathe')
+    super.hit(by)
+  }
+  
   destroy(fromScene?: boolean | undefined): void {
-    this.bullets.forEach(b => b.destroy())
+    this?.bullets?.destroy()
     super.destroy()
   }
 }

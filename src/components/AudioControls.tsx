@@ -56,11 +56,12 @@ const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
 
   return (
     <div className='audio-controls'>
-      <h2> 
-        AUDIO: 
-      </h2>
 
       <div className='controls'>
+        <h2> 
+          AUDIO: 
+        </h2>
+        
         <div className='shado slider'>
           <label>Music:</label>
           <input

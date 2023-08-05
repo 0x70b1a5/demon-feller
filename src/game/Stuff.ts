@@ -71,7 +71,7 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
     this.dead = true
     this.setVisible(false)
     this.setActive(false)
-    this.body!.destroy()
+    this.body?.destroy()
     EventEmitter.emit('recreateWalkableGrid')
   }
 }
