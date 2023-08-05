@@ -8,7 +8,7 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
   scene!: GameScene;
   spawned = false
   nesw!: NESW
-
+  
   constructor(scene: GameScene, room: RoomWithEnemies, nesw: NESW, x:number, y:number, texture:string='door') {
     super(scene, x, y, texture)
     this.scene = scene
@@ -18,8 +18,8 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 0.5)
-    this.setImmovable(true)
-    this.setSize(190, 190)
+    this.setCircle(this.width / 1.75)
+    this.setPushable(false).setImmovable(true).setMaxVelocity(0)
 
     this.setX(x + this.width / 2)
     this.setY(y + this.width / 2)

@@ -41,7 +41,7 @@ export interface OurCursorKeys extends Phaser.Types.Input.Keyboard.CursorKeys {
 }
 
 export class GameScene extends Phaser.Scene {
-  debug = false
+  debug = true
 
 
 

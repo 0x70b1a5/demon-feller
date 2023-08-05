@@ -118,7 +118,11 @@ export class AudioScene extends Phaser.Scene {
 
   pickNewSong() {
     // Filter out songs that haven't been loaded yet
-    const eligibleSongs = this.songNames.filter(songName => this.songIsLoaded(songName))
+    let loadedSongs = this.songNames.filter(songName => this.songIsLoaded(songName))
+    let unplayedSongs = loadedSongs.filter(songName => !this.queue.includes(songName))
+    let eligibleSongs = unplayedSongs
+
+    if (eligibleSongs.length === 0) eligibleSongs = loadedSongs
 
     // Shuffling the tracks
     let nextSong = Phaser.Utils.Array.Shuffle(eligibleSongs.slice()).pop()!
