@@ -19,7 +19,7 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 0.5)
     this.setImmovable(true)
-    this.setSize(200, 200)
+    this.setSize(190, 190)
 
     this.setX(x + this.width / 2)
     this.setY(y + this.width / 2)

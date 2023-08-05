@@ -378,10 +378,12 @@ canvas {
 .prologue {
   .saga {
     width: min(75vw, 700px);
+    max-height: 75vh;
     align-self: stretch;
     flex-grow: 1;
     place-content: center;
     place-items: center;
+    place-self: center;
     overflow-y: auto;
     padding: 1em 2em;
     margin: 1em 2em;

@@ -47,9 +47,10 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   }
 
   deactivate() {
-    this.setVelocity(0)
-    .setPosition(-100, -100)
-    this.setActive(false).setVisible(false)
+    this?.setVelocity(0)
+    ?.setPosition(-100, -100)
+    ?.setActive(false)
+    ?.setVisible(false)
   }
 
   bulletHitSomething(scene: GameScene, damage = 0, bulletAngle = 0) {

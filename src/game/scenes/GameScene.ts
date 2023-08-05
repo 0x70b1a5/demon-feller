@@ -497,6 +497,12 @@ export class GameScene extends Phaser.Scene {
     if (this.feller.speed >= this.feller.SPEED_LIMIT) {
       powerupExclusions.push(PowerUpType.Speed)
     }
+    if (this.feller.RELOAD_COOLDOWN_MS <= 1) {
+      powerupExclusions.push(PowerUpType.RateOfFire)
+    }
+    if (this.feller.knockback >= 5000) {
+      powerupExclusions.push(PowerUpType.Knockback)
+    }
     
     const powerup = new PowerUp(this, x, y, (type || roll(powerUps, powerupExclusions)) as PowerUpType);
     this.powerups.push(powerup)
