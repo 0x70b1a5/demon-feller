@@ -15,9 +15,17 @@ export class BootScene extends Phaser.Scene {
     'Admonishing the heretic...',
     'Offering up suffering...',
     'Anointing the sick...',
-    'Consecrating ammunition...',
     'Edifying brethren...',
-    'Imploring \n St. Gabriel Possenti, \n patron of marksmen...'
+    'Giving water to the thirsty...',
+    'Sheltering the homeless...',
+    'Burying dead...',
+    'Instructing ignorant...',
+    'Counseling doubtful...',
+    'Bearing wrongs patiently...',
+    'Forgiving offenses...',
+    'Comforting afflicted...',
+    'Praying for the living...',
+    'Praying for the dead...'
   ]
   constructor() {
     super('BootScene');
