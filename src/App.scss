@@ -118,7 +118,7 @@ canvas {
 
 .col {
   display: flex;
-  flex-direction: col;
+  flex-direction: column;
 }
 
 .wrapperupper {
@@ -375,6 +375,19 @@ canvas {
   }
 }
 
+
+.loading {
+  .notice {
+    overflow-y: auto;
+    max-height: 90vh;
+    max-width: 90vw;
+
+    .msg {
+      margin-bottom: 1em;
+    }
+  }
+}
+
 .prologue {
   .saga {
     width: min(75vw, 700px);
@@ -392,7 +405,6 @@ canvas {
       white-space: pre-wrap;
     }
   }
-
 
   .pages {
     place-content: center;

@@ -1,7 +1,8 @@
+import EventEmitter from "../EventEmitter";
 import audioFiles from "../constants/audioFiles";
 
 export class BootScene extends Phaser.Scene {
-  texts = [
+  texts = Phaser.Utils.Array.Shuffle([
     'Performing rituals \n of cleansing...',
     'Imploring divine assistance...',
     'Going to confession...',
@@ -26,16 +27,13 @@ export class BootScene extends Phaser.Scene {
     'Comforting afflicted...',
     'Praying for the living...',
     'Praying for the dead...'
-  ]
+  ])
+  i=0
   constructor() {
     super('BootScene');
   }
 
   preload() {
-    // Create loading text
-    const loadingText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY - 50, 'Loading...', { font: '20px pkmn', color: '#ffffff' });
-    loadingText.setOrigin(0.5);
-
     // Create progress bar
     let progressBar = this.add.graphics();
     let progressBox = this.add.graphics();
@@ -43,34 +41,32 @@ export class BootScene extends Phaser.Scene {
     progressBox.fillRect(this.cameras.main.centerX - 160, this.cameras.main.centerY, 320, 50);
     
     this.load.on('progress', (value: number) => {
-      loadingText.text = this.texts[Math.floor(Math.random() * this.texts.length)]
-      progressBar.clear();
-      progressBar.fillStyle(0xffffff, 1);
-      progressBar.fillRect(this.cameras.main.centerX - 150, this.cameras.main.centerY + 10, 300 * value, 30);
+      EventEmitter.emit('loadingText', this.texts[this.i % (this.texts.length)])
+      this.i++
     }, this);
 
     this.load.on('complete', () => {
       progressBar.destroy();
       progressBox.destroy();
-      loadingText.destroy();
+      EventEmitter.emit('loadingText', 'Done.')
       this.scene.launch('AudioScene');
 
       // Fonts 
-      (window as any).WebFont.load({
-        custom: {
-          families: [ 'pkmn' ]
-        },
-        active: () =>
-        {
-          // Fonts
-          const element = document.createElement('style');
-          document.head.appendChild(element);
-          const sheet = element.sheet!;
-          let styles = '@font-face { font-family: \'pkmn\'; src: url(\'assets/fonts/pkmn/PKMNRBYGSC.ttf\'); }\n';
-          sheet.insertRule(styles, 0);
-          console.log('fonts loaded')
-        }
-      });
+      // (window as any).WebFont.load({
+      //   custom: {
+      //     families: [ 'pkmn' ]
+      //   },
+      //   active: () =>
+      //   {
+      //     // Fonts
+      //     const element = document.createElement('style');
+      //     document.head.appendChild(element);
+      //     const sheet = element.sheet!;
+      //     let styles = '@font-face { font-family: \'pkmn\'; src: url(\'assets/fonts/pkmn/PKMNRBYGSC.ttf\'); }\n';
+      //     sheet.insertRule(styles, 0);
+      //     console.log('fonts loaded')
+      //   }
+      // });
     }, this);
 
     // Preload all assets

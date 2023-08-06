@@ -40,7 +40,9 @@ export const GameComponent: React.FC = () => {
   const [minimapTransparent, setMinimapTransparent] = useState(false)
   const [minimapSize, setMinimapSize] = useState('medium')
   const [startButtonClicked, setStartButtonClicked] = useState(false)
-  const [showPrologue, setShowPrologue] = useState(true)
+  const [showPrologue, setShowPrologue] = useState(false)
+  const [loadingTexts, setLoadingTexts] = useState(['Loading...'])
+  const [showLoading, setShowLoading] = useState(true)
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -105,6 +107,11 @@ export const GameComponent: React.FC = () => {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
+
+
+  useEffect(() => {
+    loadingRef?.current?.scrollTo(0, 9999)
+  }, [loadingTexts])
 
   useEffect(() => {
     const healthListener = ([hp, max]: [number, number]) => {
@@ -187,22 +194,30 @@ export const GameComponent: React.FC = () => {
     const startButtonClickedListener = () => {
       setStartButtonClicked(true)
     }
+
+    const loadingTextListener = (text: string) => {
+      if (!loadingTexts.includes(text)) {
+        setLoadingTexts(old => [...old, text])
+      }
+      // if (text === 'Done.') setShowPrologue(true)
+    }
     
-    EventEmitter.on('gameStarted', gameStartedListener);
-    EventEmitter.on('health', healthListener);
-    EventEmitter.on('speed', speedListener);
-    EventEmitter.on('reloadSpeed', reloadSpeedListener);
-    EventEmitter.on('gameOver', gameOverListener);
-    EventEmitter.on('demonsFelledLevel', demonFelledLevelListener);
-    EventEmitter.on('demonsFelled', demonsFelledListener);
-    EventEmitter.on('demonsToFell', demonsToFellListener);
-    EventEmitter.on('stun', stunListener);
-    EventEmitter.on('levelCompleted', levelCompletedListener);
-    EventEmitter.on('levelChanged', levelChangedListener);
-    EventEmitter.on('damage', damageListener);
-    EventEmitter.on('pause', pausedListener);
-    EventEmitter.on('nowPlaying', nowPlayingListener)
-    EventEmitter.on('startButtonClicked', startButtonClickedListener)
+    EventEmitter.on('gameStarted', gameStartedListener)
+    .on('health', healthListener)
+    .on('speed', speedListener)
+    .on('reloadSpeed', reloadSpeedListener)
+    .on('gameOver', gameOverListener)
+    .on('demonsFelledLevel', demonFelledLevelListener)
+    .on('demonsFelled', demonsFelledListener)
+    .on('demonsToFell', demonsToFellListener)
+    .on('stun', stunListener)
+    .on('levelCompleted', levelCompletedListener)
+    .on('levelChanged', levelChangedListener)
+    .on('damage', damageListener)
+    .on('pause', pausedListener)
+    .on('nowPlaying', nowPlayingListener)
+    .on('startButtonClicked', startButtonClickedListener)
+    .on('loadingText', loadingTextListener)
 
     if (gameElementRef?.current) {
       gameElementRef.current.addEventListener('contextmenu', (e) => {
@@ -212,21 +227,22 @@ export const GameComponent: React.FC = () => {
     }
 
     return () => {
-      EventEmitter.off('gameStarted', gameStartedListener);
-      EventEmitter.off('health', healthListener);
-      EventEmitter.off('speed', speedListener);
-      EventEmitter.off('damage', damageListener);
-      EventEmitter.off('reloadSpeed', reloadSpeedListener);
-      EventEmitter.off('gameOver', gameOverListener);
-      EventEmitter.off('demonsFelledLevel', demonFelledLevelListener);
-      EventEmitter.off('demonsFelled', demonsFelledListener);
-      EventEmitter.off('demonsToFell', demonsToFellListener);
-      EventEmitter.off('stun', stunListener);
-      EventEmitter.off('levelCompleted', levelCompletedListener);
-      EventEmitter.off('levelChanged', levelChangedListener);
-      EventEmitter.off('pause', pausedListener);
-      EventEmitter.off('nowPlaying', nowPlayingListener)
-      EventEmitter.off('startButtonClicked', startButtonClickedListener)
+      EventEmitter.off('gameStarted', gameStartedListener)
+      .off('health', healthListener)
+      .off('speed', speedListener)
+      .off('damage', damageListener)
+      .off('reloadSpeed', reloadSpeedListener)
+      .off('gameOver', gameOverListener)
+      .off('demonsFelledLevel', demonFelledLevelListener)
+      .off('demonsFelled', demonsFelledListener)
+      .off('demonsToFell', demonsToFellListener)
+      .off('stun', stunListener)
+      .off('levelCompleted', levelCompletedListener)
+      .off('levelChanged', levelChangedListener)
+      .off('pause', pausedListener)
+      .off('nowPlaying', nowPlayingListener)
+      .off('startButtonClicked', startButtonClickedListener)
+      .off('loadingText', loadingTextListener)
     };
   }, [])
 
@@ -254,6 +270,8 @@ export const GameComponent: React.FC = () => {
     console.log(size)
     EventEmitter.emit('resizeMinimap', size, transparent)
   }
+
+  const loadingRef = useRef<HTMLDivElement | null>(null)
 
   const stats = <div className='stats'>
     <div className={classNames('health shado bar', { 
@@ -299,8 +317,14 @@ export const GameComponent: React.FC = () => {
   return <>
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" ref={gameElementRef} style={{ width: '100%', height: '100%' }} />
+    {showLoading && <div className='overlay loading'>
+      <div className='notice col'ref={loadingRef}>
+        {loadingTexts.map((lt, i) => <div className='msg' key={i} style={{ opacity: (i+1)/loadingTexts.length }}>{lt}</div>)}
+        {loadingTexts.includes('Done.') && <button className='btn shado' onClick={() => {setShowLoading(false); setShowPrologue(true)}}>CLOSE</button>}
+      </div>
+    </div>}
     {showPrologue && <Prologue hide={() => setShowPrologue(false)} />}
-    {!startButtonClicked && !showPrologue && <div className='pregame-audio shado'>
+    {!showLoading && !startButtonClicked && !showPrologue && <div className='pregame-audio shado'>
       <AudioControls nowPlaying='' />
     </div>}
     {gameStarted && stats}
