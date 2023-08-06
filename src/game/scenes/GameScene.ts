@@ -69,7 +69,7 @@ export class GameScene extends Phaser.Scene {
   get rooms() {
     return this.dungeon.rooms as RoomWithEnemies[]
   }
-  revealedRooms: string[] = []
+  revealedRooms = new Set<string>()
   
   constructor() {
     super({ key: 'GameScene' })
@@ -102,10 +102,10 @@ export class GameScene extends Phaser.Scene {
       this.scene.pause()
     }).on('revealRoom', (guid: string) => {
       const room = this.rooms.find(rm => rm.guid === guid) || this.fellerRoom
-      if (this.revealedRooms.includes(guid)) {
+      if (this.revealedRooms.has(guid)) {
         return
       }
-      this.revealedRooms.push(room.guid)
+      this.revealedRooms.add(room.guid)
       console.log('room revealed', guid, room, this.rooms)
     }).on('recreateWalkableGrid', () => {
       this.createWalkableGrid()
@@ -183,7 +183,7 @@ export class GameScene extends Phaser.Scene {
       const { x, y, width, height, left, right, top, bottom } = room;
       const guid = uuid();
       (room as RoomWithEnemies).guid = guid
-      if (i === 0) this.revealedRooms.push(guid)
+      if (i === 0) this.revealedRooms.add(guid)
 
       // Fill the floor with mostly clean tiles
       this.groundLayer.weightedRandomize(TILES.FLOOR, x + 1, y + 1, width - 2, height - 2);
@@ -277,9 +277,7 @@ export class GameScene extends Phaser.Scene {
 
   minimapUseOnly_tileIsOccupied(x: number, y: number) {
     return (
-      TILE_MAPPING.WALLS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
-      TILE_MAPPING.ITEMS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
-      TILE_MAPPING.DOORS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
+      TILE_MAPPING.WALLS_ITEMS_DOORS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
       this.tileHasStuff(x, y)
     )
   }
@@ -440,6 +438,7 @@ export class GameScene extends Phaser.Scene {
 
   createNewLevel() {
     this.creatingNewLevel = true
+    this.revealedRooms = new Set()
 
     this.level++
     this.createDungeon()
@@ -452,7 +451,7 @@ export class GameScene extends Phaser.Scene {
     this.createWalkableGrid()
     this.spawnEnemiesInRooms()
 
-    EventEmitter.emit('levelChanged', this.level)
+    EventEmitter.emit('levelChanged', this.level, this.startRoom.guid)
 
     if (this.level > 1) {
       this.spawnPowerUp(this.startRoom, PowerUpType.Health)
@@ -673,8 +672,8 @@ export class GameScene extends Phaser.Scene {
     [...this.enemies, ...this.stuffs, ...this.powerups].forEach(x => x.fixedUpdate(time, delta))
 
     this.fellerRoom = this.dungeon.getRoomAt(this.feller.tileX, this.feller.tileY)! as RoomWithEnemies;
-    if (this.revealedRooms.includes(this.fellerRoom.guid)) {
-      this.revealedRooms.push(this.fellerRoom.guid)
+    if (this.revealedRooms.has(this.fellerRoom.guid)) {
+      this.revealedRooms.add(this.fellerRoom.guid)
     }
     
     this.tilemapVisibility.setActiveRoom(this.fellerRoom);

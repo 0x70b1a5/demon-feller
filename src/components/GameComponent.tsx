@@ -67,7 +67,6 @@ export const GameComponent: React.FC = () => {
       },
       fps: {
         target: 60,
-        limit: 60,
       }
     };
 
@@ -362,23 +361,24 @@ export const GameComponent: React.FC = () => {
     {paused && <div className='pause-menu shado overlay'>
       <div className='notice'>
         <h1>GAME PAUSED</h1>
+        <div className='btn shado resume' onClick={onUnpause}>RESUME</div>
         <AudioControls nowPlaying={persistentNowPlaying} />
         <div className='wrapperupper'>
           <div className='sxn shado'>
             <h2>CONTROLS:</h2>
             <p>WASD or arrow keys: move</p>
-            <p>Click: shoot</p>
+            <p>Click/Space: shoot</p>
           </div>
           <div className='sxn shado'>
             <h2>MINIMAP:</h2>
-            {/* <div className='x'>
+            <div className='x'>
               <input type="checkbox" style={{ transform: 'scale(1.75)', marginRight: 16 }} checked={minimapTransparent} 
                 onChange={(e) => {
                   setMinimapTransparent(old => !minimapTransparent)
                   onMinimapSizeChange('', !minimapTransparent)
                 }} />
               <span>SEE-THRU</span>
-            </div> */}
+            </div>
             <div className='x'>
               <select className='shado' value={minimapSize} style={{ padding: '8px 16px' }} onChange={(e) => onMinimapSizeChange(e.currentTarget.value)}>
                 <option value='small'>SMALL (1/6)</option>
@@ -392,7 +392,6 @@ export const GameComponent: React.FC = () => {
             {stats}
           </div>
           <div className='sxn row'>
-            <div className='btn shado resume' onClick={onUnpause}>RESUME</div>
             {restartButton}
           </div>
         </div>

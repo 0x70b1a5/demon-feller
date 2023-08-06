@@ -104,10 +104,13 @@ canvas {
 .pause-menu {
   opacity: 0.8;
 
+  .resume {
+    font-size: 18px;
+  }
+
   .restart {
     background-color: red;
     color: white;
-    transform: scale(0.8);
   }
 }
 

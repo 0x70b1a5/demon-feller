@@ -37,8 +37,19 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
       .setX(scene.map.tileToWorldX(x)! + scene.map.tileWidth/2)
       .setY(scene.map.tileToWorldY(y)! + scene.map.tileHeight/2)
       .setCircle(this.width/2)
+      .setVisible(false)
 
     this.debug && this.gfx.strokeCircle(this.x, this.y, this.height/2)
+
+    EventEmitter.on('spawnDoors', (guid: string) => {
+      if (this.room.guid === guid) {
+        this.setVisible(true)
+      }
+    }).on('levelChanged', (level: number, guid: string) => {
+      if (this.room.guid === guid) {
+        this.setVisible(true)
+      }
+    })
   }
 
   hit(damage = 1) {
@@ -49,14 +60,8 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
   }
 
   fixedUpdate(time: number, delta: number) {
-    if (this.dying) return
+    if (this.dying || this.dead) return
     super.preUpdate(time, delta);
-
-    if (!this.room.hasSpawnedPowerup && this.room.guid !== this.scene.fellerRoom.guid) {
-      this.setVisible(false)
-    } else {
-      this.setVisible(true)
-    }
   }
 
   onBeforeDie() {

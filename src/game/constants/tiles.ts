@@ -17,6 +17,7 @@ const TILE_MAPPING = {
   WALLS: [5, 6, 7, 8, 9, 10, 11, 12],
   ITEMS: [15, 16],
   DOORS: [3, 4, 13, 14],
+  WALLS_ITEMS_DOORS: [5, 6, 7, 8, 9, 10, 11, 12, 15, 16, 3, 4, 13, 14],
   BLANK: 1,
   FLOOR: [{ index: 0, weight: 1 }, { index: 2, weight: 1 }, { index: 1, weight: 4 }],
   ROCK: 15,

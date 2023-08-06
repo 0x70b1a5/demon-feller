@@ -81,7 +81,6 @@ export class AudioScene extends Phaser.Scene {
     }).on('musicForward', (volume: number) => {
       this.playRandomMusic()
     }).on('playSound', (key: string, config: Phaser.Types.Sound.SoundConfig) => {
-      if (!this.songIsLoaded(key)) return
       this.sound.play(key, { volume: this.sfxVolume, ...config })
     })
 
