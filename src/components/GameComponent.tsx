@@ -43,6 +43,7 @@ export const GameComponent: React.FC = () => {
   const [showPrologue, setShowPrologue] = useState(false)
   const [loadingTexts, setLoadingTexts] = useState(['Loading...'])
   const [showLoading, setShowLoading] = useState(true)
+  const [showCredits, setShowCredits] = useState(false)
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -363,7 +364,23 @@ export const GameComponent: React.FC = () => {
         <h1>GAME PAUSED</h1>
         <div className='btn shado resume' onClick={onUnpause}>RESUME</div>
         <AudioControls nowPlaying={persistentNowPlaying} />
-        <div className='wrapperupper'>
+        {showCredits ? <div className='col'>
+          <h2>MUSIC:</h2>
+          <div className='sxn shado' style={{ flexWrap: 'wrap' }}>
+            <a className='btn shado'>dj</a>
+            <a className='btn shado'>portals</a>
+            <a className='btn shado'>seeinnerworlds</a>
+            <a className='btn shado'>cor serpentis</a>
+            <a className='btn shado'>i sekuin</a>
+            <a className='btn shado'>deep soy</a>
+            <a className='btn shado'>actg</a>
+            <a className='btn shado'>subboreal</a>
+            <a className='btn shado'>smoke access</a>
+            <a className='btn shado'>arrus</a>
+          </div>
+          <button onClick={() => setShowCredits(false)} className='btn shado'>BACK...</button>
+        </div>
+        : <div className='wrapperupper'>
           <div className='sxn shado'>
             <h2>CONTROLS:</h2>
             <p>WASD or arrow keys: move</p>
@@ -392,9 +409,10 @@ export const GameComponent: React.FC = () => {
             {stats}
           </div>
           <div className='sxn row'>
+            <button onClick={() => setShowCredits(true)} className='btn shado'>CREDITS...</button>
             {restartButton}
           </div>
-        </div>
+        </div>}
       </div>
     </div>}
   </>;

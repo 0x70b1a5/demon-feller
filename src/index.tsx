@@ -17,3 +17,27 @@ root.render(
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
+
+const registerServiceWorker = async () => {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register(
+        './assets/service-worker.js',
+        {
+          scope: './assets/',
+        }
+      );
+      if (registration.installing) {
+        console.log('Service worker installing');
+      } else if (registration.waiting) {
+        console.log('Service worker installed');
+      } else if (registration.active) {
+        console.log('Service worker active');
+      }
+    } catch (error) {
+      console.error(`Registration failed with ${error}`);
+    }
+  }
+}
+
+registerServiceWorker()

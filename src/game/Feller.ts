@@ -39,6 +39,8 @@ export default class Feller {
   damage = 1
   container!: Phaser.GameObjects.Container;
   minimapMarker!: Phaser.GameObjects.Sprite;
+  shields = 0
+  lives = 0
 
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
@@ -333,6 +335,12 @@ export default class Feller {
     }
 
     EventEmitter.emit('playSound', 'fellerhurt')
+    
+    if (this.shields > 0) {
+      this.shields--;
+      this.iframes = this.IFRAMES_DURATION_MS
+      return
+    }
 
     this.scene.cameras.main.flash(10, 255, 100, 100, true)
 
@@ -343,9 +351,13 @@ export default class Feller {
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     
     if (this.hp <= 0) {
-      EventEmitter.emit('gameOver')
-      return
-      // TODO implement game over or respawn logic here
+      if (this.lives > 0) {
+        this.lives--;
+        this.heal(this.MAX_HEALTH/3 - this.hp) // heal negative hp also
+      } else {
+        EventEmitter.emit('gameOver')
+        return
+      }
     } 
     
     this.iframes = this.IFRAMES_DURATION_MS
@@ -402,6 +414,12 @@ export default class Feller {
         this.knockback += 500
         EventEmitter.emit('stun', this.knockback)
         break
+      case PowerUpType.Shield:
+        this.shields++
+        break
+      case PowerUpType.Life:
+        this.lives++
+        break
       default:
         break
     }
@@ -427,7 +445,7 @@ export default class Feller {
     // Create the initial pool of bullets
     for (let i = 0; i < 50; i++) {
       const bullet = new Bullet(this.scene, 0, 0, 'bullet');
-      console.log(bullet.guid)
+      // console.log(bullet.guid)
       this.bullets.add(bullet);
       this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
         const enemy = _enemy as Enemy

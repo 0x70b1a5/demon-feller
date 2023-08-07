@@ -52,21 +52,25 @@ export class BootScene extends Phaser.Scene {
       this.scene.launch('AudioScene');
 
       // Fonts 
-      (window as any).WebFont.load({
-        custom: {
-          families: [ 'pkmn' ]
-        },
-        active: () =>
-        {
-          // Fonts
-          const element = document.createElement('style');
-          document.head.appendChild(element);
-          const sheet = element.sheet!;
-          let styles = '@font-face { font-family: \'pkmn\'; src: url(\'assets/fonts/pkmn/PKMNRBYGSC.ttf\'); }\n';
-          sheet.insertRule(styles, 0);
-          console.log('fonts loaded')
-        }
-      });
+      // try {
+      //   (window as any).WebFont.load({
+      //     custom: {
+      //       families: [ 'pkmn' ]
+      //     },
+      //     active: () =>
+      //     {
+      //       try {
+      //         // Fonts
+      //         const element = document.createElement('style');
+      //         document.head.appendChild(element);
+      //         const sheet = element.sheet!;
+      //         let styles = '@font-face { font-family: \'pkmn\'; src: url(\'assets/fonts/pkmn/PKMNRBYGSC.ttf\'); }\n';
+      //         sheet.insertRule(styles, 0);
+      //         console.log('fonts loaded')
+      //       } catch {}
+      //     }
+      //   });
+      // } catch {}
     }, this);
 
     // Preload all assets

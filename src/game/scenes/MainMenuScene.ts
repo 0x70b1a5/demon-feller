@@ -11,13 +11,14 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   create() {
+    const fontSize = this.smallSize ? 72 : 128
     // Add title image
     const demon = this.rexUI.add.label({
       width: 40,
       height: 40,
   
       text: this.add.text(0, 0, 'DEMON', {
-        fontFamily: 'pkmn', color: 'white', fontSize: this.smallSize ? 72 : 128
+        fontFamily: 'pkmn', color: 'white', fontSize
       }),
   
       space: {
@@ -27,8 +28,9 @@ export class MainMenuScene extends Phaser.Scene {
       align: 'center',
 
       anchor: {
-        centerY: this.smallSize ? 'center-150' : 'center-300'
+        top: '5%'
       },
+
       x: 2*+this.game.config.width
     })
     .setOrigin(0.5, 0.5)
@@ -39,7 +41,7 @@ export class MainMenuScene extends Phaser.Scene {
       height: 40,
   
       text: this.add.text(0, 0, 'FELLER', {
-        fontFamily: 'pkmn', color: 'white', fontSize: 128
+        fontFamily: 'pkmn', color: 'white', fontSize
       }),
   
       space: {
@@ -49,7 +51,7 @@ export class MainMenuScene extends Phaser.Scene {
       align: 'center',
 
       anchor: {
-        centerY: this.smallSize ? 'center-75' : 'center-150'
+        top: '5%+'+fontSize
       },
 
       x: 2*-this.game.config.width
@@ -65,7 +67,7 @@ export class MainMenuScene extends Phaser.Scene {
       background: this.rexUI.add.roundRectangle(0, 0, 0, 0, 20, colors.TEXTBOX_BG_COLOR),
   
       text: this.add.text(0, 0, 'PLAY', {
-        fontFamily: 'pkmn', color: colors.TEXT_COLOR, fontSize: 72
+        fontFamily: 'pkmn', color: colors.TEXT_COLOR, fontSize: fontSize/2
       }),
   
       space: {
