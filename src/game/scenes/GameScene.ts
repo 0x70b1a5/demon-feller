@@ -158,9 +158,9 @@ export class GameScene extends Phaser.Scene {
   createTilemap() {    
     if (this.map) {
       this.map.removeAllLayers().destroy()
-      this.groundLayer && this.groundLayer.destroy()
-      this.stuffLayer && this.stuffLayer.destroy()
-      this.shadowLayer && this.shadowLayer.destroy()
+      this.groundLayer?.destroy()
+      this.stuffLayer?.destroy()
+      this.shadowLayer?.destroy()
       this.load.image('tileset', 'assets/tileset.png')
     }
 
@@ -328,10 +328,6 @@ export class GameScene extends Phaser.Scene {
     } else {
       this.feller = new Feller(this, x, y);
     }
-
-    // this.physics.add.collider(this.feller.sprite, stuffLayer);
-    this.physics.add.collider(this.feller.sprite, this.groundLayer);
-    this.physics.add.collider(this.feller.sprite, this.stuffLayer);
   }
 
   setupCamera() {
@@ -548,9 +544,9 @@ export class GameScene extends Phaser.Scene {
       .filter((e: any) => e?.bullets)
       .map((e: any) => e?.bullets?.forEach((b: Bullet) => b?.destroy()));
 
-    [...this.enemies, ...this.stuffs, this.feller.bullets].forEach(thing => {
-      thing.destroy()
-    })
+    this.enemies.forEach(e => e.destroy())
+    this.stuffs.forEach(s => s.destroy())
+    this.feller.bullets.destroy()
   }
 
   spawnEnemiesInRooms() {
@@ -634,10 +630,6 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.overlap(this.feller.sprite, enemy, () => {
       enemy.attack(this.feller)
     });
-    // TODO they're pushing each other out of bounds
-    // this.enemies.forEach(e => this.physics.add.overlap(e, enemy, () => {
-    //   enemy.pushAway(e)
-    // }))
     this.enemies.push(enemy)
   }
 
@@ -667,12 +659,13 @@ export class GameScene extends Phaser.Scene {
       this.scene.pause()
     }
     
-
     this.feller.fixedUpdate(time, delta);
-    [...this.enemies, ...this.stuffs, ...this.powerups].forEach(x => x.fixedUpdate(time, delta))
+    this.enemies.forEach(x => x.fixedUpdate(time, delta))
+    this.stuffs.forEach(x => x.fixedUpdate(time, delta))
+    this.powerups.forEach(x => x.fixedUpdate(time, delta))
 
     this.fellerRoom = this.dungeon.getRoomAt(this.feller.tileX, this.feller.tileY)! as RoomWithEnemies;
-    if (this.revealedRooms.has(this.fellerRoom.guid)) {
+    if (!this.revealedRooms.has(this.fellerRoom.guid)) {
       this.revealedRooms.add(this.fellerRoom.guid)
     }
     
@@ -691,6 +684,6 @@ export class GameScene extends Phaser.Scene {
       this.fixedUpdate(currentTime, deltaTime)
       this.lastUpdateTime = currentTime - (deltaTime % this.fixedDeltaTime);
     }
-    this.feller.makeGunFollowFellerAndPointAtPointer()
+    this.feller.makeGunFollowFellerAndPointAtPointer_andMoveShieldsAndWings()
   }
 }

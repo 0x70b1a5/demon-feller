@@ -85,14 +85,21 @@ export class BootScene extends Phaser.Scene {
     this.load.image('powerup3', 'assets/powerupFast.png');
     this.load.image('powerup4', 'assets/powerupShoot.png');
     this.load.image('powerup5', 'assets/powerupFist.png');
+    this.load.image('powerup6', 'assets/powerupFeller.png');
+    this.load.image('powerup7', 'assets/powerupOphanim.png');
     this.load.image('gun', 'assets/gun.png');
     this.load.image('boom', 'assets/boom.png');
     this.load.image('bullet', 'assets/bullet.png');
     this.load.image('barrel', 'assets/barrel.png');
+    this.load.image('barrelRekt', 'assets/barrelRekt.png');
     this.load.image('rock', 'assets/rock.png');
     this.load.image('smoke', 'assets/smoke.png');
     this.load.image('tribullet', 'assets/tribullet.png');
     this.load.image('bigbullet', 'assets/bigbullet.png');
+    this.load.image('wing', 'assets/wing.png');
+    this.load.image('shieldBack', 'assets/shieldBack.png');
+    this.load.image('shieldFront', 'assets/shieldFront.png');
+    this.load.image('shield', 'assets/shield.png');
     this.load.image('feller', 'assets/feller.png');
     this.load.image('tileset', 'assets/tileset.png')
     this.load.image('door', 'assets/door.png')
@@ -110,6 +117,12 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet('belcher-sheet', 'assets/spritesheets/belcher.png', {
       frameWidth: 200,
       frameHeight: 167,
+      margin: 0,
+      spacing: 0
+    })
+    this.load.spritesheet('hothead-sheet', 'assets/spritesheets/hothead.png', {
+      frameWidth: 242,
+      frameHeight: 355,
       margin: 0,
       spacing: 0
     })

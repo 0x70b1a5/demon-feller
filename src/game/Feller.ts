@@ -40,7 +40,13 @@ export default class Feller {
   container!: Phaser.GameObjects.Container;
   minimapMarker!: Phaser.GameObjects.Sprite;
   shields = 0
+  shieldSprite!: Phaser.GameObjects.Sprite;
+  shieldFrontSprite1!: Phaser.GameObjects.Sprite;
+  shieldBackSprite1!: Phaser.GameObjects.Sprite;
+  shieldFrontSprite2!: Phaser.GameObjects.Sprite;
+  shieldBackSprite2!: Phaser.GameObjects.Sprite;
   lives = 0
+  wingSprites!: Phaser.GameObjects.Group;
 
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
@@ -89,21 +95,15 @@ export default class Feller {
   }
 
   createNewSprite(x: number, y: number) {
-    if (this.sprite) {
-      this.sprite.destroy()
-    }
-
-    if (this.gunSprite) {
-      this.gunSprite.destroy()
-    }
-
-    if (this.container) {
-      this.container.destroy()
-    }
-
-    if (this.minimapMarker) {
-      this.minimapMarker.destroy()
-    }
+    this.sprite?.destroy()
+    this.gunSprite?.destroy()
+    this.container?.destroy()
+    this.minimapMarker?.destroy()
+    this.shieldSprite?.destroy()
+    this.shieldBackSprite1?.destroy()
+    this.shieldFrontSprite1?.destroy()
+    this.shieldBackSprite2?.destroy()
+    this.shieldFrontSprite2?.destroy()
 
     this.gunSprite = this.scene.physics.add
       .sprite(x, y, 'gun')
@@ -125,6 +125,7 @@ export default class Feller {
     this.sprite.anims.play('feller-walk');
 
     this.scene.physics.add.collider(this.sprite, this.scene.stuffs)
+    this.scene.physics.add.collider(this.sprite, this.scene.groundLayer);
 
     this.minimapMarker = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'mm-feller').setScale(10)
     this.scene.cameras.main.ignore([this.minimapMarker])
@@ -134,6 +135,26 @@ export default class Feller {
     // this.scene.physics.world.enable(this.container)
 
     this.createBulletPool()
+
+    this.shieldSprite = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'shield').setOrigin(0.5, 0.5)
+    .setVisible(false).setActive(false)
+    this.shieldBackSprite1 = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'shieldBack').setOrigin(0.5, 0.5)
+    .setVisible(false).setActive(false)
+    this.shieldBackSprite2 = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'shieldBack').setOrigin(0.5, 0.5).setFlipX(true)
+    .setVisible(false).setActive(false)
+    this.shieldFrontSprite1 = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'shieldFront').setOrigin(0.5, 0.5)
+    .setVisible(false).setActive(false)
+    this.shieldFrontSprite2 = this.scene.add.sprite(this.sprite.x, this.sprite.y, 'shieldFront').setOrigin(0.5, 0.5).setFlipX(true)
+    .setVisible(false).setActive(false)
+
+    this.enableShieldSprites()
+
+    this.wingSprites = this.scene.physics.add.group({
+      key: 'wing',
+    })
+
+    this.createWingSprites()
+
   }
 
   bodify(sprite: Phaser.Physics.Arcade.Sprite) {
@@ -308,7 +329,7 @@ export default class Feller {
     return Phaser.Math.Angle.Between(this.sprite.x, this.sprite.y, px, py);
   }
   
-  makeGunFollowFellerAndPointAtPointer() {
+  makeGunFollowFellerAndPointAtPointer_andMoveShieldsAndWings() {
     const angleToPointer = this.getGunAngleToPointer()
 
     // Rotate the gun to face the cursor
@@ -321,8 +342,12 @@ export default class Feller {
 
     this.gunSprite.flipY = this.gunSprite.x < this.sprite.x
 
-    this.gunSprite.setVelocity(this.sprite.body!.velocity.x, this.sprite.body?.velocity.y)
-
+    const [vx, vy] = [this.sprite.body!.velocity.x, this.sprite.body!.velocity.y]
+    this.gunSprite.setVelocity(vx, vy)
+    this.shieldSprite.x = this.shieldBackSprite1.x = this.shieldBackSprite2.x = this.shieldFrontSprite1.x = this.shieldFrontSprite2.x = this.sprite.x
+    this.shieldSprite.y = this.shieldBackSprite1.y = this.shieldBackSprite2.y = this.shieldFrontSprite1.y = this.shieldFrontSprite2.y = this.sprite.y
+    this.wingSprites.getChildren().forEach(w => (w as Phaser.Physics.Arcade.Sprite).setVelocity(vx, vy))
+    
     return angleToPointer
   }
 
@@ -416,12 +441,55 @@ export default class Feller {
         break
       case PowerUpType.Shield:
         this.shields++
+        this.enableShieldSprites()
         break
       case PowerUpType.Life:
         this.lives++
         break
       default:
         break
+    }
+  }
+
+  enableShieldSprites() {
+    switch (this.shields) {
+      case 1:
+        this.shieldSprite.setVisible(true).setActive(true)
+        break
+      case 2:
+        this.shieldFrontSprite1.setVisible(true).setActive(true)
+        this.shieldBackSprite1.setVisible(true).setActive(true)
+          .setDepth(this.sprite.depth-1)
+        break
+      case 3:
+        this.shieldFrontSprite2.setVisible(true).setActive(true)
+        this.shieldBackSprite2.setVisible(true).setActive(true)
+          .setDepth(this.sprite.depth-1)
+        break
+      default:
+        break
+    }
+  }
+
+  createWingSprites() {
+    const totalArc = Math.PI / 2;  // 90 degrees in radians
+    const angleBetweenWings = this.lives > 1 ? totalArc / (this.lives - 1) : 0;
+
+    for (let w = 0; w < this.lives; w++) {
+      const angle = -totalArc / 2 + w * angleBetweenWings;  // starting from -45 degrees and adding
+
+      // Calculate the position using trigonometry
+      // The radius determines how far from the center the wings will be.
+      const radius = this.sprite.height;
+      const wingX = this.sprite.x + radius * Math.cos(angle);
+      const wingY = this.sprite.y - radius * Math.sin(angle);  // subtract because (0,0) is top-left in screen coordinates
+
+      const wing = this.scene.physics.add.sprite(wingX, wingY, 'wing')
+        .setOrigin(0.5, 0.5)
+        .setRotation(angle)
+        .setFlipX(angle > Math.PI / 2);
+
+      this.wingSprites.add(wing);
     }
   }
 
@@ -504,7 +572,7 @@ export default class Feller {
     this.tileX = this.scene.groundLayer.worldToTileX(this.sprite.x);
     this.tileY = this.scene.groundLayer.worldToTileY(this.sprite.y);
 
-    const angleToPointer = this.makeGunFollowFellerAndPointAtPointer()
+    const angleToPointer = this.makeGunFollowFellerAndPointAtPointer_andMoveShieldsAndWings()
 
     if (this.shootCooldown > 0) {
       this.shootCooldown -= delta

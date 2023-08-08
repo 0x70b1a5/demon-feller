@@ -5,66 +5,26 @@ import Feller from './Feller';
 import animations from './util/animate';
 import Stuff, { StuffConfig } from './Stuff';
 import EventEmitter from './EventEmitter';
+import { Explodable } from './Explodable';
 
 export default class Barrel extends Stuff {
   knockback = 1000
   damage = 3
   dangerRadiusInTiles = 1.5
   MAX_HEALTH = 1
+  explodable!: Explodable
+  rekage!: Phaser.GameObjects.Sprite
 
   constructor(scene: GameScene, config: StuffConfig, x: number, y: number) {
     super(scene, config, x, y);
 
     this.damage = config.damage || this.damage
     this.MAX_HEALTH = this.health
+    this.explodable = new Explodable(scene)
 
     this.setImmovable(true)
-    this.boom = this.scene?.physics.add.sprite(this.x, this.y, 'boom')
-    .setScale(2)
-    .setVisible(false)
-    .setActive(false)
 
-    this.smoke = this.scene?.physics.add.sprite(this.x, this.y, 'smoke')
-    .setActive(false).setVisible(false)
-  }
-
-  boom!: Phaser.GameObjects.Sprite
-  smoke!: Phaser.GameObjects.Sprite
-  explode() {
-    EventEmitter.emit('playSound', 'explosion')
-    this.boom.setActive(true).setVisible(true)
-    if (!this.scene) return
-
-    this.scene.cameras.main.shake()
-    this.scene.tweens.add({
-      targets: this.boom,
-      ease: 'Elastic',
-      duration: 250,
-      x: Math.random() * 10 + this.x,
-      onComplete: () => {
-        this.boom?.destroy()
-
-        this.smoke?.setActive(true).setVisible(true)
-        animations.wobbleSprite(this.scene, this.smoke)
-        setTimeout(() => {
-          this.smoke?.destroy()
-        }, 2000);
-      }
-    })
-
-    this.scene.enemies
-      .filter(enemy => !enemy.dead && Phaser.Math.Distance.BetweenPoints(enemy, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)  
-      .forEach(enemy => enemy.hit(this))
-
-    if (!this.scene) return  // beat the level with a barrel pop!
-
-    this.scene.stuffs
-      .filter(stuff => Phaser.Math.Distance.BetweenPoints(stuff, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles)
-      .forEach(stuff => !stuff.dying && !stuff.dead && stuff.guid !== this.guid && stuff.hit(this.damage))
-
-    if (Phaser.Math.Distance.BetweenPoints(this.scene.feller.sprite, this) <= this.scene.map.tileWidth * this.dangerRadiusInTiles) {
-      this.scene.feller.hit(this)
-    }
+    this.rekage = this.scene.add.sprite(this.x, this.y, 'barrelRekt').setVisible(false)
   }
 
   hit(damage: number) {
@@ -86,6 +46,11 @@ export default class Barrel extends Stuff {
 
   onBeforeDie(): void {
     super.onBeforeDie()
+    this.rekage.setVisible(true)
     this.explode()
+  }
+
+  explode() {
+    this.explodable.explode(this)
   }
 }

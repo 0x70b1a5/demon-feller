@@ -26,6 +26,7 @@ export enum EnemyType {
   Soul,
   Glutton,
   Imp,
+  Hothead,
 }
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
