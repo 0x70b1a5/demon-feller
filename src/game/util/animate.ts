@@ -14,6 +14,19 @@ const animations = {
   },
   enshadow: (sprite: Phaser.GameObjects.Sprite) => {
     sprite.preFX?.addShadow(-5, -5, 0.01, 0.5, 0x0)
+  },
+  fadeInOut: (me: Phaser.Scene, targets: Phaser.GameObjects.Sprite[], duration: number, to = 1) => {
+    me.tweens.add({
+      targets,
+      alpha: {
+        from: 0,
+        to
+      },
+      yoyo: true,
+      duration,
+      ease: 'Sine.easeInOut',
+      repeat: -1
+    })
   }
 }
 

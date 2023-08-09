@@ -107,6 +107,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('goo', 'assets/goo.png')
     this.load.image('pig', 'assets/pig.png')
     this.load.image('imp', 'assets/imp.png')
+    this.load.image('hothead', 'assets/hothead.png')
     this.load.image('belcher', 'assets/belcher.png')
     this.load.spritesheet('soul-sheet', 'assets/spritesheets/soul.png', {
       frameWidth: 173,

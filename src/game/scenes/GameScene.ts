@@ -11,7 +11,7 @@ import TilemapVisibility from '../TilemapVisibility';
 import Enemy, { EnemyConfig, EnemyType } from '../Enemy';
 import Bullet from '../Bullet';
 import Goo from '../Goo';
-import PowerUp, { PowerUpType } from '../Powerup';
+import PowerUp from '../Powerup';
 import EventEmitter from '../EventEmitter';
 import powerUps from '../constants/powerups';
 import roll from '../util/roll';
@@ -28,6 +28,8 @@ import Stuff from '../Stuff';
 import assert from '../util/assert';
 import Glutton from '../Glutton';
 import Imp from '../Imp';
+import { PowerUpType } from '../PowerUpType';
+import Hothead from '../Hothead';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -604,6 +606,9 @@ export class GameScene extends Phaser.Scene {
             break
           case EnemyType.Imp:
             enemy = new Imp(this, { level: this.level, room, enemyType, texture: 'imp' }, x, y)
+            break
+          case EnemyType.Hothead:
+            enemy = new Hothead(this, { level: this.level, room, enemyType, texture: 'hothead' }, x, y)
             break
           default:
             break

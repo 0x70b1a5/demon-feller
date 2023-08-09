@@ -21,7 +21,7 @@ export class UIScene extends Phaser.Scene {
     } else {
       this.minimap = existingMini
     }
-    // this.minimap.setAlpha(0.5)
+    this.minimap.setAlpha(0.5)
 
     this.refollowAndignoreSprites()
     
@@ -48,6 +48,7 @@ export class UIScene extends Phaser.Scene {
   }
 
   refollowAndignoreSprites() {
+    this.checkmarks?.forEach(c => c.destroy())
     this.minimap
     .startFollow(this.gameScene.feller.sprite)
     .ignore([
