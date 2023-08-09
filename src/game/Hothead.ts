@@ -18,6 +18,8 @@ export default class Hothead extends Enemy {
     this.health *= (config.level)
     this.explodable = new Explodable(scene)
 
+    this.setScale(.9, .9)
+
     if ((!scene.anims.exists('hothead-jump'))) {   
       scene.anims.create({
         key: 'hothead-jump',
@@ -26,14 +28,14 @@ export default class Hothead extends Enemy {
       })
     }
 
-    this.scene.physics.add.collider(this, this.scene.groundLayer, (me, wall) => {
-      if (TILE_MAPPING.WALLS_ITEMS_DOORS.includes((wall as Phaser.Tilemaps.Tile)?.index)) {
+    this.scene.physics.add.overlap(this, this.scene.groundLayer, (me, wall) => {
+      if (this.launched && TILE_MAPPING.WALLS_ITEMS_DOORS.includes((wall as Phaser.Tilemaps.Tile)?.index)) {
         this.explode()
       }
     })
 
-    this.scene.physics.add.collider(this, this.scene.stuffs, (me, stuff) => {
-      this.explode()
+    this.scene.physics.add.overlap(this, [...this.scene.stuffs, this.scene.feller.sprite], (me, stuff) => {
+      if (this.seenFeller) this.explode()
     })
   }
 
@@ -47,18 +49,25 @@ export default class Hothead extends Enemy {
     this.die()
   }
 
+  move() {
+    return
+  }
+
   launched = false
-  fixedUpdate(delta: number) {
+  fixedUpdate(time: number, delta: number) {
+    super.fixedUpdate(time, delta)
+
     if (!this.launched && this.seenFeller) {
       const fellerNearX = Math.abs(this.x - this.scene.feller.sprite.x) < this.scene.map.tileWidth
       const fellerNearY = Math.abs(this.y - this.scene.feller.sprite.y) < this.scene.map.tileHeight
       if (fellerNearX || fellerNearY) {
+        console.log(fellerNearX, fellerNearY, this.x, this.y, this.scene.feller.sprite.x, this.scene.feller.sprite.y)
         this.launched = true
         this.anims.play('hothead-jump')
         // EventEmitter.emit('playSound', 'hotheadYell')
         const fellerAbove = this.scene.feller.sprite.y < this.y
         const fellerLeft = this.scene.feller.sprite.x < this.x
-        if (fellerNearX) {
+        if (fellerNearY) {
           this.setVelocityX((fellerLeft ? -1 : 1) * this.speed)
             .setRotation((fellerLeft ? -1 : 1) * Math.PI/2)
         } else {

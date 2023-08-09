@@ -6,7 +6,7 @@ const powerUps = [
   {type: PowerUpType.Speed, weight: 1},
   {type: PowerUpType.Bullet, weight: 2},
   {type: PowerUpType.Knockback, weight: 1},
-  {type: PowerUpType.Shield, weight: 100},
+  {type: PowerUpType.Shield, weight: 1},
   {type: PowerUpType.Life, weight: 1},
 ]
 
