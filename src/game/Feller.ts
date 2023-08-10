@@ -447,6 +447,8 @@ export default class Feller {
       default:
         break
     }
+
+    powerup.destroy();
   }
 
   createOrUpdateShieldSprites() {
@@ -455,29 +457,25 @@ export default class Feller {
     this.shieldSprites = this.scene.physics.add.group({
       classType: Phaser.Physics.Arcade.Sprite,
       visible: false,
-      active: false
+      active: false,
+      setAlpha: { value: 0 },
+      setOrigin: { value: { x: 0.5, y: 0.5 } },
+      setScale: { value: 1.25 }
     })
 
     this.shieldSprite = this.scene.physics.add.sprite(this.sprite.x, this.sprite.y, 'shield')
-      .setOrigin(0.5, 0.5)
       .setScale(1.5)
 
     this.shieldBackSprite1 = this.scene.physics.add.sprite(this.sprite.x, this.sprite.y, 'shieldBack')
-      .setOrigin(0.5, 0.5)
-      .setScale(1.25)
 
     this.shieldBackSprite2 = this.scene.physics.add.sprite(this.sprite.x, this.sprite.y, 'shieldBack')
-      .setOrigin(0.5, 0.5).setFlipX(true)
-      .setScale(1.25)
+      .setFlipX(true)
 
     this.shieldFrontSprite1 = this.scene.physics.add.sprite(this.sprite.x, this.sprite.y, 'shieldFront')
-      .setOrigin(0.5, 0.5)
-      .setScale(1.25)
       .setDepth(2)
 
     this.shieldFrontSprite2 = this.scene.physics.add.sprite(this.sprite.x, this.sprite.y, 'shieldFront')
-      .setOrigin(0.5, 0.5).setFlipX(true)
-      .setScale(1.25)
+      .setFlipX(true)
       .setDepth(2)
 
     this.shieldSprites.add(this.shieldSprite)

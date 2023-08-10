@@ -68,6 +68,7 @@ export class GameScene extends Phaser.Scene {
   keys!: any
   stuffs: Stuff[] = []
   powerups: PowerUp[] = []
+
   get rooms() {
     return this.dungeon.rooms as RoomWithEnemies[]
   }
@@ -377,7 +378,7 @@ export class GameScene extends Phaser.Scene {
 
   addStuffToRooms() {
     if (this.stuffs) {
-      this.stuffs.forEach(o => o.destroy())
+      this.stuffs.forEach(o => o?.destroy())
       this.stuffs = []
     }
     this.rooms.forEach(room => {
@@ -449,10 +450,14 @@ export class GameScene extends Phaser.Scene {
     this.createWalkableGrid()
     this.spawnEnemiesInRooms()
 
+    this.powerups.forEach(p => p?.destroy())
+    this.powerups = []
+
     EventEmitter.emit('levelChanged', this.level, this.startRoom.guid)
 
     if (this.level > 1) {
-      this.spawnPowerUp(this.startRoom, PowerUpType.Health)
+      const pu = this.spawnPowerUp(this.startRoom, PowerUpType.Health)
+      this.spawnPowerUp(this.startRoom, PowerUpType.Bullet, pu.x + this.map.tileWidth, pu.y)
     }
 
     this.creatingNewLevel = false
@@ -463,12 +468,12 @@ export class GameScene extends Phaser.Scene {
     EventEmitter.emit('drawMinimap')
   }
 
-  spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType, x?: number, y?: number) {
-    x ||= this.map.tileToWorldX(room.centerX)!;
-    y ||= this.map.tileToWorldY(room.centerY)!;
-    
+  spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType, worldX?: number, worldY?: number) {
+    worldX ||= this.map.tileToWorldX(room.centerX)!;
+    worldY ||= this.map.tileToWorldY(room.centerY)!;
+
     // Add the lens flare sprite at the powerup position
-    const flare = this.add.sprite(x, y, 'powerupBG').setScale(0.1);
+    const flare = this.add.sprite(worldX, worldY, 'powerupBG').setScale(0.1);
 
     this.cameras.main.flash(100)
 
@@ -501,18 +506,16 @@ export class GameScene extends Phaser.Scene {
       powerupExclusions.push(PowerUpType.Knockback)
     }
     
-    const powerup = new PowerUp(this, x, y, (type || roll(powerUps, powerupExclusions)) as PowerUpType);
+    const powerup = new PowerUp(this, worldX, worldY, (type || roll(powerUps, powerupExclusions)) as PowerUpType);
     this.powerups.push(powerup)
     
     const gfx = this.add.graphics({ lineStyle: { color: 0xff0000, width: 3 }});
     if (this.debug) {
-      gfx.lineBetween(x, y, this.feller.sprite.x, this.feller.sprite.y)
+      gfx.lineBetween(worldX, worldY, this.feller.sprite.x, this.feller.sprite.y)
     }
 
     this.physics.add.overlap(this.feller.sprite, powerup, () => {
       this.feller.pickupPowerUp(powerup);
-      powerup.destroy();
-      gfx.clear();
     });
 
     return powerup
@@ -689,6 +692,6 @@ export class GameScene extends Phaser.Scene {
       this.fixedUpdate(currentTime, deltaTime)
       this.lastUpdateTime = currentTime - (deltaTime % this.fixedDeltaTime);
     }
-    this.feller.makeGunFollowFellerAndPointAtPointer_andMoveShieldsAndWings()
+    // this.feller.makeGunFollowFellerAndPointAtPointer_andMoveShieldsAndWings()
   }
 }

@@ -9,7 +9,7 @@ export default class Hothead extends Enemy {
   speed = 600
   health = 1
   knockback = 600
-  dangerRadiusInTiles = 1
+  dangerRadiusInTiles = 1.5
   explodable!: Explodable
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
@@ -28,7 +28,7 @@ export default class Hothead extends Enemy {
       })
     }
 
-    this.scene.physics.add.overlap(this, this.scene.groundLayer, (me, wall) => {
+    this.scene.physics.add.collider(this, this.scene.groundLayer, (me, wall) => {
       if (this.launched && TILE_MAPPING.WALLS_ITEMS_DOORS.includes((wall as Phaser.Tilemaps.Tile)?.index)) {
         this.explode()
       }
@@ -70,9 +70,11 @@ export default class Hothead extends Enemy {
         if (fellerNearY) {
           this.setVelocityX((fellerLeft ? -1 : 1) * this.speed)
             .setRotation((fellerLeft ? -1 : 1) * Math.PI/2)
+            .setFlipX(!fellerLeft)
         } else {
           this.setVelocityY((fellerAbove ? -1 : 1) * this.speed)
             .setRotation((fellerAbove ? 1 : 0) * Math.PI)
+            .setFlipY(!fellerAbove)
         }
       }
     }
