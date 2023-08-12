@@ -133,7 +133,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       EventEmitter.emit('playSound', 'stun')
 
       this.stun = by.knockback
-      this.stunImmunity = by.knockback * 2
+      this.stunImmunity = this.stun * 2
       // radians 
       const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this)
       let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + 100);

@@ -44,6 +44,7 @@ export const GameComponent: React.FC = () => {
   const [loadingTexts, setLoadingTexts] = useState(['Loading...'])
   const [showLoading, setShowLoading] = useState(true)
   const [showCredits, setShowCredits] = useState(false)
+  const [rosaryCooldown, setRosaryCooldown] = useState(0)
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -201,6 +202,10 @@ export const GameComponent: React.FC = () => {
       }
       // if (text === 'Done.') setShowPrologue(true)
     }
+
+    const rosaryCooldownListener = (cooldown: number) => {
+      setRosaryCooldown(cooldown)
+    }
     
     EventEmitter.on('gameStarted', gameStartedListener)
     .on('health', healthListener)
@@ -218,6 +223,7 @@ export const GameComponent: React.FC = () => {
     .on('nowPlaying', nowPlayingListener)
     .on('startButtonClicked', startButtonClickedListener)
     .on('loadingText', loadingTextListener)
+    .on('rosaryCooldown', rosaryCooldownListener)
 
     if (gameElementRef?.current) {
       gameElementRef.current.addEventListener('contextmenu', (e) => {
@@ -243,6 +249,7 @@ export const GameComponent: React.FC = () => {
       .off('nowPlaying', nowPlayingListener)
       .off('startButtonClicked', startButtonClickedListener)
       .off('loadingText', loadingTextListener)
+      .off('rosaryCooldown', rosaryCooldownListener)
     };
   }, [])
 
@@ -274,6 +281,17 @@ export const GameComponent: React.FC = () => {
   const loadingRef = useRef<HTMLDivElement | null>(null)
 
   const stats = <div className='stats'>
+    <div className={classNames('rosary shado bar cooldown')}>
+      <div className='cooldowner' style={{ animation: rosaryCooldown > 0 ? `${rosaryCooldown}ms cooldown linear` : '' }}></div>
+      <div style={{ display: 'flex' }}>
+        <div style={{ marginRight: '1em' }}>
+          {rosaryCooldown > 0 ? '🙏' : '📿'}
+        </div>
+        <div className='stat'>
+          {rosaryCooldown > 0 ? ' Ave Maria...' : ' READY'}
+        </div>
+      </div>
+    </div>
     <div className={classNames('health shado bar', { 
       rainbowShake: hpUp, 
       damaged: currentHp < maxHp && currentHp > (maxHp||3)/3, 

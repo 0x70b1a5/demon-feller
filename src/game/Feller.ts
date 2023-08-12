@@ -10,6 +10,7 @@ import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
 import assert from "./util/assert";
 import roll from "./util/roll";
+import colors from "./constants/colors";
 
 /**
  * A class that wraps up our top down player logic. It creates, animates and moves a sprite in
@@ -20,6 +21,8 @@ export default class Feller {
   debug = false
 
   RELOAD_COOLDOWN_MS = 1500
+  ROSARY_COOLDOWN_MS = 30000
+  ROSARY_STUN_MS = 2000
   IFRAMES_DURATION_MS = 2000
   STUN_DURATION_MS = 500
   SPEED_LIMIT = 900
@@ -30,6 +33,7 @@ export default class Feller {
   gunSprite!: Phaser.Physics.Arcade.Sprite;
   debugGraphics!: Phaser.GameObjects.Graphics;
   shootCooldown = 0
+  rosaryCooldown = 0
   knockback = 0
   bullets!: Phaser.GameObjects.Group
   hp = 3
@@ -77,6 +81,7 @@ export default class Feller {
       down: Phaser.Input.Keyboard.KeyCodes.DOWN,
       left: Phaser.Input.Keyboard.KeyCodes.LEFT,
       right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
+      shift: Phaser.Input.Keyboard.KeyCodes.SHIFT,
       w: Phaser.Input.Keyboard.KeyCodes.W,
       a: Phaser.Input.Keyboard.KeyCodes.A,
       s: Phaser.Input.Keyboard.KeyCodes.S,
@@ -87,6 +92,10 @@ export default class Feller {
     this.debugGraphics = this.scene.add.graphics({ 
       lineStyle: { color: 0x0 }, 
       fillStyle: { color: 0x0000ff },
+    })
+    this.rosaryGraphics = this.scene.add.graphics({ 
+      lineStyle: { color: 0x0 }, 
+      fillStyle: { color: colors.LINE_COLOR, alpha: 0.5 },
     })
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
@@ -293,6 +302,7 @@ export default class Feller {
     return null; // No collision detected
   }
 
+  angleToPointer = 0
   getGunAngleToPointer() {
     // Calculate the angle between the gun and the mouse cursor
     const pointer = this.scene.input.mousePointer;
@@ -311,7 +321,8 @@ export default class Feller {
       // console.log(angleToPointer)
     }
 
-    return Phaser.Math.Angle.Between(this.sprite.x, this.sprite.y, px, py);
+    this.angleToPointer = Phaser.Math.Angle.Between(this.sprite.x, this.sprite.y, px, py);
+    return this.angleToPointer
   }
   
   makeGunFollowFellerAndPointAtPointer_andMoveShieldsAndWings() {
@@ -425,7 +436,7 @@ export default class Feller {
         }
         break
       case PowerUpType.RateOfFire:
-        this.RELOAD_COOLDOWN_MS = Math.max(this.RELOAD_COOLDOWN_MS * 0.85, 1)
+        this.RELOAD_COOLDOWN_MS = Math.max(this.RELOAD_COOLDOWN_MS * 0.75, 1)
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN_MS)
         break
       case PowerUpType.Bullet:
@@ -626,6 +637,37 @@ export default class Feller {
     this.shootCooldown = this.RELOAD_COOLDOWN_MS;
   }
 
+  constructRosaryTriangle() {
+    const rosaryEffect = Phaser.Geom.Triangle.BuildEquilateral(this.sprite.x, this.sprite.y, this.scene.map.tileWidth * 1.5)
+    Phaser.Geom.Triangle.RotateAroundPoint(rosaryEffect, new Phaser.Geom.Point(rosaryEffect.x1, rosaryEffect.top), this.angleToPointer - Math.PI/2) // it starts out pointing south
+    return rosaryEffect
+  }
+
+  rosaryGraphics!: Phaser.GameObjects.Graphics;
+  drawRosaryTriangle(t: Phaser.Geom.Triangle) {
+    this.rosaryGraphics.clear()
+    this.rosaryGraphics.fillTriangleShape(t)
+  }
+
+  brandishRosary() {
+    if (this.rosaryCooldown > 0) return
+    const rosaryEffect = this.constructRosaryTriangle()
+    if (this.scene?.fellerRoom?.enemies) {
+      for (let enemy of this.scene.fellerRoom.enemies) {
+        if (enemy.dead) continue
+        const enemyCircle = new Phaser.Geom.Circle(enemy.x, enemy.y, (enemy.width + enemy.height) / 2)
+        if (Phaser.Geom.Intersects.TriangleToCircle(rosaryEffect, enemyCircle)) {
+          enemy.hit({ x: this.sprite.x, y: this.sprite.y, damage: 0, knockback: this.ROSARY_STUN_MS })
+        }
+      }
+    }
+
+    this.rosaryCooldown = this.ROSARY_COOLDOWN_MS
+    EventEmitter.emit('playSound', 'magic')
+    EventEmitter.emit('rosaryCooldown', this.rosaryCooldown)
+    setTimeout(() => this.rosaryGraphics.clear(), 500)
+  }
+
   fixedUpdate(time: any, delta: any) {
     this.move(delta)  
     this.tileX = this.scene.groundLayer.worldToTileX(this.sprite.x);
@@ -641,7 +683,7 @@ export default class Feller {
 
     if (this.iframes > 0) {
       this.iframes -= delta
-      if (time % 2 === 0) {
+      if (time % 10 === 0) {
         this.sprite.setVisible(false)
       } else {
         this.sprite.setVisible(true)
@@ -650,8 +692,23 @@ export default class Feller {
       !this.sprite.visible && this.sprite.setVisible(true)
     }
 
+    if (this.rosaryCooldown <= 0) {
+      if (this.keys.shift.isDown) {
+        this.drawRosaryTriangle(this.constructRosaryTriangle());
+      }
+    } else {
+      this.rosaryGraphics.clear()
+      this.rosaryCooldown -= delta
+      if (this.rosaryCooldown <= 0) {
+        EventEmitter.emit('rosaryCooldown', this.rosaryCooldown)
+      }
+    }
+
+    if (Phaser.Input.Keyboard.JustUp(this.keys.shift)) {
+      this.brandishRosary();
+    }
+
     let depth = this.sprite.depth
-    console.log(depth)
     this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
     this.bullets?.getChildren().forEach((b: any) => (b as Bullet).fixedUpdate(time, delta))
     this.minimapMarker?.setX(this.sprite.x).setY(this.sprite.y)
