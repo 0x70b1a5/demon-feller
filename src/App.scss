@@ -368,6 +368,14 @@ canvas {
 
   .audio-controls {
   }
+
+  .opening-controls {
+    padding: 1em 2em;
+    display: flex;
+    flex-wrap: wrap;
+    place-content: center;
+    justify-content: space-evenly;
+  }
 }
 
 @keyframes pop-in-from-below {

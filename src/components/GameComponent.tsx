@@ -344,6 +344,11 @@ export const GameComponent: React.FC = () => {
     {showPrologue && <Prologue hide={() => setShowPrologue(false)} />}
     {!showLoading && !startButtonClicked && !showPrologue && <div className='pregame-audio shado'>
       <AudioControls nowPlaying='' />
+      <div className='opening-controls'>
+        <p>WASD/arrows: move</p>
+        <p>Click/Space: shoot</p>
+        <p>Shift: brandish</p>
+      </div>
     </div>}
     {gameStarted && stats}
     {temporaryNowPlaying && <div className='now-playing-container'>
@@ -401,7 +406,7 @@ export const GameComponent: React.FC = () => {
         : <div className='wrapperupper'>
           <div className='sxn shado'>
             <h2>CONTROLS:</h2>
-            <p>WASD or arrow keys: move</p>
+            <p>WASD/arrows: move</p>
             <p>Click/Space: shoot</p>
             <p>Shift: brandish</p>
           </div>
