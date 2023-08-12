@@ -16,6 +16,7 @@ export default class Hothead extends Enemy {
     super(scene, config, x, y)
 
     this.health *= (config.level)
+    this.damage *= (config.level)
     this.explodable = new Explodable(scene)
 
     if (!scene.anims.exists('hothead-jump')) {   
