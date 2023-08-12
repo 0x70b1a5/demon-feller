@@ -52,7 +52,6 @@ export class UIScene extends Phaser.Scene {
     this.minimap
     .startFollow(this.gameScene.feller.sprite)
     .ignore([
-      this.gameScene.shadowLayer, 
       this.gameScene.feller.sprite,
       this.gameScene.feller.gunSprite, 
       ...this.gameScene.enemies

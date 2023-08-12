@@ -403,6 +403,7 @@ export const GameComponent: React.FC = () => {
             <h2>CONTROLS:</h2>
             <p>WASD or arrow keys: move</p>
             <p>Click/Space: shoot</p>
+            <p>Shift: brandish</p>
           </div>
           <div className='sxn shado'>
             <h2>MINIMAP:</h2>

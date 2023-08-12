@@ -35,7 +35,7 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
       this.gfx.clear()
       this.gfx.fillCircle(this.x, this.y, this.iframes)
       this.iframes -= delta
-      console.log(this.iframes)
+      // console.log(this.iframes)
     } else {
       this.gfx.clear()
     }

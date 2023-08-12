@@ -122,8 +122,8 @@ export class BootScene extends Phaser.Scene {
       spacing: 0
     })
     this.load.spritesheet('hothead-sheet', 'assets/spritesheets/hothead.png', {
-      frameWidth: 242,
-      frameHeight: 355,
+      frameWidth: 129,
+      frameHeight: 190,
       margin: 0,
       spacing: 0
     })
@@ -178,6 +178,8 @@ export class BootScene extends Phaser.Scene {
     this.load.audio('impdie', 'assets/sounds/impdie.ogg')
     this.load.audio('soulgrunt', 'assets/sounds/soulgrunt.ogg')
     this.load.audio('soulgrumble', 'assets/sounds/soulgrumble.ogg')
+    this.load.audio('hotheadYell', 'assets/sounds/hotheadYell.ogg')
+    this.load.audio('hotheadDie', 'assets/sounds/hotheadDie.ogg')
     this.load.audio('fellerhurt', 'assets/sounds/fellerhurt.ogg')
     this.load.audio('stun', 'assets/sounds/fryingpan.ogg')
     this.load.audio('explosion', 'assets/sounds/explosion.ogg')

@@ -18,21 +18,14 @@ export default class Hothead extends Enemy {
     this.health *= (config.level)
     this.explodable = new Explodable(scene)
 
-    this.setScale(.9, .9)
-
-    if ((!scene.anims.exists('hothead-jump'))) {   
+    if (!scene.anims.exists('hothead-jump')) {   
       scene.anims.create({
         key: 'hothead-jump',
-        frames: scene.anims.generateFrameNumbers('hothead-sheet', { frames: [0,1] }),
-        frameRate: 2
+        frames: scene.anims.generateFrameNumbers('hothead-sheet', { frames: [0, 1] }),
+        frameRate: 60,
+        repeat: 0
       })
     }
-
-    this.scene.physics.add.collider(this, this.scene.groundLayer, (me, wall) => {
-      if (this.launched && TILE_MAPPING.WALLS_ITEMS_DOORS.includes((wall as Phaser.Tilemaps.Tile)?.index)) {
-        this.explode()
-      }
-    })
 
     this.scene.physics.add.overlap(this, [...this.scene.stuffs, this.scene.feller.sprite], (me, stuff) => {
       if (this.seenFeller) this.explode()
@@ -53,28 +46,51 @@ export default class Hothead extends Enemy {
     return
   }
 
+  die() {
+    EventEmitter.emit('playSound', 'hotheadDie')
+    super.die()
+  }
+
   launched = false
+  prevVX = 0
+  prevVY = 0
   fixedUpdate(time: number, delta: number) {
+    if (this.dead) return
     super.fixedUpdate(time, delta)
 
-    if (!this.launched && this.seenFeller) {
-      const fellerNearX = Math.abs(this.x - this.scene.feller.sprite.x) < this.scene.map.tileWidth
-      const fellerNearY = Math.abs(this.y - this.scene.feller.sprite.y) < this.scene.map.tileHeight
-      if (fellerNearX || fellerNearY) {
-        console.log(fellerNearX, fellerNearY, this.x, this.y, this.scene.feller.sprite.x, this.scene.feller.sprite.y)
-        this.launched = true
-        this.anims.play('hothead-jump')
-        // EventEmitter.emit('playSound', 'hotheadYell')
-        const fellerAbove = this.scene.feller.sprite.y < this.y
-        const fellerLeft = this.scene.feller.sprite.x < this.x
-        if (fellerNearY) {
-          this.setVelocityX((fellerLeft ? -1 : 1) * this.speed)
-            .setRotation((fellerLeft ? -1 : 1) * Math.PI/2)
-            .setFlipX(!fellerLeft)
+    if (!this.launched) {
+      if (this.seenFeller) {
+        const fellerNearX = Math.abs(this.x - this.scene.feller.sprite.x) < this.scene.map.tileWidth/2
+        const fellerNearY = Math.abs(this.y - this.scene.feller.sprite.y) < this.scene.map.tileHeight/2
+        if (fellerNearX || fellerNearY) {
+          this.launched = true
+          this.anims.play('hothead-jump')
+          EventEmitter.emit('playSound', 'hotheadYell')
+          const fellerAbove = this.scene.feller.sprite.y < this.y
+          const fellerLeft = this.scene.feller.sprite.x < this.x
+          if (fellerNearY) {
+            this.setVelocityX((fellerLeft ? -1 : 1) * this.speed)
+            if (fellerLeft) {
+              this.setRotation(-Math.PI/2)
+            } else {
+              this.setRotation(Math.PI/2)
+            }
+          } else {
+            this.setVelocityY((fellerAbove ? -1 : 1) * this.speed)
+            if (!fellerAbove) {
+              this.setRotation(Math.PI)
+            }
+          }
+        }
+      }
+    } else {
+      if (this.body) {
+        if ((this.prevVX > 0 && this.prevVX === -this.body.velocity.x) || (this.prevVY > 0 && this.prevVY === -this.body.velocity.y)) {
+          // an extremely upsetting hack to trigger explosions on bounce
+          this.explode()
         } else {
-          this.setVelocityY((fellerAbove ? -1 : 1) * this.speed)
-            .setRotation((fellerAbove ? 1 : 0) * Math.PI)
-            .setFlipY(!fellerAbove)
+          this.prevVX = this.body.velocity.x
+          this.prevVY = this.body.velocity.y
         }
       }
     }
