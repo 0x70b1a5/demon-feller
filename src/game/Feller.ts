@@ -30,6 +30,7 @@ export default class Feller {
   scene!: GameScene
   sprite!: Phaser.Physics.Arcade.Sprite
   keys!: Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
+  rosarySprite!: Phaser.Physics.Arcade.Sprite;
   gunSprite!: Phaser.Physics.Arcade.Sprite;
   debugGraphics!: Phaser.GameObjects.Graphics;
   shootCooldown = 0
@@ -108,6 +109,7 @@ export default class Feller {
   createNewSprite(x: number, y: number) {
     this.sprite?.destroy()
     this.gunSprite?.destroy()
+    this.rosarySprite?.destroy()
     this.container?.destroy()
     this.minimapMarker?.destroy()
     this.shieldSprite?.destroy()
@@ -133,6 +135,12 @@ export default class Feller {
     .setSize(135, 185)
     .setBounce(1, 1)
     .setDepth(1)
+
+    this.rosarySprite = this.scene.physics.add
+      .sprite(x, y, 'rosary')
+      .setScale(0.25)
+      .setOrigin(0.5, 0.5)
+      .setVisible(false);
 
     this.sprite.anims.play('feller-walk');
 
@@ -325,21 +333,27 @@ export default class Feller {
     return this.angleToPointer
   }
   
-  makeGunFollowFellerAndPointAtPointer_andMoveShieldsAndWings() {
+  makeGunAndRosaryFollowFellerAndPointAtPointer_andMoveShieldsAndWings() {
     const angleToPointer = this.getGunAngleToPointer()
 
     // Rotate the gun to face the cursor
     this.gunSprite.setRotation(angleToPointer);
+    this.rosarySprite.setRotation(angleToPointer);
 
     // Position the gun away from the feller's center towards the cursor
     const distanceFromCenter = this.sprite.width/4;
-    this.gunSprite.x = this.sprite.x + distanceFromCenter * Math.cos(angleToPointer);
-    this.gunSprite.y = this.sprite.y + distanceFromCenter * Math.sin(angleToPointer);
-
-    this.gunSprite.flipY = this.gunSprite.x < this.sprite.x
+    const c = Math.cos(angleToPointer);
+    const s = Math.sin(angleToPointer);
+    this.gunSprite.x = this.sprite.x + distanceFromCenter * c
+    this.gunSprite.y = this.sprite.y + distanceFromCenter * s
+    this.rosarySprite.x = this.sprite.x + distanceFromCenter/2 * c
+    this.rosarySprite.y = this.sprite.y + distanceFromCenter/2 * s
+    
+    this.rosarySprite.flipY = this.gunSprite.flipY = this.gunSprite.x < this.sprite.x
 
     const [vx, vy] = [this.sprite.body!.velocity.x, this.sprite.body!.velocity.y]
     this.gunSprite.setVelocity(vx, vy)
+    this.rosarySprite.setVelocity(vx, vy)
 
     if (this.shields > 0) {
       this.shieldSprites.setX(this.sprite.x)
@@ -652,6 +666,15 @@ export default class Feller {
   brandishRosary() {
     if (this.rosaryCooldown > 0) return
     const rosaryEffect = this.constructRosaryTriangle()
+    this.rosarySprite.setVisible(true).setDepth(this.sprite.depth+1)
+    this.scene.tweens.add({
+      targets: this.rosarySprite,
+      scale: { from: 1, to: 0.5 }, 
+      ease: 'Power2',
+      onComplete: () => {
+        this.rosarySprite.setVisible(false)
+      }
+    })
     if (this.scene?.fellerRoom?.enemies) {
       for (let enemy of this.scene.fellerRoom.enemies) {
         if (enemy.dead) continue
@@ -673,7 +696,7 @@ export default class Feller {
     this.tileX = this.scene.groundLayer.worldToTileX(this.sprite.x);
     this.tileY = this.scene.groundLayer.worldToTileY(this.sprite.y);
 
-    const angleToPointer = this.makeGunFollowFellerAndPointAtPointer_andMoveShieldsAndWings()
+    const angleToPointer = this.makeGunAndRosaryFollowFellerAndPointAtPointer_andMoveShieldsAndWings()
 
     if (this.shootCooldown > 0) {
       this.shootCooldown -= delta
