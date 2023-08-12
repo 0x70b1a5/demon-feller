@@ -346,8 +346,8 @@ export default class Feller {
     const s = Math.sin(angleToPointer);
     this.gunSprite.x = this.sprite.x + distanceFromCenter * c
     this.gunSprite.y = this.sprite.y + distanceFromCenter * s
-    this.rosarySprite.x = this.sprite.x + distanceFromCenter/2 * c
-    this.rosarySprite.y = this.sprite.y + distanceFromCenter/2 * s
+    this.rosarySprite.x = this.sprite.x + distanceFromCenter/1.5 * c
+    this.rosarySprite.y = this.sprite.y + distanceFromCenter/1.5 * s
     
     this.rosarySprite.flipY = this.gunSprite.flipY = this.gunSprite.x < this.sprite.x
 
@@ -669,8 +669,8 @@ export default class Feller {
     this.rosarySprite.setVisible(true).setDepth(this.sprite.depth+1)
     this.scene.tweens.add({
       targets: this.rosarySprite,
-      scale: { from: 1, to: 0.5 }, 
-      ease: 'Power2',
+      scale: { from: 0.75, to: 0.5 }, 
+      ease: 'Elastic',
       onComplete: () => {
         this.rosarySprite.setVisible(false)
       }
