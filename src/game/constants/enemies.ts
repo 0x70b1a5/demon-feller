@@ -7,7 +7,7 @@ const enemyWeights = [
   { type: EnemyType.Imp, weight: 1 },
   { type: EnemyType.Soul, weight: 1 },
   { type: EnemyType.Hothead, weight: 1 },
-  { type: EnemyType.ImpMother, weight: 100 },
+  { type: EnemyType.ImpMother, weight: 1 },
   { type: EnemyType.Gambler, weight: 1 },
 ]
 

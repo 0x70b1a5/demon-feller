@@ -22,11 +22,9 @@ export default class ImpMother extends Enemy {
       scene.anims.create({
         key: 'impmother-wiggle',
         frames: scene.anims.generateFrameNumbers('impmother-sheet', { frames: [1,0] }),
-        frameRate: 0.5,
+        frameRate: 1,
       })
     }
-
-    this.anims.play('impmother-wiggle')
   }
 
   findPathToTarget(delta: number): void {
@@ -54,6 +52,7 @@ export default class ImpMother extends Enemy {
             .setY(this.y)
           this.setDepth(this.depth + 1)
           this.spawnCooldown = this.SPAWN_COOLDOWN_MS
+          this.anims.play('impmother-wiggle')
           EventEmitter.emit('playSound', 'squeak')
           this.scene.tweens.add({
             targets: this,

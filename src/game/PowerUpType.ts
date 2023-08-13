@@ -6,4 +6,5 @@ export enum PowerUpType {
   Knockback = 5,
   Life = 6,
   Shield = 7,
+  Rosary = 8,
 }

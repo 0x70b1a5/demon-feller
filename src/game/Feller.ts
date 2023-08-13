@@ -27,6 +27,8 @@ export default class Feller {
   keys!: Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
   rosarySprite!: Phaser.Physics.Arcade.Sprite;
   gunSprite!: Phaser.Physics.Arcade.Sprite;
+  gunRecoilDistance = 0
+  gunRecoilRotation = 0
   debugGraphics!: Phaser.GameObjects.Graphics;
   shootCooldown = 0
   rosaryCooldown = 0
@@ -93,6 +95,7 @@ export default class Feller {
       lineStyle: { color: 0x0 }, 
       fillStyle: { color: colors.LINE_COLOR, alpha: 0.5 },
     })
+    this.rosaryEffectLength = this.scene.map.tileWidth * 1.5
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     EventEmitter.emit('speed', this.speed)
@@ -331,20 +334,18 @@ export default class Feller {
   makeGunAndRosaryFollowFellerAndPointAtPointer_andMoveShieldsAndWings() {
     const angleToPointer = this.getGunAngleToPointer()
 
-    // Rotate the gun to face the cursor
-    this.gunSprite.setRotation(angleToPointer);
-    this.rosarySprite.setRotation(angleToPointer);
-
     // Position the gun away from the feller's center towards the cursor
     const distanceFromCenter = this.sprite.width/4;
     const c = Math.cos(angleToPointer);
     const s = Math.sin(angleToPointer);
-    this.gunSprite.x = this.sprite.x + distanceFromCenter * c
-    this.gunSprite.y = this.sprite.y + distanceFromCenter * s
+    this.gunSprite.x = this.sprite.x + (distanceFromCenter - this.gunRecoilDistance) * c
+    this.gunSprite.y = this.sprite.y + (distanceFromCenter - this.gunRecoilDistance) * s
     this.rosarySprite.x = this.sprite.x + distanceFromCenter/1.5 * c
     this.rosarySprite.y = this.sprite.y + distanceFromCenter/1.5 * s
     
     this.rosarySprite.flipY = this.gunSprite.flipY = this.gunSprite.x < this.sprite.x
+    this.gunSprite.setRotation(angleToPointer + (this.gunSprite.flipY ? 1 : -1) * this.gunRecoilRotation);
+    this.rosarySprite.setRotation(angleToPointer);
 
     const [vx, vy] = [this.sprite.body!.velocity.x, this.sprite.body!.velocity.y]
     this.gunSprite.setVelocity(vx, vy)
@@ -462,6 +463,10 @@ export default class Feller {
         break
       case PowerUpType.Life:
         this.lives++
+        this.createOrUpdateWingSprites()
+        break
+      case PowerUpType.Rosary:
+        this.rosaryEffectLength += this.scene.map.tileWidth / 2 
         this.createOrUpdateWingSprites()
         break
       default:
@@ -644,10 +649,21 @@ export default class Feller {
 
     EventEmitter.emit('playSound', 'shoot')
     this.shootCooldown = this.RELOAD_COOLDOWN_MS;
+    this.scene.tweens.add({
+      targets: this,
+      gunRecoilDistance: { from: 50, to: 0 },
+      ease: 'Power2'
+    })
+    this.scene.tweens.add({
+      targets: this,
+      gunRecoilRotation: { from: Math.PI/4, to: 0 },
+      ease: 'Power2'
+    })
   }
 
+  rosaryEffectLength = 0
   constructRosaryTriangle() {
-    const rosaryEffect = Phaser.Geom.Triangle.BuildEquilateral(this.sprite.x, this.sprite.y, this.scene.map.tileWidth * 1.5)
+    const rosaryEffect = Phaser.Geom.Triangle.BuildEquilateral(this.sprite.x, this.sprite.y, this.rosaryEffectLength)
     Phaser.Geom.Triangle.RotateAroundPoint(rosaryEffect, new Phaser.Geom.Point(rosaryEffect.x1, rosaryEffect.top), this.angleToPointer - Math.PI/2) // it starts out pointing south
     return rosaryEffect
   }

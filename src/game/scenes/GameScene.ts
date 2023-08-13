@@ -320,6 +320,7 @@ export class GameScene extends Phaser.Scene {
     // Place the player in the first room
     this.fellerRoom = startRoom!;
     const [spawnX, spawnY] = this.findUnoccupiedRoomTile(this.fellerRoom)
+    debugger
 
     const x = this.map.tileToWorldX(spawnX)! + this.map.tileWidth/2;
     const y = this.map.tileToWorldY(spawnY)! + this.map.tileHeight/2;
