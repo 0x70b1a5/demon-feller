@@ -26,6 +26,8 @@ export default class Glutton extends Enemy {
         repeat: -1
       })
     }
+
+    this.createBulletPool()
   }
 
   createBulletPool() {
@@ -63,7 +65,7 @@ export default class Glutton extends Enemy {
     const burps = Math.random() * 8
     for (let i = 0; i < burps; i++) {
       const angle = Math.random() * 2 * Math.PI
-      const bullet = new Bullet(this.scene, this.x, this.y, 'bigbullet')
+      const bullet = this.bullets.getFirstDead()
       bullet.configure(150, 1.25, angle)
 
       assert(bullet.body && this.body)

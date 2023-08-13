@@ -675,7 +675,7 @@ export default class Feller {
         if (enemy.dead) continue
         const enemyCircle = new Phaser.Geom.Circle(enemy.x, enemy.y, (enemy.width + enemy.height) / 2)
         if (Phaser.Geom.Intersects.TriangleToCircle(rosaryEffect, enemyCircle)) {
-          enemy.hit({ x: this.sprite.x, y: this.sprite.y, damage: 0, knockback: this.ROSARY_STUN_MS })
+          enemy.getKnockbacked({ x: this.sprite.x, y: this.sprite.y,   knockback: this.ROSARY_STUN_MS })
         }
       }
     }

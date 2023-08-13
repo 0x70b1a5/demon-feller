@@ -10,7 +10,7 @@ export default class Pig extends Enemy {
   health = 6
   SPIT_COOLDOWN_MS = 2000
   spitCooldown = 0
-  bullets: Bullet[] = []
+  bullets!: Phaser.GameObjects.Group
   knockback = 500
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
@@ -31,22 +31,31 @@ export default class Pig extends Enemy {
 
     this.anims.play('pig-walk')
   
-    EventEmitter.on('gameOver', () => {
-      this.bullets.forEach(bullet => bullet.destroy())
-    })
+    this.createBulletPool()
+  }
+
+  createBulletPool() {
+    this.bullets = this.scene.physics.add.group({
+      classType: Bullet,
+      maxSize: 5, // 30 bullets in total
+      runChildUpdate: true // If you need to run update on each bullet
+    });
+  
+    // Create the initial pool of bullets
+    for (let i = 0; i < 5; i++) {
+      const bullet = new Bullet(this.scene, 0, 0, 'bigbullet');
+      bullet.deactivate()
+      this.bullets.add(bullet);
+    }
   }
 
   spit() {
-    if (this.stun) return 
+    if (this.stun > 0) return 
     
     const angle = Phaser.Math.Angle.BetweenPoints(this, this.scene.feller.sprite)
-    const bullet = new Bullet(this.scene, this.x, this.y, 'bigbullet'); 
+    const bullet = this.bullets.getFirstDead()
     bullet.configure(300, 1, angle)
-
-    assert(bullet.body && this.body)
-
     bullet.fire(this.x, this.y)
-    this.bullets.push(bullet)
 
     this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {
       this.scene.feller.hit(this);
@@ -87,7 +96,7 @@ export default class Pig extends Enemy {
   }
 
   destroy() {
-    this?.bullets?.forEach(b => b?.destroy())
+    this?.bullets?.destroy()
     super.destroy()
   }
 }

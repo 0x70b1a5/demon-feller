@@ -8,15 +8,18 @@ import assert from './util/assert';
 export default class Gambler extends Enemy {
   speed = 0
   health = 8
-  PULL_COOLDOWN_MS = 1000
+  PULL_COOLDOWN_MS = 2000
   pullCooldown = 0
-  bullets: Bullet[] = []
+  bullets!: Phaser.GameObjects.Group
   knockback = 500
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
 
     this.health *= (config.level)
+    this.PULL_COOLDOWN_MS /= ((config.level/2) || 1)
+
+    this.setSize(190, 190)
 
     if ((!scene.anims.exists('gambler-pull'))) {   
       scene.anims.create({
@@ -26,22 +29,19 @@ export default class Gambler extends Enemy {
       })
     }
 
-    EventEmitter.on('gameOver', () => {
-      this.bullets.forEach(bullet => bullet.destroy())
-    })
+    this.createBulletPool()
   }
 
   pull() {
-    if (this.stun) return 
+    if (this.stun > 0) return 
 
     this.anims.play('gambler-pull')
     
     const angle = Phaser.Math.Angle.BetweenPoints(this, this.scene.feller.sprite)
-    const bullet = new Bullet(this.scene, this.x, this.y, 'coin'); 
+    const bullet = this.bullets.getFirstDead()
     bullet.configure(300, 1, angle)
 
     bullet.fire(this.x, this.y)
-    this.bullets.push(bullet)
 
     this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {
       this.scene.feller.hit(this);
@@ -59,6 +59,22 @@ export default class Gambler extends Enemy {
     this.pullCooldown = this.PULL_COOLDOWN_MS;
   }
 
+  findPathToTarget(delta: number): void {
+    return
+  }
+
+  takePathToTarget(): void {
+    return
+  }
+
+  chaseTarget(delta: number): void {
+    return
+  }
+
+  wobble(): void {
+    return
+  }
+
   fixedUpdate(time: any, delta: any): void {
     super.fixedUpdate(time, delta)
 
@@ -68,6 +84,21 @@ export default class Gambler extends Enemy {
       } else {
         this.pull()
       }
+    }
+  }
+
+  createBulletPool() {
+    this.bullets = this.scene.physics.add.group({
+      classType: Bullet,
+      maxSize: 15, // 30 bullets in total
+      runChildUpdate: true // If you need to run update on each bullet
+    });
+  
+    // Create the initial pool of bullets
+    for (let i = 0; i < 15; i++) {
+      const bullet = new Bullet(this.scene, 0, 0, 'coin');
+      bullet.deactivate()
+      this.bullets.add(bullet);
     }
   }
 
@@ -82,7 +113,7 @@ export default class Gambler extends Enemy {
   }
 
   destroy() {
-    this?.bullets?.forEach(b => b?.destroy())
+    this?.bullets?.destroy()
     super.destroy()
   }
 }

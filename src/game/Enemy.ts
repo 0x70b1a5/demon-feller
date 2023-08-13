@@ -127,6 +127,34 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     feller.hit(this)
   }
 
+  getKnockbacked(by: Phaser.Types.Math.Vector2Like & { knockback: number }) {
+    EventEmitter.emit('playSound', 'stun')
+
+    this.stun = by.knockback
+    this.stunImmunity = this.stun * 2
+    // radians 
+    const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this)
+    let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + 100);
+    let knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + 100);
+    
+    this.setVelocityX(knockbackVelocityX);
+    this.setVelocityY(knockbackVelocityY);
+
+    const origRotation = this.rotation
+    this.scene.tweens.add({
+      targets: this,
+      rotation: {
+        value: { from: Phaser.Math.DegToRad(-45), to: origRotation },
+        duration: this.stun,
+        repeat: false,  
+        ease: 'Elastic',
+      },
+      onComplete: () => {
+        this.setRotation(origRotation)
+      }
+    });
+  }
+
   hit(by: Phaser.Types.Math.Vector2Like & { damage: number, knockback: number }) {
     this.health -= by.damage;
     if (this.health <= 0) {
@@ -135,31 +163,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (by.knockback && this.stunImmunity < 1) {
-      EventEmitter.emit('playSound', 'stun')
-
-      this.stun = by.knockback
-      this.stunImmunity = this.stun * 2
-      // radians 
-      const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this)
-      let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + 100);
-      let knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + 100);
-      
-      this.setVelocityX(knockbackVelocityX);
-      this.setVelocityY(knockbackVelocityY);
-
-      const origRotation = this.rotation
-      this.scene.tweens.add({
-        targets: this,
-        rotation: {
-          value: { from: Phaser.Math.DegToRad(-45), to: origRotation },
-          duration: this.stun,
-          repeat: false,  
-          ease: 'Elastic',
-        },
-        onComplete: () => {
-          this.setRotation(origRotation)
-        }
-      });
+      this.getKnockbacked(by)
     }
   }
 

@@ -20,11 +20,11 @@ export default class Barrel extends Stuff {
 
     this.damage = config.damage || this.damage
     this.MAX_HEALTH = this.health
-    this.explodable = new Explodable(scene)
 
     this.setImmovable(true)
 
     this.rekage = this.scene.add.sprite(this.x, this.y, 'barrelRekt').setVisible(false)
+    this.explodable = new Explodable(scene)
   }
 
   hit(damage: number) {
@@ -46,8 +46,8 @@ export default class Barrel extends Stuff {
 
   onBeforeDie(): void {
     super.onBeforeDie()
-    this.rekage.setVisible(true)
     this.explode()
+    this.rekage.setVisible(true)
   }
 
   explode() {

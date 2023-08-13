@@ -548,7 +548,7 @@ export class GameScene extends Phaser.Scene {
     this.scene.pause();
     this.enemies
       .filter((e: any) => e?.bullets)
-      .map((e: any) => e?.bullets?.forEach((b: Bullet) => b?.destroy()));
+      .map((e: any) => e.bullets.destroy());
 
     this.enemies.forEach(e => e.destroy())
     this.stuffs.forEach(s => s.destroy())
