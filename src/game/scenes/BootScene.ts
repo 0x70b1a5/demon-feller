@@ -110,6 +110,21 @@ export class BootScene extends Phaser.Scene {
     this.load.image('imp', 'assets/imp.png')
     this.load.image('hothead', 'assets/hothead.png')
     this.load.image('belcher', 'assets/belcher.png')
+    this.load.image('impmother', 'assets/impmother.png')
+    this.load.image('gambler', 'assets/gambler.png')
+    this.load.image('coin', 'assets/coin.png')
+    this.load.spritesheet('gambler-sheet', 'assets/spritesheets/gambler.png', {
+      frameWidth: 230,
+      frameHeight: 258,
+      margin: 0,
+      spacing: 0
+    })
+    this.load.spritesheet('impmother-sheet', 'assets/spritesheets/impmother.png', {
+      frameWidth: 187,
+      frameHeight: 205,
+      margin: 0,
+      spacing: 0
+    })
     this.load.spritesheet('soul-sheet', 'assets/spritesheets/soul.png', {
       frameWidth: 173,
       frameHeight: 233,
@@ -123,8 +138,8 @@ export class BootScene extends Phaser.Scene {
       spacing: 0
     })
     this.load.spritesheet('hothead-sheet', 'assets/spritesheets/hothead.png', {
-      frameWidth: 129,
-      frameHeight: 190,
+      frameWidth: 153,
+      frameHeight: 225,
       margin: 0,
       spacing: 0
     })

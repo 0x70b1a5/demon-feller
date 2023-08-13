@@ -9,7 +9,7 @@ export default class Imp extends Enemy {
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
-    this.health = Math.pow(this.health, config.level)
+    this.health *= (config.level)
     this.speed = scene.feller.speed
   }
 

@@ -21,12 +21,15 @@ export interface EnemyConfig {
 }
 
 export enum EnemyType {
+  None,
   Goo,
   Pig,
   Soul,
   Glutton,
   Imp,
   Hothead,
+  ImpMother,
+  Gambler,
 }
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
@@ -34,6 +37,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
 
   target!: Phaser.Types.Math.Vector2Like;
+  config!: EnemyConfig;
   health: number;
   damage: number;
   room!: RoomWithEnemies
@@ -59,6 +63,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.scene = scene
     this.speed = config.velocity || this.speed
     this.enemyType = config.enemyType
+    this.config = config
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -87,7 +92,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       .setX(spawnX)
       .setY(spawnY)
 
-    this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }})
+    this.debug && (this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x0 }, fillStyle: { color: 0xff0000 }}))
 
     this.minimapMarker = scene.add.sprite(spawnX, spawnY, 'mm-demon').setScale(10);
     scene.cameras.main.ignore(this.minimapMarker)
@@ -193,7 +198,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   showIfInRoom() {
     if (this.room.guid === this.scene.fellerRoom.guid) {
       !this.visible && this.setVisible(true) && this.minimapMarker.setVisible(true)
-      debugger
       this.seenFeller = true
       this.target = this.scene.feller.sprite
       

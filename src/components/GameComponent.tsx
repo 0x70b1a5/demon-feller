@@ -58,18 +58,25 @@ export const GameComponent: React.FC = () => {
       },
       // pixelArt: true, // enable for no antialiasing
       plugins: {
-        scene: [{
-          key: 'rexUI',
-          plugin: RexUIPlugin,
-          mapping: 'rexUI'
-        }]
+        scene: [
+          {
+            key: 'rexUI',
+            plugin: RexUIPlugin,
+            mapping: 'rexUI'
+          },
+        ]
       },
       audio: {
         disableWebAudio: true 
       },
       fps: {
         target: 60,
-      }
+      },
+      powerPreference: 'high-performance',
+      clearBeforeRender: false,
+      disableContextMenu: true,
+      pixelArt: true,
+      antialias: false,
     };
 
     gameRef.current = new Phaser.Game(config);
@@ -224,13 +231,6 @@ export const GameComponent: React.FC = () => {
     .on('startButtonClicked', startButtonClickedListener)
     .on('loadingText', loadingTextListener)
     .on('rosaryCooldown', rosaryCooldownListener)
-
-    if (gameElementRef?.current) {
-      gameElementRef.current.addEventListener('contextmenu', (e) => {
-        e.preventDefault()
-        e.stopImmediatePropagation()
-      })
-    }
 
     return () => {
       EventEmitter.off('gameStarted', gameStartedListener)

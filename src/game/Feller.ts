@@ -12,11 +12,6 @@ import assert from "./util/assert";
 import roll from "./util/roll";
 import colors from "./constants/colors";
 
-/**
- * A class that wraps up our top down player logic. It creates, animates and moves a sprite in
- * response to WASD keys. Call its update method from the scene's update and call its destroy
- * method when you're done with the player.
- */
 export default class Feller {
   debug = false
 
@@ -450,7 +445,7 @@ export default class Feller {
         }
         break
       case PowerUpType.RateOfFire:
-        this.RELOAD_COOLDOWN_MS = Math.max(this.RELOAD_COOLDOWN_MS * 0.75, 1)
+        this.RELOAD_COOLDOWN_MS = Math.max(this.RELOAD_COOLDOWN_MS * 0.85, 1)
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN_MS)
         break
       case PowerUpType.Bullet:

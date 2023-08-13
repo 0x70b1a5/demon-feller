@@ -1,6 +1,5 @@
 import Phaser from 'phaser'
 import RexUIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin.js';
-
 import animations from '../util/animate'
 import colors from '../constants/colors'
 import scales from '../constants/scaling'; 
@@ -30,6 +29,8 @@ import Glutton from '../Glutton';
 import Imp from '../Imp';
 import { PowerUpType } from '../PowerUpType';
 import Hothead from '../Hothead';
+import ImpMother from '../ImpMother';
+import Gambler from '../Gambler';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -594,33 +595,7 @@ export class GameScene extends Phaser.Scene {
         let enemy: Enemy | null = null;
         let {x, y} = acceptableTiles[i]
         this.debug && console.log('spawning enemy at', { x, y })
-        switch(enemyType) {
-          case EnemyType.Goo:
-            enemy = new Goo(this, { level: this.level, room, enemyType, texture: 'goo' }, x, y)
-            break
-          case EnemyType.Pig:
-            enemy = new Pig(this, { level: this.level, room, enemyType, texture: 'pig' }, x, y)
-            break
-          case EnemyType.Glutton:
-            enemy = new Glutton(this, { level: this.level, room, enemyType, texture: 'belcher' }, x, y)
-            break
-          case EnemyType.Soul:
-            enemy = new Soul(this, { level: this.level, room, enemyType, texture: 'soul' }, x, y)
-            break
-          case EnemyType.Imp:
-            enemy = new Imp(this, { level: this.level, room, enemyType, texture: 'imp' }, x, y)
-            break
-          case EnemyType.Hothead:
-            enemy = new Hothead(this, { level: this.level, room, enemyType, texture: 'hothead' }, x, y)
-            break
-          default:
-            break
-        }
-        if (enemy) {
-          this.setUpEnemy(enemy)
-          room.enemies ||= []
-          room.enemies.push(enemy)
-        }
+        this.spawnEnemy(enemyType, room, x, y)
       }
     });
 
@@ -632,6 +607,44 @@ export class GameScene extends Phaser.Scene {
     this.demonsFelledLevel = 0
     EventEmitter.emit('demonsToFell', demonsToFell)
     EventEmitter.emit('demonsFelledLevel', this.demonsFelledLevel)
+  }
+
+  spawnEnemy(enemyType: EnemyType, room: RoomWithEnemies, tileX: number, tileY: number) {
+    let enemy: Enemy | null = null;
+    switch(enemyType) {
+      case EnemyType.Goo:
+        enemy = new Goo(this, { level: this.level, room, enemyType, texture: 'goo' }, tileX, tileY)
+        break
+      case EnemyType.Pig:
+        enemy = new Pig(this, { level: this.level, room, enemyType, texture: 'pig' }, tileX, tileY)
+        break
+      case EnemyType.Glutton:
+        enemy = new Glutton(this, { level: this.level, room, enemyType, texture: 'belcher' }, tileX, tileY)
+        break
+      case EnemyType.Soul:
+        enemy = new Soul(this, { level: this.level, room, enemyType, texture: 'soul' }, tileX, tileY)
+        break
+      case EnemyType.Imp:
+        enemy = new Imp(this, { level: this.level, room, enemyType, texture: 'imp' }, tileX, tileY)
+        break
+      case EnemyType.ImpMother:
+        enemy = new ImpMother(this, { level: this.level, room, enemyType, texture: 'impmother' }, tileX, tileY)
+        break
+      case EnemyType.Gambler:
+        enemy = new Gambler(this, { level: this.level, room, enemyType, texture: 'gambler' }, tileX, tileY)
+        break
+      case EnemyType.Hothead:
+        enemy = new Hothead(this, { level: this.level, room, enemyType, texture: 'hothead' }, tileX, tileY)
+        break
+      default:
+        break
+    }
+    if (enemy) {
+      this.setUpEnemy(enemy)
+      room.enemies ||= []
+      room.enemies.push(enemy)
+      return enemy
+    }
   }
 
   setUpEnemy(enemy: Enemy) {
