@@ -17,15 +17,15 @@ export default class Gambler extends Enemy {
     super(scene, config, x, y)
 
     this.health *= (config.level)
-    this.PULL_COOLDOWN_MS /= ((config.level/2) || 1)
+    this.PULL_COOLDOWN_MS /= Math.sqrt(config.level || 1)
 
     this.setSize(190, 190)
 
     if ((!scene.anims.exists('gambler-pull'))) {   
       scene.anims.create({
         key: 'gambler-pull',
-        frames: scene.anims.generateFrameNumbers('gambler-sheet', { frames: [1,0] }),
-        frameRate: 2,
+        frames: scene.anims.generateFrameNumbers('gambler-sheet', { frames: [1,0,1,0] }),
+        frameRate: 1,
       })
     }
 
@@ -36,12 +36,15 @@ export default class Gambler extends Enemy {
     if (this.stun > 0) return 
 
     this.anims.play('gambler-pull')
+    EventEmitter.emit('playSound', 'chaching')
     
     const angle = Phaser.Math.Angle.BetweenPoints(this, this.scene.feller.sprite)
     const bullet = this.bullets.getFirstDead()
     bullet.configure(300, 1, angle)
 
     bullet.fire(this.x, this.y)
+
+    this.setDepth(bullet.depth+1)
 
     this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {
       this.scene.feller.hit(this);

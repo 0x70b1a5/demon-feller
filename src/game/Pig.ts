@@ -52,6 +52,7 @@ export default class Pig extends Enemy {
   spit() {
     if (this.stun > 0) return 
     
+    EventEmitter.emit('playSound', 'piggrunt')
     const angle = Phaser.Math.Angle.BetweenPoints(this, this.scene.feller.sprite)
     const bullet = this.bullets.getFirstDead()
     bullet.configure(300, 1, angle)

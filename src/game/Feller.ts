@@ -286,7 +286,7 @@ export default class Feller {
       this.scene.map.tileWidth * 1/(cos || 1),  // secant (theta) = hyp/adj. if would div by 0 then use width
     ]
 
-    console.log({tMaxX, tMaxY, tDeltaX, tDeltaY, sin, cos, theta })
+    console.log({ tMaxX, tMaxY, tDeltaX, tDeltaY, sin, cos, theta })
 
     let occupiedTile = 0
     let tries = 0
@@ -467,6 +467,7 @@ export default class Feller {
         break
       case PowerUpType.Rosary:
         this.rosaryEffectLength += this.scene.map.tileWidth / 2 
+        this.ROSARY_COOLDOWN_MS *= 0.85
         this.createOrUpdateWingSprites()
         break
       default:
@@ -670,7 +671,8 @@ export default class Feller {
 
   rosaryGraphics!: Phaser.GameObjects.Graphics;
   drawRosaryTriangle(t: Phaser.Geom.Triangle) {
-    this.rosaryGraphics.clear()
+    this.rosaryGraphics.clear().setDepth(this.sprite.depth+1)
+    !this.rosarySprite.active && this.rosarySprite.setActive(true).setVisible(true)
     this.rosaryGraphics.fillTriangleShape(t)
   }
 
