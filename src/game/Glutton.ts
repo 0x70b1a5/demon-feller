@@ -78,7 +78,7 @@ export default class Glutton extends Enemy {
       })
 
       this.scene.physics.add.collider(bullet, [
-        this.scene.groundLayer, this.scene.stuffLayer, this.scene.shadowLayer
+        this.scene.groundLayer, this.scene.shadowLayer
       ], () => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle))
 
       this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {

@@ -68,7 +68,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     scene.physics.add.collider(this, scene.groundLayer)
-    scene.physics.add.collider(this, scene.stuffLayer)
     scene.physics.add.collider(this, scene.stuffs)
 
     // console.log('enemy', config, this.damage, this.health)

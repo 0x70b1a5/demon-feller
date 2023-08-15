@@ -54,7 +54,7 @@ export class GameScene extends Phaser.Scene {
   dungeon!: Dungeon
   levellingUp = false
   groundLayer!: Phaser.Tilemaps.TilemapLayer
-  stuffLayer!: Phaser.Tilemaps.TilemapLayer
+  er!: Phaser.Tilemaps.TilemapLayer
   shadowLayer!: Phaser.Tilemaps.TilemapLayer
   tilemapVisibility!: TilemapVisibility;
   fellerRoom!: RoomWithEnemies
@@ -163,7 +163,6 @@ export class GameScene extends Phaser.Scene {
     if (this.map) {
       this.map.removeAllLayers().destroy()
       this.groundLayer?.destroy()
-      this.stuffLayer?.destroy()
       this.shadowLayer?.destroy()
       this.load.image('tileset', 'assets/tileset.png')
     }
@@ -180,8 +179,6 @@ export class GameScene extends Phaser.Scene {
     const tileset = map.addTilesetImage('tileset', undefined, 200, 200, 0, 0)!
   
     const groundLayer = this.groundLayer = map.createBlankLayer('Ground', tileset)!.fill(TILES.BLANK)
-    const stuffLayer = this.stuffLayer = map.createBlankLayer('Stuff', tileset)!
-    stuffLayer.fill(-1);
 
     this.dungeon.rooms.forEach((room, i) => {
       const { x, y, width, height, left, right, top, bottom } = room;
@@ -223,7 +220,6 @@ export class GameScene extends Phaser.Scene {
 
     // MUST SET COLLISION ***AFTER*** MODIFYING LAYER
     groundLayer.setCollisionByExclusion([0, 1, 2, 3, 4, 13, 14]);
-    stuffLayer.setCollision([15, 16])
     
     if (this.debug) {
       const debugGraphics = this.add.graphics().setAlpha(0.75);
@@ -231,11 +227,6 @@ export class GameScene extends Phaser.Scene {
         tileColor: null, // Color of non-colliding tiles
         collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
         faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
-      });
-      stuffLayer.renderDebug(debugGraphics, {
-        tileColor: null, // Color of non-colliding tiles
-        collidingTileColor: new Phaser.Display.Color(0, 134, 48, 255), // Color of colliding tiles
-        faceColor: new Phaser.Display.Color(0, 39, 37, 255) // Color of colliding face edges
       });
     }
     
