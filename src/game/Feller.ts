@@ -132,15 +132,16 @@ export default class Feller {
     .setBounce(1, 1)
     .setDepth(1)
 
+    this.rosaryTriangle = this.scene.physics.add
+      .sprite(x, y, 'rosaryTriangle')
+      .setVisible(false).setActive(false)
+      .setOrigin(0.5, 0)
+
     this.rosarySprite = this.scene.physics.add
       .sprite(x, y, 'rosary')
-      .setScale(0.25)
+      .setScale(0.35)
       .setOrigin(0.5, 0.5)
       .setVisible(false);
-
-    this.rosaryTriangle = this.scene.physics.add.sprite(x, y, 'rosaryTriangle')
-    .setOrigin(137, 0)
-    .setVisible(false)
 
     this.sprite.anims.play('feller-walk');
 
@@ -349,8 +350,9 @@ export default class Feller {
     this.gunSprite.setVelocity(vx, vy)
     
     if (this.rosarySprite.active) {
-      this.rosarySprite.x = this.sprite.x + distanceFromCenter/1.5 * c
-      this.rosarySprite.y = this.sprite.y + distanceFromCenter/1.5 * s
+      this.rosarySprite.setDepth(this.sprite.depth+1)
+      this.rosarySprite.x = this.sprite.x + (this.rosaryCooldown > 0 ? distanceFromCenter/1.5 : -distanceFromCenter/3) * c
+      this.rosarySprite.y = this.sprite.y + (this.rosaryCooldown > 0 ? distanceFromCenter/1.5 : -distanceFromCenter/3) * s
       this.rosaryTriangle.x = this.sprite.x
       this.rosaryTriangle.y = this.sprite.y
       this.rosarySprite.flipY = this.gunSprite.flipY
@@ -680,14 +682,15 @@ export default class Feller {
 
   rosaryTriangle!: Phaser.Physics.Arcade.Sprite
   drawRosaryTriangle(t: Phaser.Geom.Triangle) {
-    this.rosaryTriangle
+    this.rosarySprite
+      .setActive(true)
       .setVisible(true)
     this.rosaryTriangle
+      .setActive(true)
+      .setVisible(true)
+      .setDisplaySize(this.rosaryEffectLength, this.rosaryEffectLength)
+    this.rosaryTriangle
       .setRotation(this.angleToPointer - Math.PI/2)
-      .setDepth(this.sprite.depth+1)
-
-    // this.debugGraphics.setDefaultStyles({ lineStyle: { color: 0xff0000, width: 5 }})
-    // .strokeRect(this.rosaryTriangle.x, this.rosaryTriangle.y, this.rosaryTriangle.height, this.rosaryTriangle.width)
   }
 
   brandishRosary() {
@@ -716,7 +719,7 @@ export default class Feller {
     this.rosaryCooldown = this.ROSARY_COOLDOWN_MS
     EventEmitter.emit('playSound', 'magic')
     EventEmitter.emit('rosaryCooldown', this.rosaryCooldown)
-    setTimeout(() => this.rosaryTriangle.setVisible(false), 500)
+    this.rosaryTriangle.setVisible(false).setActive(false)
   }
 
   fixedUpdate(time: any, delta: any) {

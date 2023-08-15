@@ -26,7 +26,7 @@ export default class Barrel extends Stuff {
 
     this.rekage = this.scene.add.sprite(this.x, this.y, 'barrelRekt').setVisible(false)
     this.explodable = new Explodable(scene)
-    this.radiusSprite = this.scene.add.sprite(this.x, this.y, 'barrelRadius').setVisible(false).setActive(false).setOrigin(0.5, 0.5)
+    this.radiusSprite = this.scene.add.sprite(this.x, this.y, 'barrelRadius').setVisible(false).setActive(false).setOrigin(0.5, 0.5).setAlpha(0.25)
   }
 
   hit(damage: number) {
@@ -39,7 +39,7 @@ export default class Barrel extends Stuff {
     if (0 < this.health && this.MAX_HEALTH) {
       !this.radiusSprite.visible && this.radiusSprite.setVisible(true).setActive(true)
       const sz = 2 * this.dangerRadiusInTiles * this.scene.map.tileWidth
-      this.radiusSprite.setDisplaySize(sz, sz).setAlpha(0.5)
+      this.radiusSprite.setDisplaySize(sz, sz)
       this.setDepth(this.depth+1)
     }
   }

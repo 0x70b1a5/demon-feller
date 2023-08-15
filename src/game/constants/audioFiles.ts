@@ -19,6 +19,7 @@ const audioFiles = {
   tide: 'assets/music/albireo_achernar-death_and_resurrection.ogg',
   desert: 'assets/music/actg-back_porch_desert.ogg',
   mind: 'assets/music/subboreal-mind.ogg',
+  memoryLoss: 'assets/music/bagaski-memory_loss_for_beginners_ii.ogg'
 }
 
 export default audioFiles
