@@ -288,7 +288,7 @@ export const GameComponent: React.FC = () => {
           {rosaryCooldown > 0 ? '🙏' : '📿'}
         </div>
         <div className='stat'>
-          {rosaryCooldown > 0 ? ' Ave Maria...' : ' READY'}
+          {rosaryCooldown > 0 ? (rosaryCooldown/1000).toPrecision(2) + 's Ave Maria...' : ' READY'}
         </div>
       </div>
     </div>

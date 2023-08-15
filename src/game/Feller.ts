@@ -91,11 +91,8 @@ export default class Feller {
       lineStyle: { color: 0x0 }, 
       fillStyle: { color: 0x0000ff },
     })
-    this.rosaryGraphics = this.scene.add.graphics({ 
-      lineStyle: { color: 0x0 }, 
-      fillStyle: { color: colors.LINE_COLOR, alpha: 0.5 },
-    })
-    this.rosaryEffectLength = this.scene.map.tileWidth * 1.5
+
+    this.rosaryEffectLength = 200 * 1.5
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
     EventEmitter.emit('speed', this.speed)
@@ -108,6 +105,7 @@ export default class Feller {
     this.sprite?.destroy()
     this.gunSprite?.destroy()
     this.rosarySprite?.destroy()
+    this.rosaryTriangle?.destroy()
     this.container?.destroy()
     this.minimapMarker?.destroy()
     this.shieldSprite?.destroy()
@@ -139,6 +137,10 @@ export default class Feller {
       .setScale(0.25)
       .setOrigin(0.5, 0.5)
       .setVisible(false);
+
+    this.rosaryTriangle = this.scene.physics.add.sprite(x, y, 'rosaryTriangle')
+    .setOrigin(137, 0)
+    .setVisible(false)
 
     this.sprite.anims.play('feller-walk');
 
@@ -340,25 +342,31 @@ export default class Feller {
     const s = Math.sin(angleToPointer);
     this.gunSprite.x = this.sprite.x + (distanceFromCenter - this.gunRecoilDistance) * c
     this.gunSprite.y = this.sprite.y + (distanceFromCenter - this.gunRecoilDistance) * s
-    this.rosarySprite.x = this.sprite.x + distanceFromCenter/1.5 * c
-    this.rosarySprite.y = this.sprite.y + distanceFromCenter/1.5 * s
-    
-    this.rosarySprite.flipY = this.gunSprite.flipY = this.gunSprite.x < this.sprite.x
+    this.gunSprite.flipY = this.gunSprite.x < this.sprite.x
     this.gunSprite.setRotation(angleToPointer + (this.gunSprite.flipY ? 1 : -1) * this.gunRecoilRotation);
-    this.rosarySprite.setRotation(angleToPointer);
 
     const [vx, vy] = [this.sprite.body!.velocity.x, this.sprite.body!.velocity.y]
     this.gunSprite.setVelocity(vx, vy)
-    this.rosarySprite.setVelocity(vx, vy)
+    
+    if (this.rosarySprite.active) {
+      this.rosarySprite.x = this.sprite.x + distanceFromCenter/1.5 * c
+      this.rosarySprite.y = this.sprite.y + distanceFromCenter/1.5 * s
+      this.rosaryTriangle.x = this.sprite.x
+      this.rosaryTriangle.y = this.sprite.y
+      this.rosarySprite.flipY = this.gunSprite.flipY
+      this.rosarySprite.setRotation(angleToPointer);
+      this.rosarySprite.setVelocity(vx, vy)
+    }
 
     if (this.shields > 0) {
-      this.shieldSprites.setX(this.sprite.x)
-      this.shieldSprites.setY(this.sprite.y)
-      this.shieldSprites.getChildren().forEach(c => (c as Phaser.Physics.Arcade.Sprite).setVelocity(vx, vy))
+      this.shieldSprites.getChildren()
+        .forEach(c => c.active && (c as Phaser.Physics.Arcade.Sprite).setVelocity(vx, vy)
+          .setX(this.sprite.x)
+          .setY(this.sprite.y))
     }
 
     if (this.lives > 0) {
-      this.wingSprites.getChildren().forEach(w => (w as Phaser.Physics.Arcade.Sprite).setVelocity(vx, vy))
+      this.wingSprites.getChildren().forEach(w => w.active && (w as Phaser.Physics.Arcade.Sprite).setVelocity(vx, vy))
       this.moveWingSprites()
     }
     
@@ -563,6 +571,7 @@ export default class Feller {
     const angleBetweenWings = this.lives > 1 ? totalArc / (this.lives - 1) : 0;
 
     this.wingSprites.getChildren().forEach((w, i) => {
+      if (!w.active) return
       const wing = w as Phaser.Physics.Arcade.Sprite
       const angle = i * angleBetweenWings - angleBetweenWings
 
@@ -669,15 +678,21 @@ export default class Feller {
     return rosaryEffect
   }
 
-  rosaryGraphics!: Phaser.GameObjects.Graphics;
+  rosaryTriangle!: Phaser.Physics.Arcade.Sprite
   drawRosaryTriangle(t: Phaser.Geom.Triangle) {
-    this.rosaryGraphics.clear().setDepth(this.sprite.depth+1)
-    !this.rosarySprite.active && this.rosarySprite.setActive(true).setVisible(true)
-    this.rosaryGraphics.fillTriangleShape(t)
+    this.rosaryTriangle
+      .setVisible(true)
+    this.rosaryTriangle
+      .setRotation(this.angleToPointer - Math.PI/2)
+      .setDepth(this.sprite.depth+1)
+
+    // this.debugGraphics.setDefaultStyles({ lineStyle: { color: 0xff0000, width: 5 }})
+    // .strokeRect(this.rosaryTriangle.x, this.rosaryTriangle.y, this.rosaryTriangle.height, this.rosaryTriangle.width)
   }
 
   brandishRosary() {
     if (this.rosaryCooldown > 0) return
+    debugger
     const rosaryEffect = this.constructRosaryTriangle()
     this.rosarySprite.setVisible(true).setDepth(this.sprite.depth+1)
     this.scene.tweens.add({
@@ -685,7 +700,7 @@ export default class Feller {
       scale: { from: 0.75, to: 0.5 }, 
       ease: 'Elastic',
       onComplete: () => {
-        this.rosarySprite.setVisible(false)
+        setTimeout(() => this.rosarySprite.setVisible(false), 500)
       }
     })
     if (this.scene?.fellerRoom?.enemies) {
@@ -701,7 +716,7 @@ export default class Feller {
     this.rosaryCooldown = this.ROSARY_COOLDOWN_MS
     EventEmitter.emit('playSound', 'magic')
     EventEmitter.emit('rosaryCooldown', this.rosaryCooldown)
-    setTimeout(() => this.rosaryGraphics.clear(), 500)
+    setTimeout(() => this.rosaryTriangle.setVisible(false), 500)
   }
 
   fixedUpdate(time: any, delta: any) {
@@ -733,7 +748,6 @@ export default class Feller {
         this.drawRosaryTriangle(this.constructRosaryTriangle());
       }
     } else {
-      this.rosaryGraphics.clear()
       this.rosaryCooldown -= delta
       if (this.rosaryCooldown <= 0) {
         EventEmitter.emit('rosaryCooldown', this.rosaryCooldown)

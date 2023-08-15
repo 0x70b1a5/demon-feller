@@ -556,6 +556,7 @@ export class GameScene extends Phaser.Scene {
     this.feller.bullets.destroy()
   }
 
+  demonsToFell = 0
   spawnEnemiesInRooms() {
     this.otherRooms.forEach(room => {
       let acceptableTiles: Point[] = []
@@ -600,13 +601,13 @@ export class GameScene extends Phaser.Scene {
       }
     });
 
-    let demonsToFell = 0
+    this.demonsToFell = 0
     for (let room of this.rooms) {
-      demonsToFell += room.enemies.length 
+      this.demonsToFell += room.enemies.length 
     }
 
     this.demonsFelledLevel = 0
-    EventEmitter.emit('demonsToFell', demonsToFell)
+    EventEmitter.emit('demonsToFell', this.demonsToFell)
     EventEmitter.emit('demonsFelledLevel', this.demonsFelledLevel)
   }
 

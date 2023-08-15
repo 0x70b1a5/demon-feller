@@ -54,6 +54,7 @@ export default class ImpMother extends Enemy {
           this.spawnCooldown = this.SPAWN_COOLDOWN_MS
           this.anims.play('impmother-wiggle')
           EventEmitter.emit('playSound', 'squeak')
+          EventEmitter.emit('demonsToFell', ++this.scene.demonsToFell)
           this.scene.tweens.add({
             targets: this,
             scale: {

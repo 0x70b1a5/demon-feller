@@ -14,6 +14,7 @@ export default class Barrel extends Stuff {
   MAX_HEALTH = 1
   explodable!: Explodable
   rekage!: Phaser.GameObjects.Sprite
+  radiusSprite!: Phaser.GameObjects.Sprite
 
   constructor(scene: GameScene, config: StuffConfig, x: number, y: number) {
     super(scene, config, x, y);
@@ -25,29 +26,29 @@ export default class Barrel extends Stuff {
 
     this.rekage = this.scene.add.sprite(this.x, this.y, 'barrelRekt').setVisible(false)
     this.explodable = new Explodable(scene)
+    this.radiusSprite = this.scene.add.sprite(this.x, this.y, 'barrelRadius').setVisible(false).setActive(false).setOrigin(0.5, 0.5)
   }
 
   hit(damage: number) {
     super.hit(damage)
-    if (this.health === 1) { 
+    if (this.health <= this.scene.feller.damage) { 
       this.setScale(1.25)
+      animations.wobbleSprite(this.scene, this, -1, 1, 120, false)
     }
-
-    this.gfx.clear()
 
     if (0 < this.health && this.MAX_HEALTH) {
-      this.gfx.setDefaultStyles({ fillStyle: { color: 0xa93939, alpha: 0.1 }, lineStyle: { width: 2, color: 0xa93939, alpha: 0.4 }})
-      this.gfx.strokeCircle(this.x, this.y, this.scene.map.tileWidth * this.dangerRadiusInTiles)
-      this.gfx.fillCircle(this.x, this.y, this.scene.map.tileWidth * this.dangerRadiusInTiles)
+      !this.radiusSprite.visible && this.radiusSprite.setVisible(true).setActive(true)
+      const sz = 2 * this.dangerRadiusInTiles * this.scene.map.tileWidth
+      this.radiusSprite.setDisplaySize(sz, sz).setAlpha(0.5)
+      this.setDepth(this.depth+1)
     }
-
-    animations.wobbleSprite(this.scene, this, -1, 1, 30/(this.health||1), false)
   }
 
   onBeforeDie(): void {
     super.onBeforeDie()
     this.explode()
     this.rekage.setVisible(true)
+    this.radiusSprite.setVisible(false).setActive(false)
   }
 
   explode() {

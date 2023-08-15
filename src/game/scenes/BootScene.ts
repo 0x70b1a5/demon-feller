@@ -88,11 +88,13 @@ export class BootScene extends Phaser.Scene {
     this.load.image('powerup6', 'assets/powerupFeller.png');
     this.load.image('powerup7', 'assets/powerupOphanim.png');
     this.load.image('powerup8', 'assets/powerupRosary.png');
+    this.load.image('powerupCircle', 'assets/powerupRadius.png');
     this.load.image('gun', 'assets/gun.png');
     this.load.image('boom', 'assets/boom.png');
     this.load.image('bullet', 'assets/bullet.png');
     this.load.image('barrel', 'assets/barrel.png');
     this.load.image('barrelRekt', 'assets/barrelRekt.png');
+    this.load.image('barrelRadius', 'assets/barrelRadius.png');
     this.load.image('rock', 'assets/rock.png');
     this.load.image('smoke', 'assets/smoke.png');
     this.load.image('tribullet', 'assets/tribullet.png');
@@ -103,6 +105,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('shield', 'assets/shield.png');
     this.load.image('feller', 'assets/feller.png');
     this.load.image('rosary', 'assets/rosary.png');
+    this.load.image('rosaryTriangle', 'assets/brandishTriangle.png');
     this.load.image('tileset', 'assets/tileset.png')
     this.load.image('door', 'assets/door.png')
     this.load.image('soul', 'assets/soul.png')
