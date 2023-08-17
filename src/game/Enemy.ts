@@ -148,9 +148,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         repeat: false,  
         ease: 'Elastic',
       },
-      onComplete: () => {
-        this.setRotation(origRotation)
-      }
     });
   }
 

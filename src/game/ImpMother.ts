@@ -8,7 +8,7 @@ export default class ImpMother extends Enemy {
   health = 8
   knockback = 0
   spawnCooldown = 0
-  SPAWN_COOLDOWN_MS = 4000
+  SPAWN_COOLDOWN_MS = 2000
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
@@ -16,12 +16,12 @@ export default class ImpMother extends Enemy {
 
     this.setSize(190, 190)
 
-    this.SPAWN_COOLDOWN_MS /= Math.sqrt(config.level || 1)
+    this.SPAWN_COOLDOWN_MS /= Math.sqrt(config.level/2 || 1)
 
     if ((!scene.anims.exists('impmother-wiggle'))) {   
       scene.anims.create({
         key: 'impmother-wiggle',
-        frames: scene.anims.generateFrameNumbers('impmother-sheet', { frames: [1,0,1,0] }),
+        frames: scene.anims.generateFrameNumbers('impmother-sheet', { frames: [1,1,0,0] }),
         frameRate: 1,
       })
     }
