@@ -136,6 +136,7 @@ export default class Feller {
       .sprite(x, y, 'rosaryTriangle')
       .setVisible(false).setActive(false)
       .setOrigin(0.5, 0)
+      .setAlpha(0.25)
 
     this.rosarySprite = this.scene.physics.add
       .sprite(x, y, 'rosary')
@@ -695,7 +696,6 @@ export default class Feller {
 
   brandishRosary() {
     if (this.rosaryCooldown > 0) return
-    debugger
     const rosaryEffect = this.constructRosaryTriangle()
     this.rosarySprite.setVisible(true).setDepth(this.sprite.depth+1)
     this.scene.tweens.add({
@@ -711,7 +711,7 @@ export default class Feller {
         if (enemy.dead) continue
         const enemyCircle = new Phaser.Geom.Circle(enemy.x, enemy.y, (enemy.width + enemy.height) / 2)
         if (Phaser.Geom.Intersects.TriangleToCircle(rosaryEffect, enemyCircle)) {
-          enemy.getKnockbacked({ x: this.sprite.x, y: this.sprite.y,   knockback: this.ROSARY_STUN_MS })
+          enemy.hit({ damage: this.damage, x: this.sprite.x, y: this.sprite.y, knockback: this.ROSARY_STUN_MS })
         }
       }
     }

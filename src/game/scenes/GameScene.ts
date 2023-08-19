@@ -319,6 +319,8 @@ export class GameScene extends Phaser.Scene {
     const startStar = this.add.sprite(this.map.tileToWorldX(startRoom.centerX)!, this.map.tileToWorldY(startRoom.centerY)!, 'mm-star').setScale(10)
     this.cameras.main.ignore(startStar)
 
+    EventEmitter.emit('revealRoom', startRoom.guid)
+
     if (this.feller) {
       this.feller.createNewSprite(x, y)
     } else {

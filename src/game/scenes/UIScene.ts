@@ -6,8 +6,17 @@ import { GameScene } from './GameScene';
 
 export class UIScene extends Phaser.Scene {
   gameScene!: GameScene
-  minimap!: Phaser.Cameras.Scene2D.Camera
+  minimap!: Phaser.GameObjects.RenderTexture
   minimapZoom = 0.06
+
+  offsetX!: number
+  offsetY!: number
+  mapW!: number
+  mapH!: number
+  screenW!: number
+  screenH!: number
+  ratioOfScreenToMap!: number
+
   constructor() {
     super({ key: 'UIScene' });
   }
@@ -15,21 +24,24 @@ export class UIScene extends Phaser.Scene {
   checkmarks!: Phaser.GameObjects.Sprite[]
   create() {
     this.gameScene = this.scene.get('GameScene') as GameScene;
-    const existingMini = this.gameScene.cameras.getCamera('mini')
-    if (!existingMini) {
-      this.minimap = this.gameScene.cameras.add(0, 0, this.game.config.width as number/4, this.game.config.height as number/4, false, 'mini').setZoom(this.minimapZoom)
-    } else {
-      this.minimap = existingMini
-    }
-    this.minimap.setAlpha(0.5)
+    this.mapW = (this.gameScene.map.widthInPixels)
+    this.mapH = (this.gameScene.map.heightInPixels)
+    this.screenW = this.game.config.width as number
+    this.screenH = this.game.config.height as number
+    this.ratioOfScreenToMap = this.screenH/this.mapH
+    this.offsetX = -this.screenW/2
+    this.offsetY = -this.screenH/2
+    this.minimap = this.gameScene.add.renderTexture(0, 0, this.mapW, this.mapH)
+    this.minimap.setAlpha(0.5).setOrigin(0, 0)
 
-    this.refollowAndignoreSprites()
+    this.drawLevel_refollow_ignoreSprites()
     
     EventEmitter.on('unpause', () => {
       this.scene.resume('GameScene')
     })
-    .on('drawMinimap', () => this.refollowAndignoreSprites())
-    .on('levelChanged', () => this.refollowAndignoreSprites())
+    .on('drawMinimap', () => this.drawLevel_refollow_ignoreSprites())
+    .on('levelChanged', () => this.drawLevel_refollow_ignoreSprites())
+    .on('revealRoom', () => this.drawLevel_refollow_ignoreSprites())
     .on('gameRestarted', () => {
       this.scene.bringToTop(this)
     }).on('roomComplete', (guid: string) => {
@@ -47,15 +59,20 @@ export class UIScene extends Phaser.Scene {
     }).on('resizeMinimap', (size: string, transparent: boolean) => this.resizeMinimap(size, transparent))
   }
 
-  refollowAndignoreSprites() {
-    this.checkmarks?.forEach(c => c.destroy())
-    this.minimap
-    .startFollow(this.gameScene.feller.sprite)
-    .ignore([
-      this.gameScene.feller.sprite,
-      this.gameScene.feller.gunSprite, 
-      ...this.gameScene.enemies
-    ]);
+  drawLevel_refollow_ignoreSprites() {
+    this.minimap.clear()
+      .draw(this.gameScene.groundLayer)
+      .setScale(this.ratioOfScreenToMap/4, this.ratioOfScreenToMap/4)
+      
+    this.scene.bringToTop(this)
+    // this.checkmarks?.forEach(c => c.destroy())
+    // this.minimap
+    // .startFollow(this.gameScene.feller.sprite)
+    // .ignore([
+    //   this.gameScene.feller.sprite,
+    //   this.gameScene.feller.gunSprite, 
+    //   ...this.gameScene.enemies
+    // ]);
   }
 
   resizeMinimap(size: string, transparent: boolean) {
@@ -80,5 +97,10 @@ export class UIScene extends Phaser.Scene {
     } else {
       this.minimap.setAlpha(1)
     }
+  }
+
+  update(time: number, delta: number): void {
+    this.minimap.setX(this.gameScene.feller.sprite.x + this.offsetX)
+    .setY(this.gameScene.feller.sprite.y + this.offsetY)
   }
 }
