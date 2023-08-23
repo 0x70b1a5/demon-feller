@@ -10,6 +10,7 @@ import { UIScene } from '../game/scenes/UIScene';
 import AudioControls from './AudioControls';
 import { AudioScene } from '../game/scenes/AudioScene';
 import Prologue from './Prologue';
+import PauseMenu from './PauseMenu';
 
 export const GameComponent: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -37,13 +38,11 @@ export const GameComponent: React.FC = () => {
   const [stunUp, setStunUp] = useState(false)
   const [temporaryNowPlaying, setNowPlaying] = useState('')
   const [persistentNowPlaying, setPersistentNowPlaying] = useState('')
-  const [minimapTransparent, setMinimapTransparent] = useState(false)
   const [minimapSize, setMinimapSize] = useState('medium')
   const [startButtonClicked, setStartButtonClicked] = useState(false)
   const [showPrologue, setShowPrologue] = useState(false)
   const [loadingTexts, setLoadingTexts] = useState(['Loading...'])
   const [showLoading, setShowLoading] = useState(true)
-  const [showCredits, setShowCredits] = useState(false)
   const [rosaryCooldown, setRosaryCooldown] = useState(0)
 
   useEffect(() => {
@@ -382,62 +381,12 @@ export const GameComponent: React.FC = () => {
         </div>
       </div>
     </div>}
-    {paused && <div className='pause-menu shado overlay'>
-      <div className='notice'>
-        <h1>GAME PAUSED</h1>
-        <div className='btn shado resume' onClick={onUnpause}>RESUME</div>
-        <AudioControls nowPlaying={persistentNowPlaying} />
-        {showCredits ? <div className='col'>
-          <h2>MUSIC:</h2>
-          <div className='sxn shado' style={{ flexWrap: 'wrap' }}>
-            <a className='btn shado'>dj</a>
-            <a className='btn shado'>portals</a>
-            <a className='btn shado'>seeinnerworlds</a>
-            <a className='btn shado'>cor serpentis</a>
-            <a className='btn shado'>i sekuin</a>
-            <a className='btn shado'>deep soy</a>
-            <a className='btn shado'>actg</a>
-            <a className='btn shado'>subboreal</a>
-            <a className='btn shado'>smoke access</a>
-            <a className='btn shado'>arrus</a>
-          </div>
-          <button onClick={() => setShowCredits(false)} className='btn shado'>BACK...</button>
-        </div>
-        : <div className='wrapperupper'>
-          <div className='sxn shado'>
-            <h2>CONTROLS:</h2>
-            <p>WASD/arrows: move</p>
-            <p>Click/Space: shoot</p>
-            <p>Shift: brandish</p>
-          </div>
-          <div className='sxn shado'>
-            <h2>MINIMAP:</h2>
-            <div className='x'>
-              <input type="checkbox" style={{ transform: 'scale(1.75)', marginRight: 16 }} checked={minimapTransparent} 
-                onChange={(e) => {
-                  setMinimapTransparent(old => !minimapTransparent)
-                  onMinimapSizeChange('', !minimapTransparent)
-                }} />
-              <span>SEE-THRU</span>
-            </div>
-            <div className='x'>
-              <select className='shado' value={minimapSize} style={{ padding: '8px 16px' }} onChange={(e) => onMinimapSizeChange(e.currentTarget.value)}>
-                <option value='small'>SMALL (1/6)</option>
-                <option value='medium'>MEDIUM (1/4)</option>
-                <option value='large'>LARGE (1/3)</option>
-              </select>
-            </div>
-          </div>
-          <div className='sxn shado'>
-            <h2>STATS:</h2>
-            {stats}
-          </div>
-          <div className='sxn row'>
-            <button onClick={() => setShowCredits(true)} className='btn shado'>CREDITS...</button>
-            {restartButton}
-          </div>
-        </div>}
-      </div>
-    </div>}
+    {paused && <PauseMenu 
+      onUnpause={onUnpause} 
+      onMinimapSizeChange={onMinimapSizeChange} 
+      minimapSize={minimapSize} 
+      restartButton={restartButton} 
+      persistentNowPlaying={persistentNowPlaying} 
+    />}
   </>;
 };
