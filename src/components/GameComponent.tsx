@@ -362,6 +362,7 @@ export const GameComponent: React.FC = () => {
         <p className='ty'>
           BUT HELL IS NOT YET EMPTY
         </p>
+        {stats}
         <button className='big-btn shado continue' onClick={() => {
           setLevelCompleted(false)
           EventEmitter.emit('goToNextLevel')

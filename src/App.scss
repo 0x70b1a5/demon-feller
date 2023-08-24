@@ -113,10 +113,13 @@ canvas {
     display: flex;
     flex-direction: column;
     padding: 1em;
-    border-radius: 3em;
+    border-radius: 2em;
+    max-width: 700px;
 
     .stats {
+      position: static;
       flex-direction: row;
+      flex-wrap: wrap;
       opacity: 1;
       font-size: 14px;
     }
@@ -159,6 +162,7 @@ canvas {
     border-top: 0px solid transparent;
     border-top-left-radius: 0;
     border-top-right-radius: 0;
+    flex-grow: 1;
 
     &.credits-tab {
       a {
@@ -226,6 +230,12 @@ canvas {
 
   h1 {
     font-size: 72px;
+  }
+
+  .stats {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 }
 
