@@ -7,6 +7,7 @@ interface PauseMenuProps extends React.HTMLAttributes<HTMLDivElement> {
   persistentNowPlaying: string
   onUnpause: () => void
   minimapSize: string
+  controlsGuide: ReactNode
 }
 
 type Tab = 
@@ -14,7 +15,7 @@ type Tab =
   | 'credits'
   | 'music'
 
-const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, onUnpause, persistentNowPlaying, onMinimapSizeChange, minimapSize }) => {
+const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, controlsGuide, onUnpause, persistentNowPlaying, onMinimapSizeChange, minimapSize }) => {
   const [activeTab, setActiveTab] = useState<Tab>('main')
   const [minimapTransparent, setMinimapTransparent] = useState(true)
 
@@ -39,12 +40,7 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, onUnpause, persist
         </div>
         {activeTab === 'main' && <div className='main-tab wrapperupper tab-contents shado'>
           <AudioControls nowPlaying={persistentNowPlaying} />
-          <div className='sxn shado'>
-            <h2>CONTROLS:</h2>
-            <p>WASD/arrows: move</p>
-            <p>Click/Space: shoot</p>
-            <p>Shift: brandish</p>
-          </div>
+          {controlsGuide}
           <div className='sxn shado'>
             <h2>MINIMAP:</h2>
             <div className='x'>
@@ -63,7 +59,7 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, onUnpause, persist
               </select>
             </div>
           </div>
-          <div className='sxn row'>
+          <div className='sxn row' style={{ flexBasis: '100%' }}>
             {restartButton}
           </div>
         </div>}

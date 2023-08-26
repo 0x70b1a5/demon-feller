@@ -331,6 +331,32 @@ export const GameComponent: React.FC = () => {
     setPaused(false)
     window.location.reload()
   }}>RESTART GAME</button>
+  const controlsGuide = <div className='row' style={{ fontSize: 12 }}>
+    <div className='opening-controls shado col'>
+      <p>
+        <span className='key'>W</span>
+        <span className='key'>A</span>
+        <span className='key'>S</span>
+        <span className='key'>D</span>
+        <span>/arrows: move</span>
+      </p>
+      <p>
+        <span className='key'>Click</span>
+        /
+        <span className='key'>Space</span>
+        <span>: shoot</span>
+      </p>
+      <p>
+        <span className='key'>Shift</span>
+        <span>: brandish</span>
+      </p>
+    </div>
+    <div className='opening-controls col shado'>
+      <p>FULLSCREEN (RECOMMENDED):</p>
+      <p>Linux/Windows: <span className='key'>Ctrl</span>+<span className='key'>Shift</span>+<span className='key'>F</span></p>
+      <p>Mac: <span className='key'>Ctrl</span>+<span className='key'>Cmd</span>+<span className='key'>F</span>, then <span className='key'>Cmd</span>+<span className='key'>Shift</span>+<span className='key'>F</span></p>
+    </div>
+  </div>
   return <>
     <div style={{visibility: 'hidden', position: 'absolute'}}>.</div>
     <div id="game-container" ref={gameElementRef} style={{ width: '100%', height: '100%' }} />
@@ -343,17 +369,7 @@ export const GameComponent: React.FC = () => {
     {showPrologue && <Prologue hide={() => setShowPrologue(false)} />}
     {!showLoading && !startButtonClicked && !showPrologue && <div className='pregame-audio shado'>
       <AudioControls nowPlaying='' />
-      <div className='opening-controls'>
-        <p>CONTROLS:</p>
-        <p className='shado'>WASD/arrows: move</p>
-        <p className='shado'>Click/Space: shoot</p>
-        <p className='shado'>Shift: brandish</p>
-      </div>
-      <div className='opening-controls'>
-        <p>FULLSCREEN:</p>
-        <p className='shado'>Linux/Windows: Ctrl+Shift+F</p>
-        <p className='shado'>Mac: Ctrl+Cmd+F, then Cmd+Shift+F</p>
-      </div>
+      {controlsGuide}
     </div>}
     {gameStarted && stats}
     {temporaryNowPlaying && <div className='now-playing-container'>
@@ -388,6 +404,7 @@ export const GameComponent: React.FC = () => {
       </div>
     </div>}
     {paused && <PauseMenu 
+      controlsGuide={controlsGuide}
       onUnpause={onUnpause} 
       onMinimapSizeChange={onMinimapSizeChange} 
       minimapSize={minimapSize} 

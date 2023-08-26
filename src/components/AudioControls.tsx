@@ -57,12 +57,12 @@ const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
   return (
     <div className='audio-controls'>
 
-      <div className='controls'>
+      <div className='controls shado'>
         <h2> 
           AUDIO: 
         </h2>
         
-        <div className='shado slider'>
+        <div className='slider'>
           <label>Music:</label>
           <input
             type='range'
@@ -74,7 +74,7 @@ const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
           />
         </div>
 
-        <div className='shado slider'>
+        <div className='slider'>
           <label>SFX:</label>
           <input
             type='range'

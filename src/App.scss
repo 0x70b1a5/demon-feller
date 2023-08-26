@@ -422,17 +422,32 @@ canvas {
   .audio-controls {
   }
 
-  .opening-controls {
-    padding: 1em 2em;
-    display: flex;
-    flex-wrap: wrap;
-    place-content: center;
-    justify-content: space-evenly;
+}
 
-    .shado {
-      padding: 0.25em 0.5em;
-    }
+.opening-controls {
+  padding: 1em 2em;
+  margin: 0 2em 1em 2em;
+  display: flex;
+  flex-wrap: wrap;
+  place-content: center;
+  justify-content: space-evenly;
+  flex-grow: 1;
+
+  p {
+    margin: 4px;
   }
+
+  .shado {
+    padding: 0.25em 0.5em;
+  }
+}
+
+span.key {
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 4px;
+  margin-right: 4px;
+  font-size: small;
 }
 
 @keyframes pop-in-from-below {
