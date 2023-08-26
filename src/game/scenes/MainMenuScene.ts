@@ -1,6 +1,7 @@
 import RexUIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin.js';
 import colors from '../constants/colors'
 import EventEmitter from '../EventEmitter';
+import constants from '../constants/colors';
 
 export class MainMenuScene extends Phaser.Scene {
   private rexUI!: RexUIPlugin
@@ -18,7 +19,7 @@ export class MainMenuScene extends Phaser.Scene {
       height: 40,
   
       text: this.add.text(0, 0, 'DEMON', {
-        fontFamily: 'pkmn', color: 'white', fontSize
+        fontFamily: constants.FONT_PS2P, color: 'white', fontSize
       }),
   
       space: {
@@ -41,7 +42,7 @@ export class MainMenuScene extends Phaser.Scene {
       height: 40,
   
       text: this.add.text(0, 0, 'FELLER', {
-        fontFamily: 'pkmn', color: 'white', fontSize
+        fontFamily: constants.FONT_PS2P, color: 'white', fontSize
       }),
   
       space: {
@@ -67,7 +68,7 @@ export class MainMenuScene extends Phaser.Scene {
       background: this.rexUI.add.roundRectangle(0, 0, 0, 0, 20, colors.TEXTBOX_BG_COLOR),
   
       text: this.add.text(0, 0, 'PLAY', {
-        fontFamily: 'pkmn', color: colors.TEXT_COLOR, fontSize: fontSize/2
+        fontFamily: constants.FONT_PS2P, color: colors.TEXT_COLOR, fontSize: fontSize/2
       }),
   
       space: {
@@ -98,7 +99,7 @@ export class MainMenuScene extends Phaser.Scene {
       height: 40,
   
       text: this.add.text(0, 0, 'DEDICATED TO\nTHE SACRED HEART OF JESUS\n& THE IMMACULATE HEART OF MARY', {
-        fontFamily: 'pkmn', color: 'white', fontSize: 24, align: 'center', lineSpacing: 16
+        fontFamily: constants.FONT_PS2P, color: 'white', fontSize: 24, align: 'center', lineSpacing: 16
       }),
   
       space: {
@@ -114,7 +115,7 @@ export class MainMenuScene extends Phaser.Scene {
       height: 40,
   
       text: this.add.text(0, 0, 'A LOVECRYPT PRODUCTION', {
-        fontFamily: 'pkmn', color: 'white', fontSize: 36
+        fontFamily: constants.FONT_PS2P, color: 'white', fontSize: 36
       }),
   
       space: {
@@ -146,7 +147,7 @@ export class MainMenuScene extends Phaser.Scene {
       background: this.rexUI.add.roundRectangle(0, 0, 0, 0, 20, colors.TEXTBOX_BG_COLOR),
   
       text: this.add.text(0, 0, 'START', {
-        fontFamily: 'pkmn', color: colors.TEXT_COLOR, fontSize: 72
+        fontFamily: constants.FONT_PS2P, color: colors.TEXT_COLOR, fontSize: 72
       }),
   
       space: {

@@ -31,6 +31,8 @@ export default class Barrel extends Stuff {
 
   hit(damage: number) {
     super.hit(damage)
+    if (!this.scene?.feller) return 
+    
     if (this.health <= this.scene.feller.damage) { 
       this.setScale(1.25)
       animations.wobbleSprite(this.scene, this, -1, 1, 120, false)

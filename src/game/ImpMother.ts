@@ -1,6 +1,5 @@
 import Enemy, { EnemyConfig, EnemyType } from "./Enemy";
 import EventEmitter from "./EventEmitter";
-import Imp from "./Imp";
 import { GameScene } from "./scenes/GameScene";
 
 export default class ImpMother extends Enemy {
@@ -21,7 +20,7 @@ export default class ImpMother extends Enemy {
     if ((!scene.anims.exists('impmother-wiggle'))) {   
       scene.anims.create({
         key: 'impmother-wiggle',
-        frames: scene.anims.generateFrameNumbers('impmother-sheet', { frames: [1,1,0,0] }),
+        frames: scene.anims.generateFrameNumbers('impmother-sheet', { frames: [1,1,1,0] }),
         frameRate: 1,
       })
     }

@@ -493,6 +493,9 @@ export class GameScene extends Phaser.Scene {
     if (this.feller.knockback >= 5000) {
       powerupExclusions.push(PowerUpType.Knockback)
     }
+    if (this.feller.ROSARY_COOLDOWN_MS <= 5000) {
+      powerupExclusions.push(PowerUpType.Rosary)
+    }
     
     const powerup = new PowerUp(this, worldX, worldY, (type || roll(powerUps, powerupExclusions)) as PowerUpType);
     this.powerups.push(powerup)

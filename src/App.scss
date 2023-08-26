@@ -4,8 +4,13 @@
   src: url('../public/assets/fonts/pkmn/PKMNRBYGSC.ttf');
 }
 
+@font-face {
+  font-family: 'ps2p';
+  src: url('../public/assets/fonts/PressStart2P-Regular.ttf');
+}
+
 body {
-  font-family: 'pkmn', monospace, sans-serif;
+  font-family: 'ps2p', monospace, sans-serif;
   color: colors.$ink;
 }
 
@@ -32,7 +37,6 @@ canvas {
     padding: 0.5em 1em;
     background: colors.$parchment;
     display: flex;
-    flex-direction: column;
     position: relative;
     align-self: flex-start;
 
@@ -56,6 +60,7 @@ canvas {
 
     .stat {
       align-self: flex-end; 
+      margin-left: 1em;
     }
   }
 }
@@ -423,6 +428,10 @@ canvas {
     flex-wrap: wrap;
     place-content: center;
     justify-content: space-evenly;
+
+    .shado {
+      padding: 0.25em 0.5em;
+    }
   }
 }
 

@@ -24,7 +24,7 @@ export default class Gambler extends Enemy {
     if ((!scene.anims.exists('gambler-pull'))) {   
       scene.anims.create({
         key: 'gambler-pull',
-        frames: scene.anims.generateFrameNumbers('gambler-sheet', { frames: [1,0,1,0] }),
+        frames: scene.anims.generateFrameNumbers('gambler-sheet', { frames: [1,1,0,0] }),
         frameRate: 1,
       })
     }

@@ -763,7 +763,8 @@ export default class Feller {
 
     let depth = this.sprite.depth
     this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
-    this.bullets?.getChildren().forEach((b: any) => (b as Bullet).fixedUpdate(time, delta))
+    // some weird bug when rosary wins the level
+    this.bullets?.children?.entries && this.bullets.getChildren().forEach((b: any) => (b as Bullet).fixedUpdate(time, delta))
     this.minimapMarker?.setX(this.sprite.x).setY(this.sprite.y)
   }
 

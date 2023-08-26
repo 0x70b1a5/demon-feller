@@ -344,9 +344,15 @@ export const GameComponent: React.FC = () => {
     {!showLoading && !startButtonClicked && !showPrologue && <div className='pregame-audio shado'>
       <AudioControls nowPlaying='' />
       <div className='opening-controls'>
-        <p>WASD/arrows: move</p>
-        <p>Click/Space: shoot</p>
-        <p>Shift: brandish</p>
+        <p>CONTROLS:</p>
+        <p className='shado'>WASD/arrows: move</p>
+        <p className='shado'>Click/Space: shoot</p>
+        <p className='shado'>Shift: brandish</p>
+      </div>
+      <div className='opening-controls'>
+        <p>FULLSCREEN:</p>
+        <p className='shado'>Linux/Windows: Ctrl+Shift+F</p>
+        <p className='shado'>Mac: Ctrl+Cmd+F, then Cmd+Shift+F</p>
       </div>
     </div>}
     {gameStarted && stats}
@@ -362,7 +368,6 @@ export const GameComponent: React.FC = () => {
         <p className='ty'>
           BUT HELL IS NOT YET EMPTY
         </p>
-        {stats}
         <button className='big-btn shado continue' onClick={() => {
           setLevelCompleted(false)
           EventEmitter.emit('goToNextLevel')
