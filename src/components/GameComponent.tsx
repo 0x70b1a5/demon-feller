@@ -27,6 +27,8 @@ export const GameComponent: React.FC = () => {
   const [demonsToFell, setDemonsToFell] = useState(0)
   const [level, setLevel] = useState(1)
   const [damage, setDamage] = useState(1)
+  const [lives, setLives] = useState(0)
+  const [livesUp, setLivesUp] = useState(false)
   const [gameStarted, setGameStarted] = useState(false)
   const [fallenFelled, setFallenFelled] = useState(false)
   const [reloadSpeedUp, setReloadSpeedUp] = useState(false)
@@ -214,8 +216,16 @@ export const GameComponent: React.FC = () => {
       setRosaryCooldown(cooldown)
       setVisibleRosaryCooldown(cooldown)
       const i = setInterval(() => {
-        setVisibleRosaryCooldown(old => { return old - 500 })
+        setVisibleRosaryCooldown(old => { 
+          if (old <= 0) clearInterval(i)
+          return Math.round(old) - 500 
+        })
       }, 500)
+    }
+
+    const livesListener = (newlives: number) => {
+      setLives(old => newlives)
+      toggle1s(setLivesUp)
     }
     
     EventEmitter.on('gameStarted', gameStartedListener)
@@ -234,6 +244,7 @@ export const GameComponent: React.FC = () => {
     .on('nowPlaying', nowPlayingListener)
     .on('startButtonClicked', startButtonClickedListener)
     .on('loadingText', loadingTextListener)
+    .on('livesChanged', livesListener)
     .on('rosaryCooldown', rosaryCooldownListener)
 
     return () => {
@@ -249,6 +260,7 @@ export const GameComponent: React.FC = () => {
       .off('stun', stunListener)
       .off('levelCompleted', levelCompletedListener)
       .off('levelChanged', levelChangedListener)
+      .off('livesChanged', livesListener)
       .off('pause', pausedListener)
       .off('nowPlaying', nowPlayingListener)
       .off('startButtonClicked', startButtonClickedListener)
@@ -327,6 +339,10 @@ export const GameComponent: React.FC = () => {
     <div className={classNames('demonsFelled shado bar', { rainbowShake: fallenFelled })}>
       FELLED:
       <div className={classNames('stat')}>{demonsFelled}</div>
+    </div>
+    <div className={classNames('lives shado bar', { rainbowShake: livesUp })}>
+      LIVES:
+      <div className={classNames('stat')}>{lives}</div>
     </div>
   </div>
   const restartButton = <button className='btn shado restart' onClick={() => {

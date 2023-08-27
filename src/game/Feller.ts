@@ -98,6 +98,7 @@ export default class Feller {
     EventEmitter.emit('speed', this.speed)
     EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN_MS)
     EventEmitter.emit('demonsFelled', 0)
+    EventEmitter.emit('livesChanged', this.lives)
 
   }
 
@@ -405,6 +406,7 @@ export default class Feller {
     if (this.hp <= 0) {
       if (this.lives > 0) {
         this.lives--;
+        EventEmitter.emit('livesChanged', this.lives)
         this.scene.cameras.main.shake(100, 1)
         this.heal(this.MAX_HEALTH - this.hp) // heal negative hp also
         this.createOrUpdateWingSprites()
@@ -474,6 +476,7 @@ export default class Feller {
         break
       case PowerUpType.Life:
         this.lives++
+        EventEmitter.emit('livesChanged', this.lives)
         this.createOrUpdateWingSprites()
         break
       case PowerUpType.Rosary:

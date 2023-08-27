@@ -24,7 +24,7 @@ export default class Gambler extends Enemy {
     if ((!scene.anims.exists('gambler-pull'))) {   
       scene.anims.create({
         key: 'gambler-pull',
-        frames: scene.anims.generateFrameNumbers('gambler-sheet', { frames: [1,1,0,0] }),
+        frames: scene.anims.generateFrameNumbers('gambler-sheet', { frames: [1,0,0,0] }),
         frameRate: 1,
       })
     }
@@ -54,8 +54,11 @@ export default class Gambler extends Enemy {
     this.scene.physics.add.collider(bullet, [
       this.scene.groundLayer, this.scene.shadowLayer
     ], () => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle))
-    this.scene.physics.add.collider(bullet, this.scene.stuffs, (bullet, _stuff) => {
-      (_stuff as Stuff)?.hit(this.damage);
+    
+    this.scene.physics.add.overlap(bullet, [
+      ...this.scene.stuffs, ...this.scene.rooms.flatMap(r => r.doorSprites)
+    ], (bullet, _stuff) => {
+      ((_stuff as Stuff)?.hit && (_stuff as Stuff)?.hit(this.damage));
       (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
     })
     

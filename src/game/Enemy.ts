@@ -197,17 +197,20 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   showIfInRoom() {
     if (this.room.guid === this.scene.fellerRoom.guid) {
-      !this.visible && this.setVisible(true) && this.minimapMarker.setVisible(true)
+      if (!this.visible || !this.active) {
+        this.setActive(true).setVisible(true)
+        this.minimapMarker.setVisible(true).setActive(false)
+      } 
       this.seenFeller = true
       this.target = this.scene.feller.sprite
       
       if(this.debug) {
         this.gfx.setDefaultStyles({ fillStyle: { color: 0x0000ff }})
       }
-    } else {
+    } else if (this.visible || this.active) {
       // if we are not in same room as player, hide sprite
-      this.setVisible(false)
-      this.minimapMarker.setVisible(false)
+      this.setVisible(false).setActive(false)
+      this.minimapMarker.setVisible(false).setActive(false)
       this.seenFeller = false
     }
   }
