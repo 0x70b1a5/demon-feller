@@ -478,7 +478,7 @@ export default class Feller {
         break
       case PowerUpType.Rosary:
         this.rosaryEffectLength += this.scene.map.tileWidth / 2 
-        this.ROSARY_COOLDOWN_MS *= 0.85
+        this.ROSARY_COOLDOWN_MS = Math.max(this.ROSARY_COOLDOWN_MS * 0.85, 5000)
         this.createOrUpdateWingSprites()
         break
       default:

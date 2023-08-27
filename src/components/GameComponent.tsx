@@ -44,6 +44,7 @@ export const GameComponent: React.FC = () => {
   const [loadingTexts, setLoadingTexts] = useState(['Loading...'])
   const [showLoading, setShowLoading] = useState(true)
   const [rosaryCooldown, setRosaryCooldown] = useState(0)
+  const [visibleRosaryCooldown, setVisibleRosaryCooldown] = useState(0)
 
   useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
@@ -211,6 +212,10 @@ export const GameComponent: React.FC = () => {
 
     const rosaryCooldownListener = (cooldown: number) => {
       setRosaryCooldown(cooldown)
+      setVisibleRosaryCooldown(cooldown)
+      const i = setInterval(() => {
+        setVisibleRosaryCooldown(old => { return old - 500 })
+      }, 500)
     }
     
     EventEmitter.on('gameStarted', gameStartedListener)
@@ -287,7 +292,7 @@ export const GameComponent: React.FC = () => {
           {rosaryCooldown > 0 ? '🙏' : '📿'}
         </div>
         <div className='stat'>
-          {rosaryCooldown > 0 ? (rosaryCooldown/1000).toPrecision(2) + 's Ave Maria...' : ' READY'}
+          {rosaryCooldown > 0 ? (visibleRosaryCooldown/1000).toPrecision(2) + 's Ave Maria...' : ' READY'}
         </div>
       </div>
     </div>
