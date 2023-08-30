@@ -11,6 +11,8 @@ export default class Imp extends Enemy {
     super(scene, config, x, y)
     
     this.speed = scene.feller.speed
+    this.health *= config.level
+    this.damage = config.level
   }
 
   fixedUpdate(time: any, delta: any) {

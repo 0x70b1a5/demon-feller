@@ -12,6 +12,9 @@ export default class ImpMother extends Enemy {
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
 
+    this.health *= config.level
+    this.damage = config.level
+
     this.setSize(190, 190)
 
     this.SPAWN_COOLDOWN_MS /= Math.sqrt(config.level/3 || 1)

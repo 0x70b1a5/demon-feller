@@ -1,13 +1,7 @@
 import Phaser from 'phaser'
 import { GameScene, RoomWithEnemies } from './scenes/GameScene';
-import { Room } from '@mikewesthad/dungeon';
 import Feller from './Feller';
 import EventEmitter from './EventEmitter';
-import animations from './util/animate';
-import { Exception } from 'sass';
-import assert from './util/assert';
-import Pathfinding, { DiagonalMovement } from 'pathfinding';
-import TILE_MAPPING from './constants/tiles';
 import { v4 as uuid } from 'uuid'
 import Bullet from './Bullet';
 
@@ -39,8 +33,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   target!: Phaser.Types.Math.Vector2Like;
   config!: EnemyConfig;
-  health: number;
-  damage: number;
+  health!: number;
+  damage!: number;
   room!: RoomWithEnemies
   scene!: GameScene
   _scene!: GameScene
@@ -59,8 +53,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, 0, 0, config.texture);
-    this.health = (config.health || 3) * (config.level > 1 ? config.level * 2 : 1);
-    this.damage = (config.damage || 1) * (config.level > 1 ? config.level : 1);
+    this.health = config.health || 3
+    this.damage = config.damage || 1
     this.room = config.room
     this.scene = this._scene = scene
     this.speed = config.velocity || this.speed
@@ -102,6 +96,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       this.gfx
       .fillRect(this.x, this.y, 10, 10)
     }
+
+    console.log('enemy constructed:', this)
   }
 
   ensureIsInRoom(x: number, y: number) {

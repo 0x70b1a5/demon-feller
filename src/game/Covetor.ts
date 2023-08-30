@@ -16,6 +16,8 @@ export default class Covetor extends Enemy {
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
 
+    this.health *= config.level
+    this.damage = config.level 
     
     this.PULL_COOLDOWN_MS /= Math.sqrt(config.level || 1)
 

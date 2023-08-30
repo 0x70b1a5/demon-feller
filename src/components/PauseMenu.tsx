@@ -131,15 +131,7 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, controlsGuide, lev
               <img src={`/assets/${selectedDaemon.image}`} />
               <h3>{selectedDaemon.name}</h3>
               <div className='health'>
-                <div className='col'>
-                  <span>Health: </span>
-                  <span>
-                    Lv 1: {selectedDaemon.health}
-                  </span>
-                  <span>
-                    Lv 2+: {selectedDaemon.health * level * 2} ({selectedDaemon.health} * level * 2)
-                  </span>
-                </div>
+                Health: {selectedDaemon.health * level} ({selectedDaemon.health} * level)
               </div>
               <div className='damage'>Damage: {level} (1 * level)</div>
               <div className='desc'>{selectedDaemon.desc}</div>

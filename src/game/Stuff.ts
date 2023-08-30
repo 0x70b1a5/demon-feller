@@ -16,7 +16,15 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
   dead = false
   gfx!: Phaser.GameObjects.Graphics;
   scene!: GameScene
-  health: number;
+  private _health: number;
+  public get health(): number {
+    return this._health;
+  }
+  public set health(value: number) {
+    if (isNaN(value)) debugger
+    this._health = value;
+  }
+  MAX_HEALTH: number;
   damage?: number;
   room!: RoomWithEnemies
   guid!: string
@@ -24,7 +32,8 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
   constructor(scene: GameScene, config: StuffConfig, x: number, y: number) {
     super(scene, x, y, config.texture)
     this.scene = scene
-    this.health = config.health || 3;
+    this._health = config.health || 3;
+    this.MAX_HEALTH = this.health;
     this.damage = config.damage || 1;
     this.room = config.room
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x00ff00 }, fillStyle: { color: 0x00ff00, alpha: 0.5 } })
@@ -53,6 +62,10 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
   }
 
   hit(damage = 1) {
+    if (isNaN(this.health)) {
+      debugger
+      this.health = this.MAX_HEALTH;
+    }
     this.health -= damage;
     if (this.health <= 0) {
       this.die();

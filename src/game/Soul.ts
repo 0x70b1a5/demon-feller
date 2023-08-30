@@ -12,7 +12,8 @@ export default class Soul extends Enemy {
 
     this.setSize(150, 175)
 
-    
+    this.health *= config.level
+    this.damage = config.level
 
     if ((!scene.anims.exists('soul-walk'))) {   
       scene.anims.create({

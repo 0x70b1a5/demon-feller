@@ -134,6 +134,14 @@ canvas {
 .pause-menu {
   opacity: 0.95;
 
+  .notice {
+    flex-grow: 1;
+  }
+
+  .opening-controls {
+    font-size: 16px;
+  }
+
   .resume {
     font-size: 18px;
   }
@@ -168,6 +176,7 @@ canvas {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     flex-grow: 1;
+    align-self: stretch;
     max-width: 90vw;
 
     &.credits-tab {
@@ -256,7 +265,7 @@ canvas {
 }
 
 .notice {
-  margin: 1em 0;
+  margin: 1em;
   padding: 2em 3em;
   background-color: colors.$parchment;
   border-radius: 1em;

@@ -10,7 +10,8 @@ export default class Goo extends Enemy {
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
 
-    
+    this.health *= config.level
+    this.damage = config.level
 
     if ((!scene.anims.exists('goo-walk'))) {   
       scene.anims.create({
