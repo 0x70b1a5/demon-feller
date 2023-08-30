@@ -9,6 +9,7 @@ import assert from './util/assert';
 import Pathfinding, { DiagonalMovement } from 'pathfinding';
 import TILE_MAPPING from './constants/tiles';
 import { v4 as uuid } from 'uuid'
+import Bullet from './Bullet';
 
 export interface EnemyConfig {
   level: number
@@ -29,7 +30,7 @@ export enum EnemyType {
   Imp,
   Hothead,
   ImpMother,
-  Gambler,
+  Covetor,
 }
 
 export default class Enemy extends Phaser.Physics.Arcade.Sprite {
@@ -42,6 +43,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
   damage: number;
   room!: RoomWithEnemies
   scene!: GameScene
+  _scene!: GameScene
   seenFeller = false
   speed = 100
   knockback = 100
@@ -60,7 +62,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.health = (config.health || 3) * (config.level > 1 ? config.level * 2 : 1);
     this.damage = (config.damage || 1) * (config.level > 1 ? config.level : 1);
     this.room = config.room
-    this.scene = scene
+    this.scene = this._scene = scene
     this.speed = config.velocity || this.speed
     this.enemyType = config.enemyType
     this.config = config
@@ -126,15 +128,15 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     feller.hit(this)
   }
 
-  getKnockbacked(by: Phaser.Types.Math.Vector2Like & { knockback: number }) {
+  getKnockbacked(by: Phaser.Types.Math.Vector2Like & { knockback: number }, byBullet?: Bullet) {
     EventEmitter.emit('playSound', 'stun')
 
     this.stun = by.knockback
     this.stunImmunity = this.stun * 2
     // radians 
-    const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this)
-    let knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + 100);
-    let knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + 100);
+    const knockbackDir = byBullet ? byBullet.angle : Phaser.Math.Angle.BetweenPoints(by, this)
+    const knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + 100);
+    const knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + 100);
     
     this.setVelocityX(knockbackVelocityX);
     this.setVelocityY(knockbackVelocityY);
@@ -151,7 +153,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     });
   }
 
-  hit(by: Phaser.Types.Math.Vector2Like & { damage: number, knockback: number }) {
+  hit(by: Phaser.Types.Math.Vector2Like & { damage: number, knockback: number }, byBullet?: Bullet) {
     this.health -= by.damage;
     if (this.health <= 0) {
       this.die();
@@ -159,7 +161,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     if (by.knockback && this.stunImmunity < 1) {
-      this.getKnockbacked(by)
+      this.getKnockbacked(by, byBullet)
     }
   }
 
@@ -281,8 +283,8 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
     this.dead = true
     EventEmitter.emit('demonFelled')
-    this.scene.checkRoomComplete(this.room)
-    this.scene.checkLevelComplete() // dont call after destroy()
+    this._scene.checkRoomComplete(this.room)
+    this._scene.checkLevelComplete() // dont call after destroy()
     this.setVisible(false)
     this.setActive(false)
     this.minimapMarker.setVisible(false)

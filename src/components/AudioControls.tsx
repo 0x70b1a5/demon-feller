@@ -59,7 +59,7 @@ const AudioControls = ({ nowPlaying }: AudioControlsProps) => {
 
       <div className='controls shado'>
         <h2> 
-          AUDIO: 
+          VOLUME: 
         </h2>
         
         <div className='slider'>

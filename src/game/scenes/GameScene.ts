@@ -30,7 +30,7 @@ import Imp from '../Imp';
 import { PowerUpType } from '../PowerUpType';
 import Hothead from '../Hothead';
 import ImpMother from '../ImpMother';
-import Gambler from '../Gambler';
+import Covetor from '../Covetor';
 
 export interface Portal { destination: string, sprite?: Phaser.Physics.Arcade.Sprite, label?: RexUIPlugin.Label }
 export interface RoomWithEnemies extends Room {
@@ -530,7 +530,7 @@ export class GameScene extends Phaser.Scene {
     EventEmitter.emit('levelCompleted', this.level)
     this.levellingUp = true
     this.feller.sprite.setVelocity(0)
-    this.physics.world.colliders.getActive().forEach(c => c.destroy());
+    this.physics.world.colliders.getActive().forEach(c => {try { c.destroy() } catch {}} );
     this.deactivateSprites()
   }
   
@@ -621,8 +621,8 @@ export class GameScene extends Phaser.Scene {
       case EnemyType.ImpMother:
         enemy = new ImpMother(this, { level: this.level, room, enemyType, texture: 'impmother' }, tileX, tileY)
         break
-      case EnemyType.Gambler:
-        enemy = new Gambler(this, { level: this.level, room, enemyType, texture: 'gambler' }, tileX, tileY)
+      case EnemyType.Covetor:
+        enemy = new Covetor(this, { level: this.level, room, enemyType, texture: 'gambler' }, tileX, tileY)
         break
       case EnemyType.Hothead:
         enemy = new Hothead(this, { level: this.level, room, enemyType, texture: 'hothead' }, tileX, tileY)

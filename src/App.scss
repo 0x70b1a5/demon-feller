@@ -132,7 +132,7 @@ canvas {
 }
 
 .pause-menu {
-  opacity: 0.8;
+  opacity: 0.95;
 
   .resume {
     font-size: 18px;
@@ -168,6 +168,7 @@ canvas {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     flex-grow: 1;
+    max-width: 90vw;
 
     &.credits-tab {
       a {
@@ -177,7 +178,41 @@ canvas {
       }
     }
 
+    &.index-tab {    
+      align-self: stretch;
+      .daemons-list {
+        align-self: stretch;
+        flex-grow: 1;
+        place-items: center;
+        display: flex;
 
+        .sxn {
+          max-width: 400px;
+          font-size: 14px;
+
+          img {
+            max-height: 200px;
+          }
+          
+          .health {
+            margin-bottom: 0.5em
+          }
+          
+          .damage {
+            margin-bottom: 0.5em
+          }
+        }
+      }
+
+      .btns {
+        justify-content: space-between;
+        align-self: stretch;
+
+        .btn:not(.visible) {
+          visibility: hidden;
+        }
+      }
+    }
 
     .stats {
       position: static;
@@ -365,6 +400,10 @@ canvas {
   animation: 
     1s linear rainbow,
     0.5s ease-out shake;
+}
+
+.wrap {
+  flex-wrap: wrap;
 }
 
 .audio-controls {

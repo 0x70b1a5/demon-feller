@@ -5,7 +5,7 @@ import Stuff from './Stuff';
 import { GameScene } from './scenes/GameScene';
 import assert from './util/assert';
 
-export default class Gambler extends Enemy {
+export default class Covetor extends Enemy {
   speed = 0
   health = 8
   PULL_COOLDOWN_MS = 2000
@@ -16,7 +16,7 @@ export default class Gambler extends Enemy {
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
 
-    this.health *= (config.level)
+    
     this.PULL_COOLDOWN_MS /= Math.sqrt(config.level || 1)
 
     this.setSize(190, 190)

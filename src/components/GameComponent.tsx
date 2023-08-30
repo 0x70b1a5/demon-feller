@@ -425,6 +425,7 @@ export const GameComponent: React.FC = () => {
       </div>
     </div>}
     {paused && <PauseMenu 
+      level={level || 0}
       controlsGuide={controlsGuide}
       onUnpause={onUnpause} 
       onMinimapSizeChange={onMinimapSizeChange} 

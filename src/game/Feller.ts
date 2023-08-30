@@ -619,7 +619,7 @@ export default class Feller {
         const enemy = _enemy as Enemy
         if (!(bullet as any).active) return
         console.log('bullet hit enemy', enemy);
-        enemy.hit( { ...this.sprite, damage: this.damage, knockback: this.knockback } );
+        enemy.hit({ ...this.sprite, damage: this.damage, knockback: this.knockback }, bullet as Bullet);
         (bullet as Bullet).bulletHitSomething(this.scene, this.damage, (bullet as Bullet).angle);
         (bullet as Bullet).deactivate()
       })
