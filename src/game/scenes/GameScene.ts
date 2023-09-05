@@ -110,7 +110,7 @@ export class GameScene extends Phaser.Scene {
         return
       }
       this.revealedRooms.add(room.guid)
-      this.enemies.forEach(e => e.room.guid === room.guid && e.setActive(true).setVisible(true))
+      this.enemies.forEach(e => e.room.guid === room.guid && e.activate())
       this.stuffs.forEach(s => s.room.guid === room.guid && s.setActive(true).setVisible(true))
       console.log('room revealed', guid, room, this.rooms)
     }).on('recreateWalkableGrid', () => {

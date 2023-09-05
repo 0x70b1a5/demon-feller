@@ -193,11 +193,15 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  activate() {
+    this.setActive(true).setVisible(true)
+    this.minimapMarker.setVisible(true).setActive(true)
+  }
+
   showIfInRoom() {
     if (this.room.guid === this.scene.fellerRoom.guid) {
       if (!this.visible || !this.active) {
-        this.setActive(true).setVisible(true)
-        this.minimapMarker.setVisible(true).setActive(false)
+        this.activate()
       } 
       this.seenFeller = true
       this.target = this.scene.feller.sprite
