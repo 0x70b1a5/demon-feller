@@ -62,7 +62,6 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
   }
 
   hit(damage = 1) {
-    console.log('stuff was hit!', damage)
     if (isNaN(this.health)) {
       debugger
       this.health = this.MAX_HEALTH;

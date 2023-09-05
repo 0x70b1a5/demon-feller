@@ -626,7 +626,6 @@ export default class Feller {
       this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
         const stuff = _stuff as Stuff
         if (!(bullet as any).active) return
-        console.log('fellet bullet hit stuff', stuff);
         stuff.hit(this.damage);
         (bullet as Bullet).bulletHitSomething(this.scene, this.damage, (bullet as Bullet).angle);
         (bullet as Bullet).deactivate()
