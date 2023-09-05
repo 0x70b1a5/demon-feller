@@ -626,7 +626,7 @@ export default class Feller {
       this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
         const stuff = _stuff as Stuff
         if (!(bullet as any).active) return
-        console.log('bullet hit stuff');
+        console.log('fellet bullet hit stuff', stuff);
         stuff.hit(this.damage);
         (bullet as Bullet).bulletHitSomething(this.scene, this.damage, (bullet as Bullet).angle);
         (bullet as Bullet).deactivate()
@@ -740,7 +740,7 @@ export default class Feller {
 
     if (this.iframes > 0) {
       this.iframes -= delta
-      if (time % 10 === 0) {
+      if (time % 2 === 0) {
         this.sprite.setVisible(false)
       } else {
         this.sprite.setVisible(true)

@@ -69,9 +69,13 @@ export default class Pig extends Enemy {
     ], () => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle))
     
     this.scene.physics.add.overlap(bullet, [
-      ...this.scene.stuffs, ...this.scene.rooms.flatMap(r => r.doorSprites)
-    ], (bullet, _stuff) => {
-      ((_stuff as Stuff)?.hit && (_stuff as Stuff)?.hit(this.damage));
+      // ...this.scene.stuffs,
+      ...this.scene.rooms.flatMap(r => r.doorSprites)
+    ], (_bullet, _stuff) => {
+      const bullet = _bullet as Bullet
+      const stuff = _stuff as Stuff
+      if (!bullet.active) return
+      (stuff?.hit && stuff.hit(this.damage));
       (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
     })
     
