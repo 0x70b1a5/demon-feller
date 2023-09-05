@@ -16,7 +16,7 @@ export default class Hothead extends Enemy {
     super(scene, config, x, y)
 
     this.health *= config.level
-    this.damage = config.level
+    this.damage = Math.round(config.level/2) || 1
 
     this.explodable = new Explodable(scene)
     this.setSize(100, 100)

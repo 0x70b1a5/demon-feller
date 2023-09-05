@@ -98,7 +98,7 @@ export class MainMenuScene extends Phaser.Scene {
       width: 40,
       height: 40,
   
-      text: this.add.text(0, 0, 'DEDICATED TO\nTHE SACRED HEART OF JESUS\n& THE IMMACULATE HEART OF MARY', {
+      text: this.add.text(0, 0, 'DEDICATED TO\nTHE SACRED HEART OF JESUS\nTHE IMMACULATE HEART OF MARY\n& ST DAMIAN OF MOLOKAI', {
         fontFamily: constants.FONT_PS2P, color: 'white', fontSize: 24, align: 'center', lineSpacing: 16
       }),
   

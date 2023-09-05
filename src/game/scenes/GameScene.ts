@@ -110,6 +110,8 @@ export class GameScene extends Phaser.Scene {
         return
       }
       this.revealedRooms.add(room.guid)
+      this.enemies.forEach(e => e.room.guid === room.guid && e.setActive(true).setVisible(true))
+      this.stuffs.forEach(s => s.room.guid === room.guid && s.setActive(true).setVisible(true))
       console.log('room revealed', guid, room, this.rooms)
     }).on('recreateWalkableGrid', () => {
       this.createWalkableGrid()
@@ -411,6 +413,7 @@ export class GameScene extends Phaser.Scene {
       }
       
       if (object) {
+        object.setActive(false).setVisible(false)
         this.stuffs.push(object)
         this.makeTileUnwalkable(x, y)
         this.debug && console.log(this.walkableTilesAs01)
@@ -672,14 +675,14 @@ export class GameScene extends Phaser.Scene {
     }
     
     this.feller.fixedUpdate(time, delta);
-    this.enemies.forEach(x => x.fixedUpdate(time, delta))
-    this.stuffs.forEach(x => x.fixedUpdate(time, delta))
+    this.enemies.forEach(x => x.active && x.fixedUpdate(time, delta))
+    this.stuffs.forEach(x => x.active && x.fixedUpdate(time, delta))
     this.powerups.forEach(x => x.fixedUpdate(time, delta))
 
     this.fellerRoom = this.dungeon.getRoomAt(this.feller.tileX, this.feller.tileY)! as RoomWithEnemies;
-    if (!this.revealedRooms.has(this.fellerRoom.guid)) {
-      this.revealedRooms.add(this.fellerRoom.guid)
-    }
+    // if (!this.revealedRooms.has(this.fellerRoom.guid)) {
+    //   this.revealedRooms.add(this.fellerRoom.guid)
+    // }
     
     this.tilemapVisibility.setActiveRoom(this.fellerRoom);
     // console.log(this.feller.sprite.body!.x, this.feller.sprite.body!.y)
