@@ -4,13 +4,8 @@ import EventEmitter from "./EventEmitter";
 import PowerUp from "./Powerup";
 import { PowerUpType } from "./PowerUpType";
 import Stuff from "./Stuff";
-import powerUps from "./constants/powerups";
-import TILE_MAPPING from "./constants/tiles";
 import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
-import assert from "./util/assert";
-import roll from "./util/roll";
-import colors from "./constants/colors";
 
 export default class Feller {
   debug = false

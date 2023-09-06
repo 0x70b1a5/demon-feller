@@ -69,7 +69,7 @@ export default class Pig extends Enemy {
     ], () => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle))
     
     this.scene.physics.add.overlap(bullet, [
-      // ...this.scene.stuffs,
+      ...this.scene.stuffs,
       ...this.scene.rooms.flatMap(r => r.doorSprites)
     ], (_bullet, _stuff) => {
       const bullet = _bullet as Bullet
