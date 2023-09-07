@@ -128,7 +128,7 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, controlsGuide, lev
         {activeTab === 'index' && <div className='index-tab col wrapperupper tab-contents shado'>
           <div className='daemons-list'>
             <div className='sxn shado'>
-              <img src={`/assets/${selectedDaemon.image}`} />
+              <img src={`./assets/${selectedDaemon.image}`} />
               <h3>{selectedDaemon.name}</h3>
               <div className='health'>
                 Health: {selectedDaemon.health * level} ({selectedDaemon.health} * level)

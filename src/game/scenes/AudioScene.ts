@@ -34,16 +34,20 @@ export class AudioScene extends Phaser.Scene {
     const prefix = '__demonfeller-'
     const DEFAULT_VOLUME = 0.5
 
-    let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
-    if (startMuted) startMuted = (startMuted === true || startMuted === 'true') 
-    let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
-    let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
+    // let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
+    // if (startMuted) startMuted = (startMuted === true || startMuted === 'true') 
+    // let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
+    // let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
     
-    this.musicVolume = isNaN(startMusicVolume) ? DEFAULT_VOLUME : startMusicVolume
-    this.sfxVolume = isNaN(startSfxVolume) ? DEFAULT_VOLUME : startSfxVolume
-    this.sound.setMute(startMuted)
+    // this.musicVolume = isNaN(startMusicVolume) ? DEFAULT_VOLUME : startMusicVolume
+    // this.sfxVolume = isNaN(startSfxVolume) ? DEFAULT_VOLUME : startSfxVolume
+    // this.sound.setMute(startMuted)
 
-    console.log({ startMusicVolume, startSfxVolume, startMuted })
+    this.musicVolume = DEFAULT_VOLUME 
+    this.sfxVolume = DEFAULT_VOLUME
+    this.sound.setMute(false)
+
+    // console.log({ startMusicVolume, startSfxVolume, startMuted })
 
     this.songs = this.songNames
       .filter(songName => this.songIsLoaded(songName))
