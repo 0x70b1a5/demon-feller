@@ -166,7 +166,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image('mm-star', 'assets/mm-star.png')
     this.load.spritesheet(
       'feller-sheet',
-      '../assets/spritesheets/feller.png',
+      'assets/spritesheets/feller.png',
       {
         frameWidth: 400,
         frameHeight: 400,
