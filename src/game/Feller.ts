@@ -6,6 +6,7 @@ import { PowerUpType } from "./PowerUpType";
 import Stuff from "./Stuff";
 import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
+import colors from "./constants/colors";
 
 export default class Feller {
   debug = false
@@ -46,6 +47,7 @@ export default class Feller {
   shieldBackSprite2!: Phaser.Physics.Arcade.Sprite;
   wingSprites!: Phaser.GameObjects.Group;
   shieldSprites!: Phaser.GameObjects.Group;
+  powerupText!: Phaser.GameObjects.Text;
 
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
@@ -109,6 +111,7 @@ export default class Feller {
     this.shieldFrontSprite1?.destroy()
     this.shieldBackSprite2?.destroy()
     this.shieldFrontSprite2?.destroy()
+    this.powerupText?.destroy()
 
     this.gunSprite = this.scene.physics.add
       .sprite(x, y, 'gun')
@@ -151,6 +154,8 @@ export default class Feller {
     // this.container.add(this.sprite)
     // this.container.add(this.gunSprite)
     // this.scene.physics.world.enable(this.container)
+
+    this.powerupText = this.scene.add.text(0, 0, '', { color: colors.TEXT_COLOR })
 
     this.createBulletPool()
     this.createOrUpdateShieldSprites()
@@ -428,14 +433,17 @@ export default class Feller {
       return
     }
 
+    let powerupText = ''
     switch (powerup.powerupType) {
       case PowerUpType.Health: 
         this.MAX_HEALTH++;
         this.heal(this.MAX_HEALTH)
+        powerupText = '+1 HP!'
         break
       case PowerUpType.Speed:
         const speedUp = 50
         const speedRatio = this.speed / (this.speed + speedUp)
+        powerupText = 'SPEED UP!'
         this.speed = Math.min(this.speed + speedUp, this.SPEED_LIMIT)
         if (this.speed < 900) {
           this.scene.tweens.add({
@@ -454,27 +462,33 @@ export default class Feller {
         }
         break
       case PowerUpType.RateOfFire:
+        powerupText = 'RATE OF FIRE UP!'
         this.RELOAD_COOLDOWN_MS = Math.max(this.RELOAD_COOLDOWN_MS * 0.85, 1)
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN_MS)
         break
       case PowerUpType.Bullet:
+        powerupText = 'DMG +1!'
         this.damage++;
         EventEmitter.emit('damage', this.damage)
         break
       case PowerUpType.Knockback:
+        powerupText = 'KNOCKBACK UP!'
         this.knockback += 500
         EventEmitter.emit('stun', this.knockback)
         break
       case PowerUpType.Shield:
+        powerupText = '+1 SHIELD!'
         this.shields++
         this.createOrUpdateShieldSprites()
         break
       case PowerUpType.Life:
+        powerupText = '+1 LIFE!'
         this.lives++
         EventEmitter.emit('livesChanged', this.lives)
         this.createOrUpdateWingSprites()
         break
       case PowerUpType.Rosary:
+        powerupText = 'ROSARY UP!'
         this.rosaryEffectLength += this.scene.map.tileWidth / 2 
         this.ROSARY_COOLDOWN_MS = Math.max(this.ROSARY_COOLDOWN_MS * 0.85, 5000)
         this.createOrUpdateWingSprites()
@@ -484,6 +498,24 @@ export default class Feller {
     }
 
     powerup.destroy();
+    EventEmitter.emit('playSound', 'bell')
+    this.powerupText = this.scene.add.text(this.sprite.x, this.sprite.y, powerupText, { fontSize: 32, color: colors.TEXT_COLOR, fontFamily: colors.FONT_PS2P })
+    this.scene.tweens.add({
+      targets: this.powerupText,
+      y: {
+        from: this.sprite.y,
+        to: this.sprite.y - 200,
+        duration: 3000,
+        ease: 'Sine.easeOut'
+      },
+      alpha: {
+        from: 1,
+        to: 0,
+        duration: 3000,
+        ease: 'Elastic'
+      },
+      onComplete: () => this.powerupText.destroy()
+    })
   }
 
   createOrUpdateShieldSprites() {

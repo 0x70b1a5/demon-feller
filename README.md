@@ -25,5 +25,4 @@ butler push ./build lovecrypt/demon-feller:web
 
 ## TODOs
 
-- Powerup pickup creates "+1 DMG" text at feller xy
 - clicking middle of screen starts the game when the intro is up

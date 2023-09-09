@@ -556,6 +556,7 @@ export class GameScene extends Phaser.Scene {
       room.forEachTile(({ x, y }, tile) => {
         if (tile !== TILES.DUNGEON_TILES.FLOOR) return
         if (this.walkableTilesAs01?.[y]?.[x]) return
+        if (this.tileHasStuff(x, y)) return
         // within this many tiles of door: RAUS!
         let notWithinThisManyTiles = 2
         for (let y1 = -notWithinThisManyTiles; y1 < notWithinThisManyTiles; y1++) {
