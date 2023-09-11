@@ -54,7 +54,6 @@ export class GameScene extends Phaser.Scene {
   dungeon!: Dungeon
   levellingUp = false
   groundLayer!: Phaser.Tilemaps.TilemapLayer
-  er!: Phaser.Tilemaps.TilemapLayer
   shadowLayer!: Phaser.Tilemaps.TilemapLayer
   tilemapVisibility!: TilemapVisibility;
   fellerRoom!: RoomWithEnemies
@@ -586,8 +585,10 @@ export class GameScene extends Phaser.Scene {
 
       for (let i = 0; i < numToSpawn; i++) {
         if (!acceptableTiles[i]) break
-        const enemyType = roll(enemyWeights)
-        let enemy: Enemy | null = null;
+        let enemyType = roll(enemyWeights)
+        if (enemyType === EnemyType.ImpMother && room?.enemies?.filter(e => e.enemyType === EnemyType.ImpMother)?.length > 1) {
+          enemyType = roll(enemyWeights)
+        }
         let {x, y} = acceptableTiles[i]
         this.debug && console.log('spawning enemy at', { x, y })
         this.spawnEnemy(enemyType, room, x, y)

@@ -7,6 +7,9 @@ import Stuff from "./Stuff";
 import { GameScene } from "./scenes/GameScene";
 import animations from "./util/animate";
 import colors from "./constants/colors";
+import Glutton from "./Glutton";
+import Covetor from "./Covetor";
+import Pig from "./Pig";
 
 export default class Feller {
   debug = false
@@ -39,7 +42,7 @@ export default class Feller {
   container!: Phaser.GameObjects.Container;
   minimapMarker!: Phaser.GameObjects.Sprite;
   shields = 0
-  lives = 0
+  lives = 1
   shieldSprite!: Phaser.Physics.Arcade.Sprite;
   shieldFrontSprite1!: Phaser.Physics.Arcade.Sprite;
   shieldBackSprite1!: Phaser.Physics.Arcade.Sprite;
@@ -467,7 +470,7 @@ export default class Feller {
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN_MS)
         break
       case PowerUpType.Bullet:
-        powerupText = 'DMG +1!'
+        powerupText = '+1 DMG!'
         this.damage++;
         EventEmitter.emit('damage', this.damage)
         break
@@ -703,7 +706,7 @@ export default class Feller {
     })
   }
 
-  rosaryEffectLength = 0
+  rosaryEffectLength = 0 // px
   constructRosaryTriangle() {
     const rosaryEffect = Phaser.Geom.Triangle.BuildEquilateral(this.sprite.x, this.sprite.y, this.rosaryEffectLength)
     Phaser.Geom.Triangle.RotateAroundPoint(rosaryEffect, new Phaser.Geom.Point(rosaryEffect.x1, rosaryEffect.top), this.angleToPointer - Math.PI/2) // it starts out pointing south
@@ -736,7 +739,14 @@ export default class Feller {
       }
     })
     if (this.scene?.fellerRoom?.enemies) {
-      for (let enemy of this.scene.fellerRoom.enemies) {
+      for (let enemy of this.scene.fellerRoom.enemies?.filter(e => (e as any)?.bullets)) {
+        for (let bullet of (((enemy as Pig | Glutton | Covetor)?.bullets?.getChildren() || []) as Bullet[])) {
+          if (!bullet?.active) continue
+          const bulletCircle = new Phaser.Geom.Circle(bullet.x, bullet.y, (bullet.width + bullet.height) / 2)
+          if (Phaser.Geom.Intersects.TriangleToCircle(rosaryEffect, bulletCircle)) {
+            bullet.bulletHitSomething(this.scene, enemy.damage, bullet.angle)
+          }
+        }
         if (enemy.dead) continue
         const enemyCircle = new Phaser.Geom.Circle(enemy.x, enemy.y, (enemy.width + enemy.height) / 2)
         if (Phaser.Geom.Intersects.TriangleToCircle(rosaryEffect, enemyCircle)) {

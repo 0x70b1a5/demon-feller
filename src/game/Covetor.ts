@@ -19,7 +19,7 @@ export default class Covetor extends Enemy {
     this.health *= config.level
     this.damage = config.level 
     
-    this.PULL_COOLDOWN_MS /= Math.sqrt(config.level || 1)
+    this.PULL_COOLDOWN_MS = Math.max(750, this.PULL_COOLDOWN_MS / Math.sqrt(config.level/2 || 1))
 
     this.setSize(190, 190)
 

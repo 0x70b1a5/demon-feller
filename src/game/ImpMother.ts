@@ -17,7 +17,7 @@ export default class ImpMother extends Enemy {
 
     this.setSize(190, 190)
 
-    this.SPAWN_COOLDOWN_MS /= Math.sqrt(config.level/3 || 1)
+    this.SPAWN_COOLDOWN_MS = Math.max(1_000, this.SPAWN_COOLDOWN_MS / Math.sqrt(config.level/3 || 1))
 
     if ((!scene.anims.exists('impmother-wiggle'))) {   
       scene.anims.create({

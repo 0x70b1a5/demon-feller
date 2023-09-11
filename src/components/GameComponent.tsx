@@ -11,6 +11,8 @@ import AudioControls from './AudioControls';
 import { AudioScene } from '../game/scenes/AudioScene';
 import Prologue from './Prologue';
 import PauseMenu from './PauseMenu';
+import roll from '../game/util/roll';
+import { tips } from '../game/constants/tips';
 
 export const GameComponent: React.FC = () => {
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -37,6 +39,7 @@ export const GameComponent: React.FC = () => {
   const [hpUp, setHpUp] = useState(false)
   const [paused, setPaused] = useState(false)
   const [stun, setStun] = useState(0)
+  const [currentTip, setCurrentTip] = useState(tips[0])
   const [stunUp, setStunUp] = useState(false)
   const [temporaryNowPlaying, setNowPlaying] = useState('')
   const [persistentNowPlaying, setPersistentNowPlaying] = useState('')
@@ -179,6 +182,7 @@ export const GameComponent: React.FC = () => {
 
     const levelCompletedListener = () => {
       setLevelCompleted(true)
+      setCurrentTip(tips[Math.floor(Math.random() * tips.length)])
     }
 
     const levelChangedListener = (newLevel: number) => {
@@ -404,6 +408,9 @@ export const GameComponent: React.FC = () => {
         {stats}
         <p className='ty'>
           BUT HELL IS NOT YET EMPTY
+        </p>
+        <p className='tip shado btn' style={{ maxWidth: 600 }}>
+          PROTIP: {currentTip}
         </p>
         <button className='big-btn shado continue' onClick={() => {
           setLevelCompleted(false)

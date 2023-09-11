@@ -19,7 +19,7 @@ export default class Hothead extends Enemy {
     this.damage = Math.round(config.level/2) || 1
 
     this.explodable = new Explodable(scene)
-    this.setSize(100, 100)
+    this.setSize(100, 100).setBounce(0)
 
     if (!scene.anims.exists('hothead-jump')) {   
       scene.anims.create({
@@ -88,7 +88,9 @@ export default class Hothead extends Enemy {
       }
     } else {
       if (this.body) {
-        if ((this.prevVX > 0 && this.prevVX === -this.body.velocity.x) || (this.prevVY > 0 && this.prevVY === -this.body.velocity.y)) {
+        if (
+          (this.prevVX !== 0 && this.body.velocity.x === 0) || (this.prevVY !== 0 && this.body.velocity.y === 0)
+        ) {
           // an extremely upsetting hack to trigger explosions on bounce
           this.explode()
         } else {
