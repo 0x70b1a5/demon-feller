@@ -739,12 +739,14 @@ export default class Feller {
       }
     })
     if (this.scene?.fellerRoom?.enemies) {
-      for (let enemy of this.scene.fellerRoom.enemies?.filter(e => (e as any)?.bullets)) {
-        for (let bullet of (((enemy as Pig | Glutton | Covetor)?.bullets?.getChildren() || []) as Bullet[])) {
-          if (!bullet?.active) continue
-          const bulletCircle = new Phaser.Geom.Circle(bullet.x, bullet.y, (bullet.width + bullet.height) / 2)
-          if (Phaser.Geom.Intersects.TriangleToCircle(rosaryEffect, bulletCircle)) {
-            bullet.bulletHitSomething(this.scene, enemy.damage, bullet.angle)
+      for (let enemy of this.scene.fellerRoom.enemies) {
+        if ((enemy as Pig | Glutton | Covetor)?.bullets) {
+          for (let bullet of (((enemy as Pig | Glutton | Covetor)?.bullets?.getChildren() || []) as Bullet[])) {
+            if (!bullet?.active) continue
+            const bulletCircle = new Phaser.Geom.Circle(bullet.x, bullet.y, (bullet.width + bullet.height) / 2)
+            if (Phaser.Geom.Intersects.TriangleToCircle(rosaryEffect, bulletCircle)) {
+              bullet.bulletHitSomething(this.scene, enemy.damage, bullet.angle)
+            }
           }
         }
         if (enemy.dead) continue
