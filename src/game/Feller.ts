@@ -146,6 +146,8 @@ export default class Feller {
       .setOrigin(0.5, 0.5)
       .setVisible(false);
 
+    this.rosaryCooldown = 0
+
     this.sprite.anims.play('feller-walk');
 
     this.scene.physics.add.collider(this.sprite, this.scene.stuffs)
@@ -740,8 +742,9 @@ export default class Feller {
     })
     if (this.scene?.fellerRoom?.enemies) {
       for (let enemy of this.scene.fellerRoom.enemies) {
-        if ((enemy as Pig | Glutton | Covetor)?.bullets) {
-          for (let bullet of (((enemy as Pig | Glutton | Covetor)?.bullets?.getChildren() || []) as Bullet[])) {
+        const shooter = enemy as Pig | Glutton | Covetor
+        if (shooter?.bullets && shooter?.bullets?.getChildren && shooter.bullets.children) {
+          for (let bullet of shooter.bullets.getChildren() as Bullet[]) {
             if (!bullet?.active) continue
             const bulletCircle = new Phaser.Geom.Circle(bullet.x, bullet.y, (bullet.width + bullet.height) / 2)
             if (Phaser.Geom.Intersects.TriangleToCircle(rosaryEffect, bulletCircle)) {
