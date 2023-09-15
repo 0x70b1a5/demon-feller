@@ -559,12 +559,17 @@ export class GameScene extends Phaser.Scene {
   demonsToFell = 0
   spawnEnemiesInRooms() {
     this.otherRooms.forEach(room => {
+      let possibleTiles: Point[] = []
       let acceptableTiles: Point[] = []
 
       room.forEachTile(({ x, y }, tile) => {
         if (tile !== TILES.DUNGEON_TILES.FLOOR) return
         if (this.walkableTilesAs01?.[y]?.[x]) return
         if (this.tileHasStuff(x, y)) return
+        possibleTiles.push({ x, y })
+      })
+
+      possibleTiles.forEach(({ x, y }) => {
         // within this many tiles of door: RAUS!
         let notWithinThisManyTiles = 2
         for (let y1 = -notWithinThisManyTiles; y1 < notWithinThisManyTiles; y1++) {
@@ -582,6 +587,10 @@ export class GameScene extends Phaser.Scene {
         }
         acceptableTiles.push({ x, y })
       })
+
+      if (acceptableTiles.length === 0) {
+        acceptableTiles.push(possibleTiles[Math.floor(Math.random() * possibleTiles.length)])
+      }
       
       const numToSpawn = Phaser.Math.Clamp(
         Math.floor(Math.random() * acceptableTiles.length), 
@@ -593,7 +602,7 @@ export class GameScene extends Phaser.Scene {
       this.debug && console.log({ room, acceptableTiles, numToSpawn })
 
       for (let i = 0; i < numToSpawn; i++) {
-        if (!acceptableTiles[i]) break
+        if (!acceptableTiles[i]) break // don't spawn more enemies than we have tiles
         let enemyType = roll(enemyWeights)
         if (enemyType === EnemyType.ImpMother && room?.enemies?.filter(e => e.enemyType === EnemyType.ImpMother)?.length > 1) {
           enemyType = roll(enemyWeights)

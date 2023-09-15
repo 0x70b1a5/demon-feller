@@ -121,7 +121,9 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, controlsGuide, lev
             </div>
             <h2 style={{ margin: 16 }}>CODE:</h2>
             <div className='row'>
-              <a href='https://x.com/lovecrypt' className='btn shado'>akira</a>
+              <a href='https://x.com/lovecrypt' className='btn shado'>by akira</a>
+              <a href='https://github.com/0x70b1a5/demon-feller' className='btn shado'>source code on github</a>
+              <a href='https://phaser.io' className='btn shado'>written in phaser</a>
             </div>
           </div>
         </div>}
