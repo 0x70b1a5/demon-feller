@@ -105,25 +105,25 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, controlsGuide, lev
           <div className='sxn'>
             <h2 style={{ margin: 16 }}>MUSIC:</h2>
             <div className='row' style={{ flexWrap: 'wrap' }}>
-              <a href='https://lovecrypt.net/album/annihilism' className='btn shado'>dj</a>
-              <a href='https://lovecrypt.net/album/if-you-can-hear-this-send-backup' className='btn shado'>portals</a>
-              <a href='https://lovecrypt.net/album/if-the-face-fits-wear-it' className='btn shado'>actg</a>
-              <a href='https://lovecrypt.net/album/patchwork' className='btn shado'>deep soy</a>
-              <a href='https://lovecrypt.net/album/terminal-cognition' className='btn shado'>dirac sea</a>
-              <a href='https://lovecrypt.net/album/seraphic-wanderer' className='btn shado'>arrus</a>
-              <a href='https://lovecrypt.net/album/atria' className='btn shado'>cor serpentis</a>
-              <a href='https://lovecrypt.net/album/surrender-to-madness' className='btn shado'>system ready</a>
-              <a href='https://lovecrypt.net/album/i-sekuin' className='btn shado'>i sekuin</a>
-              <a href='https://lovecrypt.net/album/20-20' className='btn shado'>seeinnerworlds</a>
-              <a href='https://lovecrypt.net/album/isle-of-none' className='btn shado'>bagaski</a>
-              <a href='https://lovecrypt.net/album/childhoods-end' className='btn shado'>subboreal</a>
-              <a href='https://lovecrypt.net/album/greenhouse-ii-2' className='btn shado'>smoke access</a>
+              <a target="_blank" href='https://lovecrypt.net/album/annihilism' className='btn shado'>dj</a>
+              <a target="_blank" href='https://lovecrypt.net/album/if-you-can-hear-this-send-backup' className='btn shado'>portals</a>
+              <a target="_blank" href='https://lovecrypt.net/album/if-the-face-fits-wear-it' className='btn shado'>actg</a>
+              <a target="_blank" href='https://lovecrypt.net/album/patchwork' className='btn shado'>deep soy</a>
+              <a target="_blank" href='https://lovecrypt.net/album/terminal-cognition' className='btn shado'>dirac sea</a>
+              <a target="_blank" href='https://lovecrypt.net/album/seraphic-wanderer' className='btn shado'>arrus</a>
+              <a target="_blank" href='https://lovecrypt.net/album/atria' className='btn shado'>cor serpentis</a>
+              <a target="_blank" href='https://lovecrypt.net/album/surrender-to-madness' className='btn shado'>system ready</a>
+              <a target="_blank" href='https://lovecrypt.net/album/i-sekuin' className='btn shado'>i sekuin</a>
+              <a target="_blank" href='https://lovecrypt.net/album/20-20' className='btn shado'>seeinnerworlds</a>
+              <a target="_blank" href='https://lovecrypt.net/album/isle-of-none' className='btn shado'>bagaski</a>
+              <a target="_blank" href='https://lovecrypt.net/album/childhoods-end' className='btn shado'>subboreal</a>
+              <a target="_blank" href='https://lovecrypt.net/album/greenhouse-ii-2' className='btn shado'>smoke access</a>
             </div>
             <h2 style={{ margin: 16 }}>CODE:</h2>
             <div className='row'>
-              <a href='https://x.com/lovecrypt' className='btn shado'>by akira</a>
-              <a href='https://github.com/0x70b1a5/demon-feller' className='btn shado'>source code on github</a>
-              <a href='https://phaser.io' className='btn shado'>written in phaser</a>
+              <a target='_blank' href='https://x.com/lovecrypt' className='btn shado'>by akira</a>
+              <a target='_blank' href='https://github.com/0x70b1a5/demon-feller' className='btn shado'>source code on github</a>
+              <a target='_blank' href='https://phaser.io' className='btn shado'>written in phaser</a>
             </div>
           </div>
         </div>}
