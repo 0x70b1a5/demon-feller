@@ -104,6 +104,7 @@ export default class Feller {
 
   createNewSprite(x: number, y: number) {
     this.sprite?.destroy()
+    this.bullets?.destroy()
     this.gunSprite?.destroy()
     this.rosarySprite?.destroy()
     this.rosaryTriangle?.destroy()
@@ -503,6 +504,7 @@ export default class Feller {
     }
 
     powerup.destroy();
+    this.scene.powerups = this.scene.powerups.filter(p => p.guid !== powerup.guid)
     EventEmitter.emit('playSound', 'bell')
     this.powerupText = this.scene.add.text(this.sprite.x, this.sprite.y, powerupText, { fontSize: 32, color: colors.TEXT_COLOR, fontFamily: colors.FONT_PS2P })
     this.scene.tweens.add({

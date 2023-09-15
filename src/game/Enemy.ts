@@ -287,7 +287,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this._scene.checkLevelComplete() // dont call after destroy()
     this.setVisible(false)
     this.setActive(false)
-    this.minimapMarker.setVisible(false).setActive(false)
+    this.minimapMarker?.destroy()
     this.body?.destroy()
     setTimeout(() => this.destroy(), 30_000)
   }

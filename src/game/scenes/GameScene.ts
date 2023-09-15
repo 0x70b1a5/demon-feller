@@ -110,7 +110,13 @@ export class GameScene extends Phaser.Scene {
       }
       this.revealedRooms.add(room.guid)
       this.enemies.forEach(e => e.room.guid === room.guid && e.activate())
-      this.stuffs.forEach(s => s.room.guid === room.guid && s.setActive(true).setVisible(true))
+      this.stuffs.forEach(s => {
+        if (s.room.guid === room.guid) {
+          s.setActive(true).setVisible(true)
+        } else {
+          s.setActive(false)
+        }
+      })
       console.log('room revealed', guid, room, this.rooms)
     }).on('recreateWalkableGrid', () => {
       this.createWalkableGrid()
@@ -147,10 +153,10 @@ export class GameScene extends Phaser.Scene {
       height: 35,
       doorPadding: 2,
       rooms: {
-        width: { min: 7, max: 11 },
-        height: { min: 7, max: 11 },
+        width: { min: 5, max: 13 },
+        height: { min: 5, max: 13 },
       }
-      // // DEBUG: SMALL DONJON
+      // DEBUG: SMALL DONJON
       // width: 14,
       // height: 14,
       // doorPadding: 2,
@@ -432,6 +438,7 @@ export class GameScene extends Phaser.Scene {
   createNewLevel() {
     this.creatingNewLevel = true
     this.revealedRooms = new Set()
+    this.enemies = []
 
     this.level++
     this.createDungeon()
@@ -532,7 +539,9 @@ export class GameScene extends Phaser.Scene {
     EventEmitter.emit('levelCompleted', this.level)
     this.levellingUp = true
     this.feller.sprite.setVelocity(0)
-    this.physics.world.colliders.getActive().forEach(c => {try { c.destroy() } catch {}} );
+    this.physics.world.colliders.destroy()
+    this.physics.world.bodies.entries.forEach(b => b.destroy())
+    this.physics.world.removeAllListeners()
     this.deactivateSprites()
   }
   
@@ -677,17 +686,23 @@ export class GameScene extends Phaser.Scene {
     }
     
     this.feller.fixedUpdate(time, delta);
-    this.enemies.forEach(x => x.active && x.fixedUpdate(time, delta))
-    this.stuffs.forEach(x => x.active && x.fixedUpdate(time, delta))
-    this.powerups.forEach(x => x.fixedUpdate(time, delta))
+    this.enemies.forEach(x => {
+      if (x.active) {
+        x.fixedUpdate(time, delta)
+      }
+    })
+    this.stuffs.forEach(x => {
+      if (x.active) {
+        x.fixedUpdate(time, delta)
+      }
+    })
+    this.powerups.forEach(x => {
+      x.fixedUpdate(time, delta)
+    })
 
     this.fellerRoom = this.dungeon.getRoomAt(this.feller.tileX, this.feller.tileY)! as RoomWithEnemies;
-    // if (!this.revealedRooms.has(this.fellerRoom.guid)) {
-    //   this.revealedRooms.add(this.fellerRoom.guid)
-    // }
     
     this.tilemapVisibility.setActiveRoom(this.fellerRoom);
-    // console.log(this.feller.sprite.body!.x, this.feller.sprite.body!.y)
   }
 
   fixedDeltaTime = 1/60

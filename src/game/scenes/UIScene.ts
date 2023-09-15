@@ -50,6 +50,7 @@ export class UIScene extends Phaser.Scene {
   refollowAndignoreSprites() {
     this.checkmarks?.forEach(c => c.destroy())
     this.minimap
+    .clearMask()
     .startFollow(this.gameScene.feller.sprite)
     .ignore([
       this.gameScene.feller.sprite,

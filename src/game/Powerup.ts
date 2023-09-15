@@ -1,5 +1,6 @@
 import { PowerUpType } from "./PowerUpType";
 import { GameScene } from "./scenes/GameScene";
+import { v4 as uuid } from 'uuid'
 import animations from "./util/animate";
 
 export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
@@ -8,11 +9,13 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
   iframes = 1000
   scene!: GameScene
   whiteCircle!: Phaser.GameObjects.Sprite
+  guid: string
 
   constructor(scene: GameScene, x: number, y: number, powerupType: PowerUpType) {
     console.log({ powerupType })
     const bg = scene.physics.add.sprite(x, y, 'powerupBG')
     super(scene, x, y, 'powerup'+powerupType);
+    this.guid = uuid()
     this.powerupType = powerupType;
     this.whiteCircle = scene.add.sprite(x, y, 'powerupCircle').setOrigin(0.5, 0.5)
     this.scene = scene

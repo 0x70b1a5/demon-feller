@@ -406,11 +406,11 @@ export const GameComponent: React.FC = () => {
       <div className='notice'>
         <h1>LEVEL {level} COMPLETE!</h1>
         {stats}
-        <p className='ty'>
-          BUT HELL IS NOT YET EMPTY
-        </p>
         <p className='tip shado btn' style={{ maxWidth: 600 }}>
           PROTIP: {currentTip}
+        </p>
+        <p className='ty'>
+          BUT HELL IS NOT YET EMPTY
         </p>
         <button className='big-btn shado continue' onClick={() => {
           setLevelCompleted(false)
