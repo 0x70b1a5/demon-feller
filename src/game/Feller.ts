@@ -469,7 +469,7 @@ export default class Feller {
         break
       case PowerUpType.RateOfFire:
         powerupText = 'RATE OF FIRE UP!'
-        this.RELOAD_COOLDOWN_MS = Math.max(this.RELOAD_COOLDOWN_MS * 0.85, 1)
+        this.RELOAD_COOLDOWN_MS = Math.max(this.RELOAD_COOLDOWN_MS * 0.85, 200)
         EventEmitter.emit('reloadSpeed', this.RELOAD_COOLDOWN_MS)
         break
       case PowerUpType.Bullet:
