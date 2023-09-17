@@ -10,7 +10,7 @@ export const tips = [
   `You can view the health and damage values of demons on the current level on the pause menu's Index Daemonorum.`,
   `You can just talk to God anytime you want.`,
   `Your entire life has been leading up to this moment.`,
-  `Rocks have a 10% chance to drop a powerup.`,
+  `Rocks have a 7.5% chance to drop a powerup.`,
   `You enjoy a brief moment of invincibility upon entering a room.`,
   `If you feel like you're underperforming, you can try to farm rocks for more powerups.`
 ]

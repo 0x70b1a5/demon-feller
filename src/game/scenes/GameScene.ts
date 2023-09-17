@@ -456,11 +456,6 @@ export class GameScene extends Phaser.Scene {
 
     EventEmitter.emit('levelChanged', this.level, this.startRoom.guid)
 
-    if (this.level > 1) {
-      const pu = this.spawnPowerUp(this.startRoom, PowerUpType.Health)
-      this.spawnPowerUp(this.startRoom, PowerUpType.Bullet, pu.x + this.map.tileWidth, pu.y)
-    }
-
     this.creatingNewLevel = false
     EventEmitter.emit('drawMinimap')
   }

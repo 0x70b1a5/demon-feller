@@ -48,7 +48,7 @@ export default class Rock extends Stuff {
       .setDepth(minDepth)
     })
 
-    if (Math.random() < 0.1) {
+    if (Math.random() < 0.075) {
       this.scene.spawnPowerUp(this.room, undefined, this.x, this.y)
     }
   }
