@@ -20,7 +20,7 @@ export default class Feller {
   IFRAMES_DURATION_MS = 2000
   STUN_DURATION_MS = 500
   SPEED_LIMIT = 900
-  
+
   scene!: GameScene
   sprite!: Phaser.Physics.Arcade.Sprite
   keys!: Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
@@ -51,6 +51,9 @@ export default class Feller {
   wingSprites!: Phaser.GameObjects.Group;
   shieldSprites!: Phaser.GameObjects.Group;
   powerupText!: Phaser.GameObjects.Text;
+  bulletEnemyOverlap?: Phaser.Physics.Arcade.Collider
+  bulletStuffOverlap?: Phaser.Physics.Arcade.Collider
+  bulletGroundCollider?: Phaser.Physics.Arcade.Collider
 
   constructor(scene: GameScene, x: number, y: number) {
     this.scene = scene;
@@ -83,12 +86,12 @@ export default class Feller {
       w: Phaser.Input.Keyboard.KeyCodes.W,
       a: Phaser.Input.Keyboard.KeyCodes.A,
       s: Phaser.Input.Keyboard.KeyCodes.S,
-      d: Phaser.Input.Keyboard.KeyCodes.D,          
+      d: Phaser.Input.Keyboard.KeyCodes.D,
       space: Phaser.Input.Keyboard.KeyCodes.SPACE,
     }) as Phaser.Types.Input.Keyboard.CursorKeys & { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
-   
-    this.debugGraphics = this.scene.add.graphics({ 
-      lineStyle: { color: 0x0 }, 
+
+    this.debugGraphics = this.scene.add.graphics({
+      lineStyle: { color: 0x0 },
       fillStyle: { color: 0x0000ff },
     })
 
@@ -103,6 +106,7 @@ export default class Feller {
   }
 
   createNewSprite(x: number, y: number) {
+    this.destroyBulletColliders()
     this.sprite?.destroy()
     this.bullets?.destroy()
     this.gunSprite?.destroy()
@@ -123,7 +127,7 @@ export default class Feller {
       .setOrigin(0.5, 0.5);
 
     // --- //
-    
+
     this.sprite = this.scene.physics.add
       .sprite(x, y, 'feller-sheet')
       // .setOrigin(1, 0.5)
@@ -216,7 +220,7 @@ export default class Feller {
 
     body.velocity.normalize().scale(this.speed);
 
-    /* 
+    /*
     let collision = null
     if (body.velocity.x !== 0 || body.velocity.y !== 0) {
       // Check for collision using fast voxel http://www.cs.yorku.ca/~amana/research/grid.pdf
@@ -237,9 +241,9 @@ export default class Feller {
   testVoxelCollide() {
     // this.debugGraphics.clear().setDepth(this.sprite.depth + 1)
 
-    // The traversal algorithm consists of two phases: initialization and incremental traversal. 
-    
-    // The initialization phase begins by identifying the voxel in which the ray origin, →u, is found. 
+    // The traversal algorithm consists of two phases: initialization and incremental traversal.
+
+    // The initialization phase begins by identifying the voxel in which the ray origin, →u, is found.
     //   The integer variables X and Y are initialized to the starting voxel coordinates.
     let [X, Y] = [this.tileX, this.tileY]
     const v = this.sprite.body?.velocity
@@ -247,21 +251,21 @@ export default class Feller {
     const theta = Math.atan2(v.y, v.x)
 
     // If the ray origin is outside the grid, we find the point
-    //   in which the ray enters the grid and take the adjacent voxel. 
+    //   in which the ray enters the grid and take the adjacent voxel.
     // TODO
 
-    // In addition, the variables stepX and stepY are initialized to either 1 or -1 
-    //   indicating whether X and Y are incremented or decremented 
-    //   as the ray crosses voxel boundaries 
+    // In addition, the variables stepX and stepY are initialized to either 1 or -1
+    //   indicating whether X and Y are incremented or decremented
+    //   as the ray crosses voxel boundaries
     //   (this is determined by the sign of the x and y components of →v).
     const [stepX, stepY] = [Math.sign(v.x || 0), Math.sign(v.y || 0)]
-    
+
     // Next, we determine the value of t at which the ray crosses the first vertical voxel boundary and
     //   store it in variable tMaxX. We perform a similar computation in y and store the result in tMaxY. The
     //   minimum of these two values will indicate how much we can travel along the ray and still remain in the
     //   current voxel.
 
-    /** 
+    /**
      *          |
      *          | . x+vx, y+vy
      *          |/
@@ -273,13 +277,13 @@ export default class Feller {
      * ____/____|____ 200
      *    /     | } xDistToNextTileX
      *  x,y    200
-     * 
+     *
      *    '--.--'
      * yDistToNextTileY
     */
 
-    const xDistToNextTileX = this.sprite.x % this.scene.map.tileWidth 
-    const yDistToNextTileY = this.sprite.y % this.scene.map.tileHeight 
+    const xDistToNextTileX = this.sprite.x % this.scene.map.tileWidth
+    const yDistToNextTileY = this.sprite.y % this.scene.map.tileHeight
     let [tMaxX, tMaxY] = [
       1/Math.sin(theta) * yDistToNextTileY,
       1/Math.cos(theta) * xDistToNextTileX,
@@ -301,7 +305,7 @@ export default class Feller {
 
     let occupiedTile = 0
     let tries = 0
-    while (tries < 100) { 
+    while (tries < 100) {
       tries++
       if (tMaxX < tMaxY) {
         tMaxX += tDeltaX
@@ -341,7 +345,7 @@ export default class Feller {
     this.angleToPointer = Phaser.Math.Angle.Between(this.sprite.x, this.sprite.y, px, py);
     return this.angleToPointer
   }
-  
+
   makeGunAndRosaryFollowFellerAndPointAtPointer_andMoveShieldsAndWings() {
     const angleToPointer = this.getGunAngleToPointer()
 
@@ -356,7 +360,7 @@ export default class Feller {
 
     const [vx, vy] = [this.sprite.body!.velocity.x, this.sprite.body!.velocity.y]
     this.gunSprite.setVelocity(vx, vy)
-    
+
     if (this.rosarySprite.active) {
       this.rosarySprite.setDepth(this.sprite.depth+1)
       this.rosarySprite.x = this.sprite.x + (this.rosaryCooldown > 0 ? distanceFromCenter/1.5 : -distanceFromCenter/3) * c
@@ -369,17 +373,18 @@ export default class Feller {
     }
 
     if (this.shields > 0) {
-      this.shieldSprites.getChildren()
+      this.tryGetChildren<Phaser.Physics.Arcade.Sprite>(this.shieldSprites)
         .forEach(c => c.active && (c as Phaser.Physics.Arcade.Sprite).setVelocity(vx, vy)
           .setX(this.sprite.x)
           .setY(this.sprite.y))
     }
 
     if (this.lives > 0) {
-      this.wingSprites.getChildren().forEach(w => w.active && (w as Phaser.Physics.Arcade.Sprite).setVelocity(vx, vy))
+      this.tryGetChildren<Phaser.Physics.Arcade.Sprite>(this.wingSprites)
+        .forEach(w => w.active && w.setVelocity(vx, vy))
       this.moveWingSprites()
     }
-    
+
     return angleToPointer
   }
 
@@ -392,7 +397,7 @@ export default class Feller {
     }
 
     EventEmitter.emit('playSound', 'fellerhurt')
-    
+
     if (this.shields > 0) {
       this.shields--;
       this.scene.cameras.main.flash(100, 0, 0, 255)
@@ -408,7 +413,7 @@ export default class Feller {
     this.hp = Math.max(0, this.hp - Math.floor(by.damage))
 
     EventEmitter.emit('health', [this.hp, this.MAX_HEALTH])
-    
+
     if (this.hp <= 0) {
       if (this.lives > 0) {
         this.lives--;
@@ -420,12 +425,12 @@ export default class Feller {
         EventEmitter.emit('gameOver')
         return
       }
-    } 
-    
+    }
+
     this.iframes = this.IFRAMES_DURATION_MS
     this.stun = this.STUN_DURATION_MS
 
-    // radians 
+    // radians
     const knockbackDir = Phaser.Math.Angle.BetweenPoints(by, this.sprite)
     let knockbackVelocityX = (by.x < this.sprite.x ? 1 : -1) * (Math.sin(knockbackDir) + by.knockback/100)
     let knockbackVelocityY = (by.y < this.sprite.y ? 1 : -1) * (Math.cos(knockbackDir) + by.knockback/100)
@@ -441,7 +446,7 @@ export default class Feller {
 
     let powerupText = ''
     switch (powerup.powerupType) {
-      case PowerUpType.Health: 
+      case PowerUpType.Health:
         this.MAX_HEALTH++;
         this.heal(this.MAX_HEALTH)
         powerupText = '+1 HP!'
@@ -461,7 +466,7 @@ export default class Feller {
               ease: 'Sine.easeOut'
             }
           })
-          const rate = this.scene.anims.get('feller-walk').frameRate 
+          const rate = this.scene.anims.get('feller-walk').frameRate
           this.scene.anims.get('feller-walk').frameRate = Math.min(rate + 1, 60)
           this.sprite.anims.stop() // animation won't update until we restart
           EventEmitter.emit('speed', this.speed)
@@ -495,7 +500,7 @@ export default class Feller {
         break
       case PowerUpType.Rosary:
         powerupText = 'ROSARY UP!'
-        this.rosaryEffectLength += this.scene.map.tileWidth / 2 
+        this.rosaryEffectLength += this.scene.map.tileWidth / 2
         this.ROSARY_COOLDOWN_MS = Math.max(this.ROSARY_COOLDOWN_MS * 0.85, 5000)
         this.createOrUpdateWingSprites()
         break
@@ -526,7 +531,7 @@ export default class Feller {
   }
 
   createOrUpdateShieldSprites() {
-    this.shieldSprites?.destroy(true) 
+    this.shieldSprites?.destroy(true)
 
     this.shieldSprites = this.scene.physics.add.group({
       classType: Phaser.Physics.Arcade.Sprite,
@@ -599,10 +604,18 @@ export default class Feller {
         .setOrigin(0.5, 0.5)
         .setScale(0.5)
         .setAlpha(0.5)
-        
+
       this.wingSprites.add(wing);
 
       animations.wobbleSprite(this.scene, wing)
+    }
+  }
+
+  tryGetChildren<T>(whatever: any): T[] {
+    try {
+      return whatever.getChildren()
+    }  catch (e) {
+      return [] as T[]
     }
   }
 
@@ -610,7 +623,7 @@ export default class Feller {
     const totalArc = Math.PI;
     const angleBetweenWings = this.lives > 1 ? totalArc / (this.lives - 1) : 0;
 
-    this.wingSprites.getChildren().forEach((w, i) => {
+    this.tryGetChildren<Phaser.Physics.Arcade.Sprite>(this.wingSprites).forEach((w, i) => {
       if (!w.active) return
       const wing = w as Phaser.Physics.Arcade.Sprite
       const angle = i * angleBetweenWings - angleBetweenWings
@@ -637,56 +650,77 @@ export default class Feller {
   }
 
   createBulletPool() {
+    this.destroyBulletColliders()
     this.bullets = this.scene.physics.add.group({
       classType: Bullet,
       maxSize: 50, // 30 bullets in total
       visible: false,
       active: false
     });
-  
+
     // Create the initial pool of bullets
     for (let i = 0; i < 50; i++) {
       const bullet = new Bullet(this.scene, 0, 0, 'bullet');
       // console.log(bullet.guid)
       this.bullets.add(bullet);
-      this.scene.physics.add.overlap(bullet, this.scene.enemies, (bullet, _enemy) => {
-        const enemy = _enemy as Enemy
-        if (!(bullet as any).active) return
-        console.log('bullet hit enemy', enemy);
-        enemy.hit({ ...this.sprite, damage: this.damage, knockback: this.knockback }, bullet as Bullet);
-        (bullet as Bullet).bulletHitSomething(this.scene, this.damage, (bullet as Bullet).angle);
-        (bullet as Bullet).deactivate()
-      })
-      this.scene.physics.add.overlap(bullet, this.scene.stuffs, (bullet, _stuff) => {
-        const stuff = _stuff as Stuff
-        if (!(bullet as any).active) return
-        stuff.hit(this.damage);
-        (bullet as Bullet).bulletHitSomething(this.scene, this.damage, (bullet as Bullet).angle);
-        (bullet as Bullet).deactivate()
-      })
-      this.scene.physics.add.overlap(bullet, [
-        this.scene.groundLayer, 
-      ], (bullet, tile) => {
-        const t = (tile as Phaser.Tilemaps.Tile)
-        if (t?.collides) {
-          if (!(bullet as any).active) return
-          (bullet as Bullet).bulletHitSomething(this.scene, this.damage, (bullet as Bullet).angle);
-          (bullet as Bullet).deactivate()
-        }
-      })
     }
+
+    // One-time group-level overlaps/colliders
+    this.bulletEnemyOverlap = this.scene.physics.add.overlap(this.bullets, this.scene.enemies as unknown as Phaser.Types.Physics.Arcade.ArcadeColliderType, (obj1, obj2) => {
+      const a: any = obj1
+      const b: any = obj2
+      const bullet: Bullet | undefined = (a?.deactivate ? a : (b?.deactivate ? b : undefined)) as Bullet | undefined
+      const target: any = bullet === a ? b : a
+      if (!bullet || !(bullet as any).active) return
+      if (target && typeof target.hit === 'function') {
+        ;(target as Enemy).hit({ ...(this.sprite as any), damage: this.damage, knockback: this.knockback }, bullet)
+      }
+      bullet.bulletHitSomething(this.scene, this.damage, bullet.angle)
+      bullet.deactivate()
+    })
+
+    this.bulletStuffOverlap = this.scene.physics.add.overlap(this.bullets, this.scene.stuffs as unknown as Phaser.Types.Physics.Arcade.ArcadeColliderType, (obj1, obj2) => {
+      const a: any = obj1
+      const b: any = obj2
+      const bullet: Bullet | undefined = (a?.deactivate ? a : (b?.deactivate ? b : undefined)) as Bullet | undefined
+      const target: any = bullet === a ? b : a
+      if (!bullet || !(bullet as any).active) return
+      if (target && typeof target.hit === 'function') {
+        ;(target as Stuff).hit(this.damage)
+      }
+      bullet.bulletHitSomething(this.scene, this.damage, bullet.angle)
+      bullet.deactivate()
+    })
+
+    this.bulletGroundCollider = this.scene.physics.add.collider(this.bullets, this.scene.groundLayer, (obj1, tile) => {
+      const bullet = obj1 as Bullet
+      const t = tile as Phaser.Tilemaps.Tile
+      if (!t?.collides) return
+      if (!(bullet as any).active) return
+      bullet.bulletHitSomething(this.scene, this.damage, bullet.angle)
+      bullet.deactivate()
+    })
+  }
+
+  destroyBulletColliders() {
+    this.bulletEnemyOverlap?.destroy()
+    this.bulletStuffOverlap?.destroy()
+    this.bulletGroundCollider?.destroy()
+    this.bulletEnemyOverlap = undefined
+    this.bulletStuffOverlap = undefined
+    this.bulletGroundCollider = undefined
   }
 
   spawnBullet(x: number, y: number, config: BulletConfig) {
     const bullet = this.bullets?.getFirstDead(false, x, y) as Bullet
-    
+
     if (bullet) {
       bullet.configure(config.speed || bullet.bulletSpeed, config.scale || 1, config.angle)
       bullet.fire(x, y);
       return bullet
     }
   }
-  
+
   shoot(bulletAngle: number) {
     const barrelDistance = 80
     const offset = (Math.abs(bulletAngle) > Math.PI/2 ? 1 : -1) * Math.PI/12
@@ -736,7 +770,7 @@ export default class Feller {
     this.rosarySprite.setVisible(true).setDepth(this.sprite.depth+1)
     this.scene.tweens.add({
       targets: this.rosarySprite,
-      scale: { from: 0.75, to: 0.5 }, 
+      scale: { from: 0.75, to: 0.5 },
       ease: 'Elastic',
       onComplete: () => {
         setTimeout(() => this.rosarySprite.setVisible(false), 500)
@@ -745,8 +779,8 @@ export default class Feller {
     if (this.scene?.fellerRoom?.enemies) {
       for (let enemy of this.scene.fellerRoom.enemies) {
         const shooter = enemy as Pig | Glutton | Covetor
-        if (shooter?.bullets && shooter?.bullets?.getChildren && shooter.bullets.children) {
-          for (let bullet of shooter.bullets.getChildren() as Bullet[]) {
+        if (shooter?.bullets) {
+          for (let bullet of this.tryGetChildren<Bullet>(shooter.bullets)) {
             if (!bullet?.active) continue
             const bulletCircle = new Phaser.Geom.Circle(bullet.x, bullet.y, (bullet.width + bullet.height) / 2)
             if (Phaser.Geom.Intersects.TriangleToCircle(rosaryEffect, bulletCircle)) {
@@ -769,7 +803,7 @@ export default class Feller {
   }
 
   fixedUpdate(time: any, delta: any) {
-    this.move(delta)  
+    this.move(delta)
     this.tileX = this.scene.groundLayer.worldToTileX(this.sprite.x);
     this.tileY = this.scene.groundLayer.worldToTileY(this.sprite.y);
 
@@ -807,14 +841,15 @@ export default class Feller {
       this.brandishRosary();
     }
 
-    let depth = this.sprite.depth
-    this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
+    // let depth = this.sprite.depth
+    // this.scene.stuffs.forEach(stuff => depth = Math.max(depth, stuff.depth))
     // some weird bug when rosary wins the level
-    this.bullets?.children?.entries && this.bullets.getChildren().forEach((b: any) => (b as Bullet).fixedUpdate(time, delta))
+    this.tryGetChildren<Bullet>(this.bullets).forEach(b => b.fixedUpdate(time, delta))
     this.minimapMarker?.setX(this.sprite.x).setY(this.sprite.y)
   }
 
   destroy() {
+    this.destroyBulletColliders()
     this.sprite.destroy();
     this.gunSprite.destroy();
     this.bullets.destroy(true);

@@ -14,7 +14,7 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   scene!: GameScene
   guid = uuid()
   hasHit = false
-  
+
   constructor(scene: GameScene, x: number, y: number, texture: string) {
     super(scene, x, y, texture || 'bullet');
     this.scene = scene
@@ -49,14 +49,16 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
 
   deactivate() {
     this.hasHit = false
-    
-    this?.setVelocity(0)
-    ?.setPosition(-100, -100)
-    ?.setActive(false)
-    ?.setVisible(false)
+    // The physics body can be undefined during teardown; guard before using velocity APIs
+    if (this.body) {
+      (this.body as Phaser.Physics.Arcade.Body).setVelocity(0, 0)
+    }
+    this.setPosition(-100, -100)
+      .setActive(false)
+      .setVisible(false)
   }
 
-  bulletHitSomething(scene: GameScene, damage = 0, bulletAngle = 0) {    
+  bulletHitSomething(scene: GameScene, damage = 0, bulletAngle = 0) {
     if (this.hasHit) return
     this.hasHit = true
     EventEmitter.emit('playSound', 'bullethit')
@@ -76,7 +78,7 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
       },
       onComplete: () => smoke.setActive(false).setVisible(false)
     })
-   
+
     this.deactivate()
 
   }

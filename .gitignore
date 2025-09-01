@@ -24,3 +24,5 @@ yarn-error.log*
 
 .vscode
 public/assets/pkmngsc
+
+*.zip

@@ -2,7 +2,7 @@ import Phaser from 'phaser'
 import RexUIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin.js';
 import animations from '../util/animate'
 import colors from '../constants/colors'
-import scales from '../constants/scaling'; 
+import scales from '../constants/scaling';
 import TILES from '../constants/tiles'
 import Dungeon, { Point, Room } from '@mikewesthad/dungeon';
 import Feller from '../Feller';
@@ -73,7 +73,7 @@ export class GameScene extends Phaser.Scene {
     return this.dungeon.rooms as RoomWithEnemies[]
   }
   revealedRooms = new Set<string>()
-  
+
   constructor() {
     super({ key: 'GameScene' })
     this.level = 0
@@ -81,13 +81,13 @@ export class GameScene extends Phaser.Scene {
 
   create() {
     if (this.debug) {
-      this.physics.world.createDebugGraphic();  
+      this.physics.world.createDebugGraphic();
     }
     this.keys = this.input.keyboard?.addKeys({
       minus: Phaser.Input.Keyboard.KeyCodes.MINUS,
       plus: Phaser.Input.Keyboard.KeyCodes.PLUS,
       esc: Phaser.Input.Keyboard.KeyCodes.ESC,
-    }) 
+    })
 
     this.createNewLevel()
 
@@ -166,7 +166,7 @@ export class GameScene extends Phaser.Scene {
     return dungeon
   }
 
-  createTilemap() {    
+  createTilemap() {
     if (this.map) {
       this.map.removeAllLayers().destroy()
       this.groundLayer?.destroy()
@@ -184,7 +184,7 @@ export class GameScene extends Phaser.Scene {
     map.scene.sys.textures = this.sys.textures
 
     const tileset = map.addTilesetImage('tileset', undefined, 200, 200, 0, 0)!
-  
+
     const groundLayer = this.groundLayer = map.createBlankLayer('Ground', tileset)!.fill(TILES.BLANK)
 
     this.dungeon.rooms.forEach((room, i) => {
@@ -227,7 +227,7 @@ export class GameScene extends Phaser.Scene {
 
     // MUST SET COLLISION ***AFTER*** MODIFYING LAYER
     groundLayer.setCollisionByExclusion([0, 1, 2, 3, 4, 13, 14]);
-    
+
     if (this.debug) {
       const debugGraphics = this.add.graphics().setAlpha(0.75);
       groundLayer.renderDebug(debugGraphics, {
@@ -236,7 +236,7 @@ export class GameScene extends Phaser.Scene {
         faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
       });
     }
-    
+
     const shadowLayer = this.shadowLayer = map.createBlankLayer('Shadow', tileset)!.fill(TILES.BLANK)!;
     shadowLayer.setCollisionByExclusion([-1])
 
@@ -254,20 +254,20 @@ export class GameScene extends Phaser.Scene {
       relativeX = Math.round(Math.random() * room.width)
       relativeY = Math.round(Math.random() * room.height)
       tries++
-      
+
       return ( // these are the FAILURE conditions. returning true means ROLL AGAIN
-        relativeX < padding || 
+        relativeX < padding ||
         relativeY < padding ||
-        relativeX > room.width - padding || 
+        relativeX > room.width - padding ||
         relativeY > room.height - padding ||
         this.walkableTilesAs01[relativeY + room.y][relativeX + room.x] !== 0
       )
     }
 
     let tile = rollForTile()
-    
+
     while (tile) { // seek an empty
-      if (tries > 50) 
+      if (tries > 50)
         return [-1, -1]
       tile = rollForTile()
     }
@@ -304,7 +304,7 @@ export class GameScene extends Phaser.Scene {
     }
     this.debug && console.log({walkable: this.walkableTilesAs01})
     this.pathfindingGrid = new Pathfinding.Grid(this.walkableTilesAs01)
-    this.pathfinder = new Pathfinding.AStarFinder({ 
+    this.pathfinder = new Pathfinding.AStarFinder({
       diagonalMovement: DiagonalMovement.IfAtMostOneObstacle
     })
   }
@@ -341,7 +341,7 @@ export class GameScene extends Phaser.Scene {
   addDoorSpritesToRooms() {
     // don't add doors to first room!
     this.otherRooms.forEach(room => {
-      const doors = room.getDoorLocations(); 
+      const doors = room.getDoorLocations();
       room.doorSprites ||= []
 
       for (let door of doors) {
@@ -414,9 +414,9 @@ export class GameScene extends Phaser.Scene {
       if (roll < 0.25) {
         object = new Barrel(this, { room, damage: 3 * this.level, health: 3 * this.level, texture: 'barrel' }, x, y)
       } else if (roll < 0.75) {
-        object = new Rock(this, { room, damage: 0, health: 10 * this.level, texture: 'rock' }, x, y)          
+        object = new Rock(this, { room, damage: 0, health: 10 * this.level, texture: 'rock' }, x, y)
       }
-      
+
       if (object) {
         object.setActive(false).setVisible(false)
         this.stuffs.push(object)
@@ -437,10 +437,17 @@ export class GameScene extends Phaser.Scene {
 
   createNewLevel() {
     this.creatingNewLevel = true
+    // Ensure physics is running for the new level
+    this.physics.world.resume()
     this.revealedRooms = new Set()
     this.enemies = []
 
     this.level++
+    // Proactively tear down any bullet colliders/groups before rebuilding the tilemap
+    try {
+      this.feller?.destroyBulletColliders()
+      this.feller?.bullets?.destroy(true)
+    } catch {}
     this.createDungeon()
     this.createTilemap()
     this.createWalkableGrid()
@@ -500,10 +507,10 @@ export class GameScene extends Phaser.Scene {
     if (this.feller.ROSARY_COOLDOWN_MS <= 5000) {
       powerupExclusions.push(PowerUpType.Rosary)
     }
-    
+
     const powerup = new PowerUp(this, worldX, worldY, (type || roll(powerUps, powerupExclusions)) as PowerUpType);
     this.powerups.push(powerup)
-    
+
     const gfx = this.add.graphics({ lineStyle: { color: 0xff0000, width: 3 }});
     if (this.debug) {
       gfx.lineBetween(worldX, worldY, this.feller.sprite.x, this.feller.sprite.y)
@@ -524,7 +531,7 @@ export class GameScene extends Phaser.Scene {
       EventEmitter.emit('roomComplete', room.guid)
     }
   }
-  
+
   checkLevelComplete() {
     const roomsWithEnemies = this.rooms.filter(room => room.enemies?.filter(e => !e.dead).length > 0)
     // console.log({roomsWithEnemies})
@@ -534,21 +541,23 @@ export class GameScene extends Phaser.Scene {
     EventEmitter.emit('levelCompleted', this.level)
     this.levellingUp = true
     this.feller.sprite.setVelocity(0)
+    // Pause physics to prevent in-flight collider updates from touching destroyed groups
+    this.physics.world.pause()
+    // Ensure bullet-vs-layer and other bullet colliders are removed before groups are destroyed
+    this.feller?.destroyBulletColliders()
     this.physics.world.colliders.destroy()
-    this.physics.world.bodies.entries.forEach(b => b.destroy())
-    this.physics.world.removeAllListeners()
     this.deactivateSprites()
   }
-  
+
   deactivateSprites() {
     this.scene.pause();
     this.enemies
       .filter((e: any) => e?.bullets)
-      .map((e: any) => e.bullets.destroy());
+      .forEach((e: any) => e.bullets?.destroy(true));
 
     this.enemies.forEach(e => e.destroy())
     this.stuffs.forEach(s => s.destroy())
-    this.feller.bullets.destroy()
+    this.feller?.bullets?.destroy(true)
   }
 
   demonsToFell = 0
@@ -586,13 +595,13 @@ export class GameScene extends Phaser.Scene {
       if (acceptableTiles.length === 0) {
         acceptableTiles.push(possibleTiles[Math.floor(Math.random() * possibleTiles.length)])
       }
-      
+
       const numToSpawn = Phaser.Math.Clamp(
-        Math.floor(Math.random() * acceptableTiles.length), 
-        this.level * 2, 
+        Math.floor(Math.random() * acceptableTiles.length),
+        this.level * 2,
         this.level * 3
       )
-    
+
       acceptableTiles = Phaser.Utils.Array.Shuffle(acceptableTiles.filter(t => t))
       this.debug && console.log({ room, acceptableTiles, numToSpawn })
 
@@ -610,7 +619,7 @@ export class GameScene extends Phaser.Scene {
 
     this.demonsToFell = 0
     for (let room of this.rooms) {
-      this.demonsToFell += room.enemies.length 
+      this.demonsToFell += room.enemies.length
     }
 
     this.demonsFelledLevel = 0
@@ -688,7 +697,7 @@ export class GameScene extends Phaser.Scene {
       EventEmitter.emit('pause')
       this.scene.pause()
     }
-    
+
     this.feller.fixedUpdate(time, delta);
     this.enemies.forEach(x => {
       if (x.active) {
@@ -705,7 +714,7 @@ export class GameScene extends Phaser.Scene {
     })
 
     this.fellerRoom = this.dungeon.getRoomAt(this.feller.tileX, this.feller.tileY)! as RoomWithEnemies;
-    
+
     this.tilemapVisibility.setActiveRoom(this.fellerRoom);
   }
 

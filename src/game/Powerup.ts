@@ -9,6 +9,7 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
   iframes = 1000
   scene!: GameScene
   whiteCircle!: Phaser.GameObjects.Sprite
+  whiteRing!: Phaser.GameObjects.Graphics
   guid: string
 
   constructor(scene: GameScene, x: number, y: number, powerupType: PowerUpType) {
@@ -17,7 +18,9 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
     super(scene, x, y, 'powerup'+powerupType);
     this.guid = uuid()
     this.powerupType = powerupType;
-    this.whiteCircle = scene.add.sprite(x, y, 'powerupCircle').setOrigin(0.5, 0.5)
+    // Hide the filled circle and use a stroked ring to reduce overdraw
+    this.whiteCircle = scene.add.sprite(x, y, 'powerupCircle').setOrigin(0.5, 0.5).setVisible(false).setActive(false)
+    this.whiteRing = scene.add.graphics()
     this.scene = scene
     this.scene.physics.world.enable(this);
     this.scene.add.existing(this);
@@ -29,15 +32,22 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
 
   destroy(fromScene?: boolean | undefined): void {
     this.bg.destroy()
+    this.whiteCircle?.destroy()
+    this.whiteRing?.destroy()
     super.destroy()
   }
 
   fixedUpdate(time: number, delta: number) {
-    if (this.iframes > 0) { 
-      this.whiteCircle.setDisplaySize(this.iframes, this.iframes)
+    if (this.iframes > 0) {
+      const radius = this.iframes / 2
+      this.whiteRing.clear()
+      this.whiteRing.lineStyle(6, 0xffffff, 0.8)
+      this.whiteRing.strokeCircle(this.x, this.y, radius)
       this.iframes -= delta
     } else {
-      this.whiteCircle.visible && this.whiteCircle.setVisible(false).setActive(false)
+      if (this.whiteRing.visible) {
+        this.whiteRing.clear().setVisible(false).setActive(false)
+      }
     }
   }
 }
