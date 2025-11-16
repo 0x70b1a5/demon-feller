@@ -19,9 +19,17 @@ yarn start
 ### Itch.io
 
 ```sh
-PUBLIC_URL="." yarn build
+yarn build
 butler push ./build lovecrypt/demon-feller:web
 ```
+
+### Newgrounds
+
+```sh
+yarn build:newgrounds
+```
+
+Upload the contents of `build` to Newgrounds as usual. This build sets `PUBLIC_URL` to a relative path so that assets load correctly when Newgrounds serves the game from a subdirectory.
 
 ## TODOs
 
