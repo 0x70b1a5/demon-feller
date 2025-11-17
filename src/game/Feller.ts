@@ -220,23 +220,6 @@ export default class Feller {
     }
 
     body.velocity.normalize().scale(this.speed);
-
-    /*
-    let collision = null
-    if (body.velocity.x !== 0 || body.velocity.y !== 0) {
-      // Check for collision using fast voxel http://www.cs.yorku.ca/~amana/research/grid.pdf
-      collision = this.testVoxelCollide();
-    }
-
-    if (collision) {
-      // Respond to the collision, e.g., stop movement or adjust the position
-      body.setVelocity(0)
-      console.log({collision})
-    } else {
-      // Normalize and scale the velocity so that sprite can't move faster along a diagonal
-      body.velocity.normalize().scale(this.speed);
-    }
-    */
   }
 
   testVoxelCollide() {
@@ -818,13 +801,14 @@ export default class Feller {
 
     if (this.iframes > 0) {
       this.iframes -= delta
-      if (time % 2 === 0) {
-        this.sprite.setVisible(false)
+      if (this.iframes <= 0) {
+        // iframes just completed
+        this.sprite.setAlpha(1)
+      } else if (Math.floor(time/250) % 2 === 0) {
+        this.sprite.setAlpha(0.5)
       } else {
-        this.sprite.setVisible(true)
+        this.sprite.setAlpha(1)
       }
-    } else {
-      !this.sprite.visible && this.sprite.setVisible(true)
     }
 
     if (this.rosaryCooldown <= 0) {

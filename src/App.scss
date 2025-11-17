@@ -15,26 +15,25 @@ body {
 }
 
 canvas {
-  
+
 }
 
 .stats {
   position: fixed;
   bottom: 0;
   left: 0;
-  // border-radius: 1em;
-  font-weight: bold;
-  padding: 1em 2em;
+  right: 0;
+  padding: 0.5rem 1rem;
   pointer-events: none;
   display: flex;
-  flex-direction: column;
-  place-content: center;
+  flex-wrap: wrap;
+  place-items: center;
   font-size: 12px;
   opacity: 0.8;
+  gap: 0.25rem;
 
   .bar {
-    margin: 0.5em;
-    padding: 0.5em 1em;
+    padding: 0.25em 0.5em;
     background: colors.$parchment;
     display: flex;
     position: relative;
@@ -59,8 +58,8 @@ canvas {
     }
 
     .stat {
-      align-self: flex-end; 
-      margin-left: 1em;
+      align-self: flex-end;
+      margin-left: 0.5em;
     }
   }
 }
@@ -82,7 +81,7 @@ canvas {
   }
 
   100% {
-    
+
   }
 }
 
@@ -93,7 +92,7 @@ canvas {
   }
 
   100% {
-    
+
   }
 }
 
@@ -187,7 +186,7 @@ canvas {
       }
     }
 
-    &.index-tab {    
+    &.index-tab {
       align-self: stretch;
       .daemons-list {
         align-self: stretch;
@@ -202,11 +201,11 @@ canvas {
           img {
             max-height: 200px;
           }
-          
+
           .health {
             margin-bottom: 0.5em
           }
-          
+
           .damage {
             margin-bottom: 0.5em
           }
@@ -406,7 +405,7 @@ canvas {
 
 .rainbowShake {
   transform-origin: center;
-  animation: 
+  animation:
     1s linear rainbow,
     0.5s ease-out shake;
 }

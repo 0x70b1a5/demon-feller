@@ -11,7 +11,6 @@ import AudioControls from './AudioControls';
 import { AudioScene } from '../game/scenes/AudioScene';
 import Prologue from './Prologue';
 import PauseMenu from './PauseMenu';
-import roll from '../game/util/roll';
 import { tips } from '../game/constants/tips';
 
 export const GameComponent: React.FC = () => {
@@ -72,7 +71,7 @@ export const GameComponent: React.FC = () => {
         ]
       },
       audio: {
-        disableWebAudio: true 
+        disableWebAudio: true
       },
       fps: {
         target: 60,
@@ -220,9 +219,9 @@ export const GameComponent: React.FC = () => {
       setRosaryCooldown(cooldown)
       setVisibleRosaryCooldown(cooldown)
       const i = setInterval(() => {
-        setVisibleRosaryCooldown(old => { 
+        setVisibleRosaryCooldown(old => {
           if (old <= 0) clearInterval(i)
-          return Math.round(old) - 500 
+          return Math.round(old) - 500
         })
       }, 500)
     }
@@ -231,7 +230,7 @@ export const GameComponent: React.FC = () => {
       setLives(old => newlives)
       toggle1s(setLivesUp)
     }
-    
+
     EventEmitter.on('gameStarted', gameStartedListener)
     .on('health', healthListener)
     .on('speed', speedListener)
@@ -312,10 +311,10 @@ export const GameComponent: React.FC = () => {
         </div>
       </div>
     </div>
-    <div className={classNames('health shado bar', { 
-      rainbowShake: hpUp, 
-      damaged: currentHp < maxHp && currentHp > (maxHp||3)/3, 
-      critical: currentHp <= (maxHp||3)/3 
+    <div className={classNames('health shado bar', {
+      rainbowShake: hpUp,
+      damaged: currentHp < maxHp && currentHp > (maxHp||3)/3,
+      critical: currentHp <= (maxHp||3)/3
     })}>
       HP:
       <div className={classNames('stat')}> {currentHp}/{maxHp}</div>
@@ -431,14 +430,14 @@ export const GameComponent: React.FC = () => {
         </div>
       </div>
     </div>}
-    {paused && <PauseMenu 
+    {paused && <PauseMenu
       level={level || 0}
       controlsGuide={controlsGuide}
-      onUnpause={onUnpause} 
-      onMinimapSizeChange={onMinimapSizeChange} 
-      minimapSize={minimapSize} 
-      restartButton={restartButton} 
-      persistentNowPlaying={persistentNowPlaying} 
+      onUnpause={onUnpause}
+      onMinimapSizeChange={onMinimapSizeChange}
+      minimapSize={minimapSize}
+      restartButton={restartButton}
+      persistentNowPlaying={persistentNowPlaying}
     />}
   </>;
 };

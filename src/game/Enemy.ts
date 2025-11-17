@@ -166,6 +166,21 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     super.preUpdate(time, delta);
 
+    // if we spawned outside the room for some reason, warp back to the center.
+    const ourTileXY = this.scene.map.worldToTileXY(this.x, this.y)
+    const roomMinTileXY = this.scene.map.worldToTileXY(this.room.x, this.room.y)
+    const roomMaxTileXY = this.scene.map.worldToTileXY(this.room.x + this.room.width, this.room.y + this.room.height)
+    if (
+      !ourTileXY || !roomMinTileXY || !roomMaxTileXY
+      || ourTileXY.x < roomMinTileXY.x
+      || ourTileXY.x > roomMaxTileXY.x
+      || ourTileXY.y < roomMinTileXY.y
+      || ourTileXY.y > roomMaxTileXY.y
+    ) {
+      this.setX(this.scene.map.tileToWorldX(this.room.centerX)!)
+      this.setY(this.scene.map.tileToWorldY(this.room.centerY)!)
+    }
+
     if (this.debug) {
       this.gfx
         .clear()
