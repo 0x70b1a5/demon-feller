@@ -6,10 +6,9 @@ export default class Imp extends Enemy {
   speed = 200
   health = 1
   knockback = 1500
-
   constructor(scene: GameScene, config: EnemyConfig, x?: number, y?: number) {
     super(scene, config, x, y)
-    
+
     this.speed = scene.feller.speed
     this.health *= config.level
     this.damage = config.level
@@ -17,7 +16,7 @@ export default class Imp extends Enemy {
 
   fixedUpdate(time: any, delta: any) {
     if (this.seenFeller && !this.dead && delta % 10 === 0) {
-      console.log('IMPIN')
+      this.debug && console.log('IMPIN')
       this.movementAngle *= Math.random()
     }
     super.fixedUpdate(time, delta)

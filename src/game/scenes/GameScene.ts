@@ -1,14 +1,10 @@
 import Phaser from 'phaser'
 import RexUIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin.js';
-import animations from '../util/animate'
-import colors from '../constants/colors'
-import scales from '../constants/scaling';
 import TILES from '../constants/tiles'
 import Dungeon, { Point, Room } from '@mikewesthad/dungeon';
 import Feller from '../Feller';
 import TilemapVisibility from '../TilemapVisibility';
-import Enemy, { EnemyConfig, EnemyType } from '../Enemy';
-import Bullet from '../Bullet';
+import Enemy, { EnemyType } from '../Enemy';
 import Goo from '../Goo';
 import PowerUp from '../Powerup';
 import EventEmitter from '../EventEmitter';
@@ -69,6 +65,13 @@ export class GameScene extends Phaser.Scene {
   stuffs: Stuff[] = []
   powerups: PowerUp[] = []
 
+  // Cache for room-based lookups to avoid O(n) searches
+  enemiesByRoom: Map<string, Enemy[]> = new Map()
+  stuffsByRoom: Map<string, Stuff[]> = new Map()
+
+  // Cache for occupied tiles to avoid O(n) stuff iteration during grid creation
+  occupiedTiles: Set<string> = new Set()
+
   get rooms() {
     return this.dungeon.rooms as RoomWithEnemies[]
   }
@@ -87,6 +90,7 @@ export class GameScene extends Phaser.Scene {
       minus: Phaser.Input.Keyboard.KeyCodes.MINUS,
       plus: Phaser.Input.Keyboard.KeyCodes.PLUS,
       esc: Phaser.Input.Keyboard.KeyCodes.ESC,
+      backtick: Phaser.Input.Keyboard.KeyCodes.BACKTICK,
     })
 
     this.createNewLevel()
@@ -97,7 +101,22 @@ export class GameScene extends Phaser.Scene {
       EventEmitter.emit('demonsFelled', this.demonsFelled)
       EventEmitter.emit('demonsFelledLevel', this.demonsFelledLevel)
     }).on('goToNextLevel', () => {
-      this.scene.resume()
+      // Defensive: Ensure we're not already creating a level
+      if (this.creatingNewLevel) {
+        console.warn('Already creating level, ignoring goToNextLevel')
+        return
+      }
+
+      // Resume the scene if it's paused
+      if (this.scene.isPaused()) {
+        this.scene.resume()
+      }
+
+      // Ensure physics world is ready
+      if (this.physics.world.isPaused) {
+        this.physics.world.resume()
+      }
+
       this.createNewLevel()
       this.levellingUp = false // don't resume updating until the new level is done
     }).on('gameOver', () => {
@@ -109,15 +128,25 @@ export class GameScene extends Phaser.Scene {
         return
       }
       this.revealedRooms.add(room.guid)
-      this.enemies.forEach(e => e.room.guid === room.guid && e.activate())
-      this.stuffs.forEach(s => {
-        if (s.room.guid === room.guid) {
+
+      // Lock doors when entering a new room (but not the start room)
+      if (room.guid !== this.startRoom?.guid) {
+        EventEmitter.emit('spawnDoors', room.guid)
+      }
+
+      // Activate enemies in the revealed room using cached lookup
+      const roomEnemies = this.enemiesByRoom.get(room.guid) || []
+      roomEnemies.forEach(e => e.activate())
+
+      // Then activate stuff in all revealed rooms (but not dead/dying stuff)
+      const revealedRoomStuff = this.stuffsByRoom.get(room.guid) || []
+      revealedRoomStuff.forEach(s => {
+        if (!s.dead && !s.dying) {
           s.setActive(true).setVisible(true)
-        } else {
-          s.setActive(false)
         }
       })
-      console.log('room revealed', guid, room, this.rooms)
+
+      this.debug && console.log('room revealed', guid, room, this.rooms)
     }).on('recreateWalkableGrid', () => {
       this.createWalkableGrid()
     })
@@ -149,18 +178,18 @@ export class GameScene extends Phaser.Scene {
 
   createDungeon() {
     const dungeon = this.dungeon = new Dungeon({
-      width: 35,
-      height: 35,
-      doorPadding: 2,
-      rooms: {
-        width: { min: 5, max: 13 },
-        height: { min: 5, max: 13 },
-      }
-      // DEBUG: SMALL DONJON
-      // width: 14,
-      // height: 14,
+      // width: 35,
+      // height: 35,
       // doorPadding: 2,
-      // rooms: { width: { min: 5, max: 5}, height: { min: 7, max: 7} }
+      // rooms: {
+      //   width: { min: 5, max: 13 },
+      //   height: { min: 5, max: 13 },
+      // }
+      // DEBUG: SMALL DONJON
+      width: 21,
+      height: 21,
+      doorPadding: 2,
+      rooms: { width: { min: 5, max: 5}, height: { min: 7, max: 7} }
     })
 
     return dungeon
@@ -280,14 +309,15 @@ export class GameScene extends Phaser.Scene {
   minimapUseOnly_tileIsOccupied(x: number, y: number) {
     return (
       TILE_MAPPING.WALLS_ITEMS_DOORS.includes(this.groundLayer.getTileAt(x, y)?.index) ||
-      this.tileHasStuff(x, y)
+      this.occupiedTiles.has(`${x},${y}`)
     )
   }
 
   tileHasStuff(x: number, y: number) {
-    return this.stuffs
-      .filter(stuff => !stuff.dead)
-      .find(stuff => this.map.worldToTileX(stuff.x) === x && this.map.worldToTileY(stuff.y) === y)
+    return this.occupiedTiles.has(`${x},${y}`)
+    // return this.stuffs
+    //   .filter(stuff => !stuff.dead)
+    //   .find(stuff => this.map.worldToTileX(stuff.x) === x && this.map.worldToTileY(stuff.y) === y)
   }
 
   pathfindingGrid!: Pathfinding.Grid
@@ -311,9 +341,10 @@ export class GameScene extends Phaser.Scene {
 
   putPlayerInStartRoom() {
     const rooms = this.rooms
-    const startRoom = this.startRoom = rooms.shift()!;
+    const startRoom = rooms.shift()!;
+    this.startRoom = startRoom as RoomWithEnemies;
     startRoom.hasSpawnedPowerup = true
-    const otherRooms = this.otherRooms = Phaser.Utils.Array.Shuffle(rooms);
+    this.otherRooms = Phaser.Utils.Array.Shuffle(rooms);
 
     // Place the player in the first room
     this.fellerRoom = startRoom!;
@@ -363,10 +394,10 @@ export class GameScene extends Phaser.Scene {
     for (let door of room.getDoorLocations()) {
       const [realDoorX, realDoorY] = [door.x + room.x, door.y + room.y]
       if ((
-           x + 1 === realDoorX && y === realDoorY // left
-        || x - 1 === realDoorX && y === realDoorY // right
-        || x === realDoorX && y + 1 === realDoorY // up
-        || x === realDoorX && y - 1 === realDoorY // down
+           (x + 1 === realDoorX && y === realDoorY) // left
+        || (x - 1 === realDoorX && y === realDoorY) // right
+        || (x === realDoorX && y + 1 === realDoorY) // up
+        || (x === realDoorX && y - 1 === realDoorY) // down
         || Phaser.Math.Distance.BetweenPoints(this.map.tileToWorldXY(realDoorX, realDoorY)!, { x, y }) < threshold
       )) {
         return true
@@ -418,53 +449,111 @@ export class GameScene extends Phaser.Scene {
       }
 
       if (object) {
-        object.setActive(false).setVisible(false)
+        // If room is already revealed (like the first room), make stuff visible immediately
+        const isRevealed = this.revealedRooms.has(room.guid)
+        object.setActive(isRevealed).setVisible(isRevealed)
         this.stuffs.push(object)
         this.makeTileUnwalkable(x, y)
         this.debug && console.log(this.walkableTilesAs01)
+
+        // Update room cache
+        const roomGuid = room.guid
+        if (!this.stuffsByRoom.has(roomGuid)) {
+          this.stuffsByRoom.set(roomGuid, [])
+        }
+        this.stuffsByRoom.get(roomGuid)!.push(object)
       }
     }
     return tries
   }
 
   makeTileUnwalkable(x: number, y: number) {
-    const newWalkable = this.walkableTilesAs01.map((row, _y) => row.map((tile, _x) => {
-      return x === _x && y === _y ? 1 : tile
-    }))
-    this.walkableTilesAs01 = newWalkable
-    this.debug && console.log({ newWalkable })
+    this.walkableTilesAs01[y][x] = 1
+    this.occupiedTiles.add(`${x},${y}`)
+    // Recreate pathfinding grid so enemies use updated walkable tiles
+    this.pathfindingGrid = new Pathfinding.Grid(this.walkableTilesAs01)
+    this.debug && console.log({ walkableTilesAs01: this.walkableTilesAs01 })
   }
 
-  createNewLevel() {
-    this.creatingNewLevel = true
-    // Ensure physics is running for the new level
-    this.physics.world.resume()
-    this.revealedRooms = new Set()
-    this.enemies = []
 
-    this.level++
-    // Proactively tear down any bullet colliders/groups before rebuilding the tilemap
+  makeTileWalkable(x: number, y: number) {
+    this.walkableTilesAs01[y][x] = 0
+    this.occupiedTiles.delete(`${x},${y}`)
+    // Recreate pathfinding grid so enemies use updated walkable tiles
+    this.pathfindingGrid = new Pathfinding.Grid(this.walkableTilesAs01)
+    this.debug && console.log({ walkableTilesAs01: this.walkableTilesAs01 })
+  }
+
+  cleanupLevel() {
+    // Immediately destroy all enemies (override their 30-second delay)
+    this.enemies.forEach(enemy => {
+      if (enemy && !enemy.dead) {
+        enemy.destroy()
+      } else if (enemy) {
+        // Force immediate destroy for dead enemies still waiting for timeout
+        enemy.destroy()
+      }
+    })
+
+    // Destroy all stuff
+    this.stuffs.forEach(stuff => stuff?.destroy())
+
+    // Destroy powerups
+    this.powerups.forEach(p => p?.destroy())
+
+    // Destroy feller bullets
     try {
       this.feller?.destroyBulletColliders()
       this.feller?.bullets?.destroy(true)
     } catch {}
-    this.createDungeon()
-    this.createTilemap()
-    this.createWalkableGrid()
-    this.addStuffToRooms()
-    this.putPlayerInStartRoom()
-    this.setupCamera()
-    this.addDoorSpritesToRooms()
-    this.createWalkableGrid()
-    this.spawnEnemiesInRooms()
 
-    this.powerups.forEach(p => p?.destroy())
+    // Clear all caches
+    this.enemies = []
+    this.enemiesByRoom.clear()
+    this.stuffs = []
+    this.stuffsByRoom.clear()
+    this.occupiedTiles.clear()
     this.powerups = []
 
-    EventEmitter.emit('levelChanged', this.level, this.startRoom.guid)
+    // Reset physics world colliders
+    // this.physics.world.colliders.destroy()
+  }
 
-    this.creatingNewLevel = false
-    EventEmitter.emit('drawMinimap')
+  createNewLevel() {
+    try {
+      this.debug && console.log(`Creating level ${this.level + 1}`)
+      this.creatingNewLevel = true
+
+      // Properly clean up the previous level first
+      this.cleanupLevel()
+
+      // Ensure physics is running for the new level
+      this.physics.world.resume()
+      this.revealedRooms = new Set()
+
+      this.level++
+
+      this.createDungeon()
+      this.createTilemap()
+      this.createWalkableGrid()
+      this.addStuffToRooms()
+      this.putPlayerInStartRoom()
+      this.setupCamera()
+      this.addDoorSpritesToRooms()
+      this.createWalkableGrid()
+      this.spawnEnemiesInRooms()
+
+      EventEmitter.emit('levelChanged', this.level, this.startRoom.guid)
+
+      this.creatingNewLevel = false
+      EventEmitter.emit('drawMinimap')
+      this.debug && console.log(`Level ${this.level} created successfully`)
+    } catch (error) {
+      console.error('Error creating new level:', error)
+      this.creatingNewLevel = false
+      // Attempt to restart the game if level creation fails
+      // this.restart()
+    }
   }
 
   spawnPowerUp(room: RoomWithEnemies, type?: PowerUpType, worldX?: number, worldY?: number) {
@@ -527,37 +616,68 @@ export class GameScene extends Phaser.Scene {
     if (room.enemies?.every(e => e.dead) && !room.hasSpawnedPowerup) {
       room.hasSpawnedPowerup = true
       this.spawnPowerUp(room)
-      console.log('room complete', room.guid)
+      this.debug && console.log('room complete', room.guid)
       EventEmitter.emit('roomComplete', room.guid)
     }
   }
 
   checkLevelComplete() {
     const roomsWithEnemies = this.rooms.filter(room => room.enemies?.filter(e => !e.dead).length > 0)
-    // console.log({roomsWithEnemies})
+    // this.debug && console.log({roomsWithEnemies})
     if (roomsWithEnemies.length > 0) {
       return false
     }
     EventEmitter.emit('levelCompleted', this.level)
     this.levellingUp = true
     this.feller.sprite.setVelocity(0)
-    // Pause physics to prevent in-flight collider updates from touching destroyed groups
+
+    // Pause physics FIRST to prevent any collider updates during cleanup
     this.physics.world.pause()
-    // Ensure bullet-vs-layer and other bullet colliders are removed before groups are destroyed
+
+    // Destroy all colliders before destroying any groups/arrays they reference
+    // This must happen before any groups are destroyed
     this.feller?.destroyBulletColliders()
     this.physics.world.colliders.destroy()
-    this.deactivateSprites()
+
+    // Use setTimeout to ensure colliders are fully destroyed before destroying groups
+    // This prevents race conditions where Phaser's internal update loop tries to
+    // access destroyed groups via colliders that haven't been fully removed yet
+    setTimeout(() => {
+      this.deactivateSprites()
+    }, 0)
   }
 
   deactivateSprites() {
     this.scene.pause();
-    this.enemies
-      .filter((e: any) => e?.bullets)
-      .forEach((e: any) => e.bullets?.destroy(true));
 
-    this.enemies.forEach(e => e.destroy())
-    this.stuffs.forEach(s => s.destroy())
-    this.feller?.bullets?.destroy(true)
+    // Clean up enemy bullets - check that groups exist and have valid children before destroying
+    this.enemies
+      .filter((e: any) => e?.bullets && e.bullets.children)
+      .forEach((e: any) => {
+        try {
+          // Verify the group's children property is still valid (has contains method)
+          if (e.bullets.children && typeof e.bullets.children.contains === 'function') {
+            e.bullets.destroy(true)
+          }
+        } catch (err) {
+          // Group may already be destroyed or invalid, ignore
+        }
+      });
+
+    // Note: We don't destroy enemies and stuff here during level completion
+    // They remain in deactivated state until cleanupLevel() is called
+    // This prevents the 30-second enemy destroy timeout from interfering with level transitions
+
+    // Destroy feller bullets only if they still exist and are valid
+    if (this.feller?.bullets &&
+        this.feller.bullets.children &&
+        typeof this.feller.bullets.children.contains === 'function') {
+      try {
+        this.feller.bullets.destroy(true)
+      } catch (err) {
+        // Group may already be destroyed or invalid, ignore
+      }
+    }
   }
 
   demonsToFell = 0
@@ -670,6 +790,13 @@ export class GameScene extends Phaser.Scene {
       enemy.attack(this.feller)
     });
     this.enemies.push(enemy)
+
+    // Update room cache
+    const roomGuid = enemy.room.guid
+    if (!this.enemiesByRoom.has(roomGuid)) {
+      this.enemiesByRoom.set(roomGuid, [])
+    }
+    this.enemiesByRoom.get(roomGuid)!.push(enemy)
   }
 
   fixedUpdate(time: any, delta: any) {
@@ -696,6 +823,10 @@ export class GameScene extends Phaser.Scene {
     if (Phaser.Input.Keyboard.JustDown(this.keys?.esc)) {
       EventEmitter.emit('pause')
       this.scene.pause()
+    }
+
+    if (process.env.NODE_ENV === 'development' && Phaser.Input.Keyboard.JustDown(this.keys?.backtick)) {
+      this.spawnPowerUp(this.fellerRoom)
     }
 
     this.feller.fixedUpdate(time, delta);

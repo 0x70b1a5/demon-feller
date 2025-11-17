@@ -11,11 +11,11 @@ export default class PowerUp extends Phaser.Physics.Arcade.Sprite {
   whiteCircle!: Phaser.GameObjects.Sprite
   whiteRing!: Phaser.GameObjects.Graphics
   guid: string
-
+  debug = false
   constructor(scene: GameScene, x: number, y: number, powerupType: PowerUpType) {
-    console.log({ powerupType })
     const bg = scene.physics.add.sprite(x, y, 'powerupBG')
     super(scene, x, y, 'powerup'+powerupType);
+    this.debug && console.log({ powerupType })
     this.guid = uuid()
     this.powerupType = powerupType;
     // Hide the filled circle and use a stroked ring to reduce overdraw

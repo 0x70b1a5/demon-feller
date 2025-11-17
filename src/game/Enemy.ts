@@ -71,7 +71,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this
       .setOrigin(0.5, 0.5)
       .setBounce(1, 1)
-    
+
     if (!(x && y)) {
       [x, y] = scene.findUnoccupiedRoomTile(config.room, 3)
     }
@@ -79,7 +79,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.debug && console.log('actually spawning enemy at', { x, y })
 
     const [spawnX, spawnY] = [
-      scene.map.tileToWorldX(this.room.x + x)! + scene.map.tileWidth / 2, 
+      scene.map.tileToWorldX(this.room.x + x)! + scene.map.tileWidth / 2,
       scene.map.tileToWorldY(this.room.y + y)! + scene.map.tileHeight / 2
     ]
 
@@ -97,7 +97,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       .fillRect(this.x, this.y, 10, 10)
     }
 
-    console.log('enemy constructed:', this)
+    this.debug && console.log('enemy constructed:', this)
   }
 
   ensureIsInRoom(x: number, y: number) {
@@ -105,14 +105,14 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this
       .setX(
         Phaser.Math.Clamp(
-          scene.map.tileToWorldX(x)!, 
-          scene.map.tileToWorldX(this.room.x + 2)!, 
+          scene.map.tileToWorldX(x)!,
+          scene.map.tileToWorldX(this.room.x + 2)!,
           scene.map.tileToWorldX(this.room.x + this.room.width - 2)!
         ))
       .setY(
         Phaser.Math.Clamp(
-          scene.map.tileToWorldY(y)!, 
-          scene.map.tileToWorldY(this.room.y + 2)!, 
+          scene.map.tileToWorldY(y)!,
+          scene.map.tileToWorldY(this.room.y + 2)!,
           scene.map.tileToWorldY(this.room.y + this.room.height - 2)!
       ))
 
@@ -129,11 +129,11 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     this.stun = by.knockback
     this.stunImmunity = this.stun * 2
-    // radians 
+    // radians
     const knockbackDir = byBullet ? byBullet.angle : Phaser.Math.Angle.BetweenPoints(by, this)
     const knockbackVelocityX = (by.x! < this.x ? 1 : -1) * (Math.sin(knockbackDir) + 100);
     const knockbackVelocityY = (by.y! < this.y ? 1 : -1) * (Math.cos(knockbackDir) + 100);
-    
+
     this.setVelocityX(knockbackVelocityX);
     this.setVelocityY(knockbackVelocityY);
 
@@ -143,7 +143,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       rotation: {
         value: { from: Phaser.Math.DegToRad(-45), to: origRotation },
         duration: this.stun,
-        repeat: false,  
+        repeat: false,
         ease: 'Elastic',
       },
     });
@@ -161,15 +161,15 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  fixedUpdate(time: any, delta: any) {    
+  fixedUpdate(time: any, delta: any) {
     if (this.dead || !this.body) return
-    
+
     super.preUpdate(time, delta);
 
     if (this.debug) {
       this.gfx
         .clear()
-        // .lineBetween(this.x, this.y, 
+        // .lineBetween(this.x, this.y,
         //   this.scene.map.tileToWorldX(this.room.centerX)!, this.scene.map.tileToWorldY(this.room.centerY)!
         // )
         if(this.target)
@@ -188,7 +188,7 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
       if (this.stunImmunity > 0) this.stunImmunity -= delta
 
       this.minimapMarker.setX(this.x).setY(this.y)
-    } else {
+    } else if (this.active && this.visible) {
       this.showIfInRoom()
     }
   }
@@ -202,10 +202,10 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     if (this.room.guid === this.scene.fellerRoom.guid) {
       if (!this.visible || !this.active) {
         this.activate()
-      } 
+      }
       this.seenFeller = true
       this.target = this.scene.feller.sprite
-      
+
       if(this.debug) {
         this.gfx.setDefaultStyles({ fillStyle: { color: 0x0000ff }})
       }
@@ -238,12 +238,12 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     }
 
     this.pathingCooldown = this.PATHING_COOLDOWN_MS
-    
+
     this.path = this.scene.pathfinder.findPath(
-      this.scene.map.worldToTileX(this.x)!, 
-      this.scene.map.worldToTileY(this.y)!, 
-      this.scene.map.worldToTileX(this.target.x)!, 
-      this.scene.map.worldToTileY(this.target.y)!, 
+      this.scene.map.worldToTileX(this.x)!,
+      this.scene.map.worldToTileY(this.y)!,
+      this.scene.map.worldToTileX(this.target.x)!,
+      this.scene.map.worldToTileY(this.target.y)!,
       this.scene.pathfindingGrid.clone()
     )
 
@@ -289,6 +289,6 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
     this.setActive(false)
     this.minimapMarker?.destroy()
     this.body?.destroy()
-    setTimeout(() => this.destroy(), 30_000)
+    setTimeout(() => this.destroy(), 1_000)
   }
 }

@@ -2,13 +2,14 @@ import { Scene } from "phaser";
 import EventEmitter from "./EventEmitter";
 import { GameScene, RoomWithEnemies } from "./scenes/GameScene";
 import Bullet from "./Bullet";
+import Enemy from "./Enemy";
 export type NESW = 'N' | 'E' | 'S' | 'W'
 export default class Door extends Phaser.Physics.Arcade.Sprite {
   room!: RoomWithEnemies;
   scene!: GameScene;
   spawned = false
   nesw!: NESW
-  
+  debug = false
   constructor(scene: GameScene, room: RoomWithEnemies, nesw: NESW, x:number, y:number, texture:string='door') {
     super(scene, x, y, texture)
     this.scene = scene
@@ -43,11 +44,11 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
 
     this.setVisible(false)
 
-    let overlapper = scene.physics.add.overlap(this, scene.feller.sprite, (me, feller) => {
+    scene.physics.add.overlap(this, scene.feller.sprite, (me, feller) => {
       // when feller enters a room for the first time, push him in and lock
       scene.feller.sprite.setVelocity(0)
       const push = [0,0]
-      const pushFactor = 1.75
+      const pushFactor = 0.5
 
       switch(nesw) {
         case 'E':
@@ -66,37 +67,79 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
           break
       }
 
-      console.log(push[0], push[1])
+      this.debug && console.log(push[0], push[1])
       this.scene.tweens.add({
         targets: this.scene.feller.sprite,
         x: scene.feller.sprite.x + push[0],
         y: scene.feller.sprite.y + push[1],
-        duration: 1000,
+        duration: 500,
         ease: 'Power2'
       })
-      scene.feller.iframes += 2000
+      if (scene.feller?.iframes <= 1) {
+        scene.feller.iframes += 2000
+      }
 
       EventEmitter.emit('spawnDoors', this.room.guid)
     })
 
-    scene.physics.add.collider(this, scene.enemies)
+    scene.physics.add.collider(this, scene.enemies, (me, enemyCollider) => {
+      const enemy = enemyCollider as Enemy
+      enemy.setVelocity(0)
+
+      const push = [0,0]
+      const pushFactor = 0.1
+
+      switch(nesw) {
+        case 'E':
+          push[0] = -this.width * pushFactor
+          break
+        case 'W':
+          push[0] = this.width * pushFactor
+          break
+        case 'S':
+          push[1] = -this.height * pushFactor
+          break
+        case 'N':
+          push[1] = this.height * pushFactor
+          break
+        default:
+          break
+      }
+
+      this.debug && console.log(push[0], push[1])
+      this.scene.tweens.add({
+        targets: enemy,
+        x: enemy.x + push[0],
+        y: enemy.y + push[1],
+        duration: 1000,
+        ease: 'Power2'
+      })
+    })
     scene.physics.add.overlap(this, scene.feller.bullets, (me, bullet) => {
       (bullet as Bullet).bulletHitSomething(this.scene, 1, this.angle)
     })
 
-    EventEmitter.on('spawnDoors', (guid: string) => {
-      if (guid === this.room.guid && !this.spawned) {
-        scene.physics.world.removeCollider(overlapper)
-        this.spawned = true
-        this.setVisible(true)
-        scene.physics.add.collider(this, [scene.feller.sprite])
-      }
-    })
+    EventEmitter.on('spawnDoors', this.spawnListener.bind(this))
+    EventEmitter.on('roomComplete', this.roomCompleteListener.bind(this))
+  }
 
-    EventEmitter.on('roomComplete', (guid: string) => {
-      if (guid === this.room.guid) {
-        this.destroy()
-      }
-    })
+  spawnListener (guid: string) {
+    if (guid === this.room.guid && !this.spawned) {
+      this.spawned = true
+      this.setVisible(true)
+      this.scene.physics.add.collider(this, [this.scene.feller.sprite])
+    }
+  }
+
+  roomCompleteListener (guid: string) {
+    if (guid === this.room.guid) {
+      this.destroy()
+    }
+  }
+
+  destroy() {
+    EventEmitter.off('spawnDoors', this.spawnListener.bind(this))
+    EventEmitter.off('roomComplete', this.roomCompleteListener.bind(this))
+    super.destroy()
   }
 }

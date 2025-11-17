@@ -17,13 +17,13 @@ export default class Covetor extends Enemy {
     super(scene, config, x, y)
 
     this.health *= config.level
-    this.damage = config.level 
-    
+    this.damage = config.level
+
     this.PULL_COOLDOWN_MS = Math.max(750, this.PULL_COOLDOWN_MS / Math.sqrt(config.level/2 || 1))
 
     this.setSize(190, 190)
 
-    if ((!scene.anims.exists('gambler-pull'))) {   
+    if ((!scene.anims.exists('gambler-pull'))) {
       scene.anims.create({
         key: 'gambler-pull',
         frames: scene.anims.generateFrameNumbers('gambler-sheet', { frames: [1,0,0,0] }),
@@ -35,11 +35,11 @@ export default class Covetor extends Enemy {
   }
 
   pull() {
-    if (this.stun > 0) return 
+    if (this.stun > 0) return
 
     this.anims.play('gambler-pull')
     EventEmitter.emit('playSound', 'chaching')
-    
+
     const angle = Phaser.Math.Angle.BetweenPoints(this, this.scene.feller.sprite)
     const bullet = this.bullets.getFirstDead()
     bullet.configure(300, 1, angle)
@@ -49,14 +49,14 @@ export default class Covetor extends Enemy {
     this.setDepth(bullet.depth+1)
 
     this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {
-      this.scene.feller.hit(this);
-      (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
+      this?.scene?.feller?.hit(this);
+      (bullet as Bullet)?.bulletHitSomething(this?.scene, this.damage, angle)
     })
 
     this.scene.physics.add.collider(bullet, [
       this.scene.groundLayer, this.scene.shadowLayer
     ], () => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle))
-    
+
     this.scene.physics.add.overlap(bullet, [
       ...this.scene.stuffs, ...this.scene.rooms.flatMap(r => r.doorSprites)
     ], (_bullet, _stuff) => {
@@ -66,7 +66,7 @@ export default class Covetor extends Enemy {
       (stuff?.hit && stuff.hit(this.damage));
       (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
     })
-    
+
     this.pullCooldown = this.PULL_COOLDOWN_MS;
   }
 
@@ -104,7 +104,7 @@ export default class Covetor extends Enemy {
       maxSize: 15, // 30 bullets in total
       runChildUpdate: true // If you need to run update on each bullet
     });
-  
+
     // Create the initial pool of bullets
     for (let i = 0; i < 15; i++) {
       const bullet = new Bullet(this.scene, 0, 0, 'coin');

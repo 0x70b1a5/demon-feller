@@ -21,7 +21,7 @@ export default class Pig extends Enemy {
     this.health *= config.level
     this.damage = config.level
 
-    if ((!scene.anims.exists('pig-walk'))) {   
+    if ((!scene.anims.exists('pig-walk'))) {
       scene.anims.create({
         key: 'pig-walk',
         frames: scene.anims.generateFrameNumbers('pig-sheet', { frames: [0,1,0,2] }),
@@ -31,7 +31,7 @@ export default class Pig extends Enemy {
     }
 
     this.anims.play('pig-walk')
-  
+
     this.createBulletPool()
   }
 
@@ -41,7 +41,7 @@ export default class Pig extends Enemy {
       maxSize: 5, // 30 bullets in total
       runChildUpdate: true // If you need to run update on each bullet
     });
-  
+
     // Create the initial pool of bullets
     for (let i = 0; i < 5; i++) {
       const bullet = new Bullet(this.scene, 0, 0, 'bigbullet');
@@ -51,8 +51,8 @@ export default class Pig extends Enemy {
   }
 
   spit() {
-    if (this.stun > 0) return 
-    
+    if (this.stun > 0) return
+
     EventEmitter.emit('playSound', 'piggrunt')
     const angle = Phaser.Math.Angle.BetweenPoints(this, this.scene.feller.sprite)
     const bullet = this.bullets.getFirstDead()
@@ -60,14 +60,14 @@ export default class Pig extends Enemy {
     bullet.fire(this.x, this.y)
 
     this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {
-      this.scene.feller.hit(this);
-      (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
+      this?.scene?.feller?.hit(this);
+      (bullet as Bullet)?.bulletHitSomething(this?.scene, this.damage, angle)
     })
 
     this.scene.physics.add.collider(bullet, [
       this.scene.groundLayer, this.scene.shadowLayer
     ], () => (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle))
-    
+
     this.scene.physics.add.overlap(bullet, [
       ...this.scene.stuffs,
       ...this.scene.rooms.flatMap(r => r.doorSprites)
@@ -78,7 +78,7 @@ export default class Pig extends Enemy {
       (stuff?.hit && stuff.hit(this.damage));
       (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
     })
-    
+
     this.spitCooldown = this.SPIT_COOLDOWN_MS;
   }
 

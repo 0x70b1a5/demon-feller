@@ -11,7 +11,7 @@ interface PauseMenuProps extends React.HTMLAttributes<HTMLDivElement> {
   level: number
 }
 
-type Tab = 
+type Tab =
   | 'main'
   | 'controls'
   | 'credits'
@@ -30,10 +30,10 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, controlsGuide, lev
     { name: 'PIG', damage: 1, desc: '"If thou hast a mind to cast us out," they said, "send us into the herd of swine." Mat 8:31', health: 6, image: 'pig.png' },
     { name: 'BRAGGART', damage: 1, desc: '"Why is earth and ashes proud?" Sir 10:9', health: 3, image: 'goo.png' },
     { name: 'LOST SOUL', damage: 1, desc: '"Fear ye not them that kill the body, and are not able to kill the soul: but rather fear him that can destroy both soul and body in hell." Mat 10:28', health: 2, image: 'soul.png' },
-    { name: 'COVETOR', damage: 1, desc: '"Let your manners be without covetousness, contented with such things as you have." Heb 13:5', health: 8, image: 'gambler.png' }, 
+    { name: 'COVETOR', damage: 1, desc: '"Let your manners be without covetousness, contented with such things as you have." Heb 13:5', health: 8, image: 'gambler.png' },
   ]
 
-  let selectedDaemon = daemons[indexIndex] 
+  let selectedDaemon = daemons[indexIndex]
 
   useEffect(() => {
     selectedDaemon = daemons[indexIndex]
@@ -44,30 +44,37 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, controlsGuide, lev
   }
 
   return (
-    <div className='pause-menu shado overlay'>
+    <div
+    className='pause-menu shado overlay'
+    onKeyUp={(e) => {
+      if (e.key === 'Escape') {
+        onUnpause()
+      }
+    }}
+    >
       <div className='notice'>
         <h1>GAME PAUSED</h1>
         <div className='btn shado resume' onClick={onUnpause}>RESUME</div>
         <div className='tabs row'>
-          <button 
+          <button
             className={classNames('tab btn shado', { active: activeTab === 'main' })}
             onClick={()=> setActiveTab('main')}
           >
             MAIN
           </button>
-          <button 
+          <button
             className={classNames('tab btn shado', { active: activeTab === 'credits' })}
             onClick={()=> setActiveTab('credits')}
           >
             CREDITS
           </button>
-          <button 
+          <button
             className={classNames('tab btn shado', { active: activeTab === 'controls' })}
             onClick={()=> setActiveTab('controls')}
           >
             CONTROLS
           </button>
-          <button 
+          <button
             className={classNames('tab btn shado', { active: activeTab === 'index' })}
             onClick={()=> setActiveTab('index')}
           >
@@ -79,7 +86,7 @@ const PauseMenu: React.FC<PauseMenuProps> = ({ restartButton, controlsGuide, lev
           <div className='sxn shado'>
             <h2>MINIMAP:</h2>
             <div className='x'>
-              <input type="checkbox" style={{ transform: 'scale(1.75)', marginRight: 16 }} checked={minimapTransparent} 
+              <input type="checkbox" style={{ transform: 'scale(1.75)', marginRight: 16 }} checked={minimapTransparent}
                 onChange={(e) => {
                   setMinimapTransparent(old => !minimapTransparent)
                   onMinimapSizeChange('', !minimapTransparent)

@@ -84,5 +84,20 @@ export default class Bullet extends Phaser.Physics.Arcade.Sprite {
   }
 
   fixedUpdate(time: number, delta: number) {
+    //  if bullet is inside a wall, deactivate it immediately
+    if (this.active && this.scene?.groundLayer) {
+      // Check if bullet is inside a colliding tile
+      const tileX = this.scene.map.worldToTileX(this.x)
+      const tileY = this.scene.map.worldToTileY(this.y)
+
+      if (tileX !== null && tileY !== null) {
+        const tile = this.scene.groundLayer.getTileAt(tileX, tileY)
+        if (tile && tile.collides) {
+          // Bullet spawned inside a wall - deactivate immediately to prevent clipping
+          this.bulletHitSomething(this.scene, 0, this.angle)
+          return
+        }
+      }
+    }
   }
 }

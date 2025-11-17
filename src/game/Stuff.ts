@@ -11,7 +11,7 @@ export interface StuffConfig {
 
 export default class Stuff extends Phaser.Physics.Arcade.Sprite {
   debug = false
-  
+
   dying = false
   dead = false
   gfx!: Phaser.GameObjects.Graphics;
@@ -38,7 +38,7 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
     this.room = config.room
     this.gfx = this.scene.add.graphics({ lineStyle: { color: 0x00ff00 }, fillStyle: { color: 0x00ff00, alpha: 0.5 } })
     this.guid = uuid()
-    
+
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
@@ -50,15 +50,26 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
 
     this.debug && this.gfx.strokeCircle(this.x, this.y, this.height/2)
 
-    EventEmitter.on('spawnDoors', (guid: string) => {
-      if (this.room.guid === guid) {
-        this.setVisible(true)
-      }
-    }).on('levelChanged', (level: number, guid: string) => {
-      if (this.room.guid === guid) {
-        this.setVisible(true)
-      }
-    })
+    EventEmitter.on('spawnDoors', this.spawnListener.bind(this))
+    EventEmitter.on('levelChanged', this.levelListener.bind(this))
+  }
+
+  spawnListener (guid: string) {
+    if (this?.room?.guid === guid && !this.dead && !this.dying) {
+      this.setVisible(true)
+    }
+  }
+
+  levelListener (level: number, guid: string) {
+    if (this?.room?.guid === guid && !this.dead && !this.dying) {
+      this.setVisible(true)
+    }
+  }
+
+  destroy() {
+    EventEmitter.off('spawnDoors', this.spawnListener.bind(this))
+    EventEmitter.off('levelChanged', this.levelListener.bind(this))
+    super.destroy()
   }
 
   hit(damage = 1) {
@@ -89,7 +100,10 @@ export default class Stuff extends Phaser.Physics.Arcade.Sprite {
     this.dead = true
     this.setVisible(false)
     this.setActive(false)
-    this.body?.destroy()
-    EventEmitter.emit('recreateWalkableGrid')
+    // Convert world coordinates to tile coordinates
+    const tileX = this.scene.map.worldToTileX(this.x)!
+    const tileY = this.scene.map.worldToTileY(this.y)!
+    this.scene.makeTileWalkable(tileX, tileY)
+    setTimeout(() => this?.body?.destroy(), 0)
   }
 }

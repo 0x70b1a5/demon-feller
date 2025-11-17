@@ -35,17 +35,17 @@ export class AudioScene extends Phaser.Scene {
     const DEFAULT_VOLUME = 0.5
 
     // let startMuted: any = localStorage.getItem(prefix+'isMuted') || false
-    // if (startMuted) startMuted = (startMuted === true || startMuted === 'true') 
+    // if (startMuted) startMuted = (startMuted === true || startMuted === 'true')
     // let startMusicVolume: any = +localStorage.getItem(prefix+'musicVolume')!
     // let startSfxVolume: any = +localStorage.getItem(prefix+'sfxVolume')!
-    
+
     // this.musicVolume = isNaN(startMusicVolume) ? DEFAULT_VOLUME : startMusicVolume
     // this.sfxVolume = isNaN(startSfxVolume) ? DEFAULT_VOLUME : startSfxVolume
     // this.sound.setMute(startMuted)
 
-    this.musicVolume = DEFAULT_VOLUME 
+    this.musicVolume = DEFAULT_VOLUME
     this.sfxVolume = DEFAULT_VOLUME
-    this.sound.setMute(false)
+    this.sound?.setMute(false)
 
     // console.log({ startMusicVolume, startSfxVolume, startMuted })
 
@@ -73,19 +73,45 @@ export class AudioScene extends Phaser.Scene {
     }).on('unpause', () => {
       this.scene.resume('GameScene')
     }).on('muteChanged', (isMuted: boolean) => {
-      this.sound.setMute(isMuted)
+      try {
+        this.sound?.setMute(isMuted)
+      } catch (error) {
+        console.error('error setting mute', error)
+      }
     }).on('musicVolumeChanged', (volume: number) => {
-      this.musicVolume = volume
-      this.currentSong?.setVolume(volume)
+      try {
+        this.musicVolume = volume
+        this.currentSong?.setVolume(volume)
+      } catch (error) {
+        console.error('error setting music volume', error)
+      }
     }).on('sfxVolumeChanged', (volume: number) => {
-      this.sfxVolume = volume 
-      this.grunt.play({ volume: this.sfxVolume })
-    }).on('musicRewind', (volume: number) => {
+      try {
+        this.sfxVolume = volume
+        try {
+          this.grunt.play({ volume: this.sfxVolume })
+        } catch (error) {
+          console.error('error playing grunt', error)
+        }
+      } catch (error) {
+        console.error('error playing grunt', error)
+      }
+    }).on('musicRewind', () => {
       // ?
-    }).on('musicForward', (volume: number) => {
+    }).on('musicForward', () => {
       this.playRandomMusic()
     }).on('playSound', (key: string, config: Phaser.Types.Sound.SoundConfig) => {
-      this.sound.play(key, { volume: this.sfxVolume, ...config })
+      try {
+        this.sound?.play(key, { volume: this.sfxVolume, ...config })
+      } catch (error) {
+        console.error('error playing sound', error)
+      }
+    }).on('nowPlaying', (name: string) => {
+      try {
+        this.currentSong?.setVolume(this.musicVolume)
+      } catch (error) {
+        console.error('error setting music volume', error)
+      }
     })
 
     this.loadUnloadedSongs()
@@ -152,7 +178,7 @@ export class AudioScene extends Phaser.Scene {
       const zong = (audioFiles as any)?.[this.currentSong.key as any]
       if (zong && !this.sound.mute)
         EventEmitter.emit('nowPlaying', zong.split('/').pop().replace(/\.(mp3|ogg)/, ''))
-      
+
       // When the music ends, play another track
       this.currentSong.on('complete', () => {
         this.playRandomMusic();

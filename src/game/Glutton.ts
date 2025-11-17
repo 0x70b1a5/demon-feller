@@ -37,7 +37,7 @@ export default class Glutton extends Enemy {
       maxSize: 24, // 30 bullets in total
       runChildUpdate: true // If you need to run update on each bullet
     });
-  
+
     // Create the initial pool of bullets
     for (let i = 0; i < 24; i++) {
       const bullet = new Bullet(this.scene, 0, 0, 'bigbullet');
@@ -70,12 +70,12 @@ export default class Glutton extends Enemy {
       bullet.configure(150, 1.25, angle)
 
       assert(bullet.body && this.body)
-    
+
       bullet.fire(this.x, this.y)
 
       this.scene.physics.add.overlap(bullet, this.scene.feller.sprite, (bullet, _enemy) => {
-        this.scene.feller.hit(this);
-        (bullet as Bullet).bulletHitSomething(this.scene, this.damage, angle)
+        this?.scene?.feller?.hit(this);
+        (bullet as Bullet)?.bulletHitSomething(this?.scene, this.damage, angle)
       })
 
       this.scene.physics.add.collider(bullet, [
@@ -105,7 +105,7 @@ export default class Glutton extends Enemy {
     EventEmitter.emit('playSound', 'belcherbreathe')
     super.hit(by)
   }
-  
+
   destroy(fromScene?: boolean | undefined): void {
     this?.bullets?.destroy()
     super.destroy()

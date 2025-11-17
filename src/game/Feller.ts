@@ -73,7 +73,7 @@ export default class Feller {
       })
     }
 
-    console.log('newed up a feller')
+    this.debug && console.log('newed up a feller')
 
     this.createNewSprite(x, y)
 
@@ -301,7 +301,7 @@ export default class Feller {
       this.scene.map.tileWidth * 1/(cos || 1),  // secant (theta) = hyp/adj. if would div by 0 then use width
     ]
 
-    console.log({ tMaxX, tMaxY, tDeltaX, tDeltaY, sin, cos, theta })
+    this.debug && console.log({ tMaxX, tMaxY, tDeltaX, tDeltaY, sin, cos, theta })
 
     let occupiedTile = 0
     let tries = 0
@@ -316,7 +316,7 @@ export default class Feller {
       }
       this.debugGraphics.fillPoint(this.scene.map.tileToWorldX(X)!, this.scene.map.tileToWorldY(Y)!, 5)
       occupiedTile = this.scene.walkableTilesAs01?.[Y]?.[X]
-      console.log({ X, Y, occupiedTile, tDeltaX, tDeltaY, tMaxX, tMaxY, stepX, stepY })
+      this.debug && console.log({ X, Y, occupiedTile, tDeltaX, tDeltaY, tMaxX, tMaxY, stepX, stepY })
       if (occupiedTile) return { x: X, y: Y }
     }
 
@@ -408,7 +408,7 @@ export default class Feller {
 
     this.scene.cameras.main.flash(10, 255, 100, 100, true)
 
-    console.log('feller hit by enemy', by, this.hp)
+    this.debug && console.log('feller hit by enemy', by, this.hp)
 
     this.hp = Math.max(0, this.hp - Math.floor(by.damage))
 
