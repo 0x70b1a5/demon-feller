@@ -45,6 +45,7 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
     this.setVisible(false)
 
     scene.physics.add.overlap(this, scene.feller.sprite, (me, feller) => {
+      if (this.spawned && scene.feller.iframes <= 0) return
       // when feller enters a room for the first time, push him in and lock
       scene.feller.sprite.setVelocity(0)
       const push = [0,0]
@@ -82,39 +83,6 @@ export default class Door extends Phaser.Physics.Arcade.Sprite {
       EventEmitter.emit('spawnDoors', this.room.guid)
     })
 
-    scene.physics.add.collider(this, scene.enemies, (me, enemyCollider) => {
-      const enemy = enemyCollider as Enemy
-      enemy.setVelocity(0)
-
-      const push = [0,0]
-      const pushFactor = 0.1
-
-      switch(nesw) {
-        case 'E':
-          push[0] = -this.width * pushFactor
-          break
-        case 'W':
-          push[0] = this.width * pushFactor
-          break
-        case 'S':
-          push[1] = -this.height * pushFactor
-          break
-        case 'N':
-          push[1] = this.height * pushFactor
-          break
-        default:
-          break
-      }
-
-      this.debug && console.log(push[0], push[1])
-      this.scene.tweens.add({
-        targets: enemy,
-        x: enemy.x + push[0],
-        y: enemy.y + push[1],
-        duration: 1000,
-        ease: 'Power2'
-      })
-    })
     scene.physics.add.overlap(this, scene.feller.bullets, (me, bullet) => {
       (bullet as Bullet).bulletHitSomething(this.scene, 1, this.angle)
     })

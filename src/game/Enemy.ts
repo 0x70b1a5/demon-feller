@@ -183,6 +183,28 @@ export default class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.move(time, delta)
       } else {
         this.stun -= delta
+        // Are we inside a wall? Stop moving
+        if (this.active && this.scene?.groundLayer) {
+          // Check if bullet is inside a colliding tile
+          const tileX = this.scene.map.worldToTileX(this.x)
+          const tileY = this.scene.map.worldToTileY(this.y)
+
+          if (tileX !== null && tileY !== null) {
+            const tile = this.scene.groundLayer.getTileAt(tileX, tileY)
+            if (tile && tile.collides) {
+              this.setVelocity(0, 0)
+            }
+          }
+        }
+        // Are we inside a door? Also stop moving
+        if (this.active && this.scene?.rooms) {
+          const doors = this.scene.rooms.flatMap(room => room.getDoorLocations()).flat()
+          for (const door of doors) {
+            if (door.x === this.scene.map.worldToTileX(this.x) && door.y === this.scene.map.worldToTileY(this.y)) {
+              this.setVelocity(0, 0)
+            }
+          }
+        }
       }
 
       if (this.stunImmunity > 0) this.stunImmunity -= delta

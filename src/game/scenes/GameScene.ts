@@ -178,18 +178,18 @@ export class GameScene extends Phaser.Scene {
 
   createDungeon() {
     const dungeon = this.dungeon = new Dungeon({
-      // width: 35,
-      // height: 35,
-      // doorPadding: 2,
-      // rooms: {
-      //   width: { min: 5, max: 13 },
-      //   height: { min: 5, max: 13 },
-      // }
-      // DEBUG: SMALL DONJON
-      width: 21,
-      height: 21,
+      width: 35,
+      height: 35,
       doorPadding: 2,
-      rooms: { width: { min: 5, max: 5}, height: { min: 7, max: 7} }
+      rooms: {
+        width: { min: 5, max: 13 },
+        height: { min: 5, max: 13 },
+      }
+      // DEBUG: SMALL DONJON
+      // width: 21,
+      // height: 21,
+      // doorPadding: 2,
+      // rooms: { width: { min: 5, max: 5}, height: { min: 7, max: 7} }
     })
 
     return dungeon

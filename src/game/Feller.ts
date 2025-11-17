@@ -13,6 +13,7 @@ import Pig from "./Pig";
 
 export default class Feller {
   debug = false
+  isFeller = true
 
   RELOAD_COOLDOWN_MS = 1500
   ROSARY_COOLDOWN_MS = 15000
